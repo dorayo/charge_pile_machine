@@ -1,0 +1,5 @@
+### Send POST request with body as parameters
+POST http://127.0.0.1:8881/server/sendByToken
+Content-Type: application/x-www-form-urlencoded
+
+token=100&body=content

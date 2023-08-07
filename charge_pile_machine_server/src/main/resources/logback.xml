@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration scan="false" scanPeriod="10 seconds" debug="false">
+	<statusListener class="ch.qos.logback.core.status.NopStatusListener"/>
+	
+	<!-- Spring日志级别控制  -->
+	<logger name="org.springframework" level="warn"/>
+	<logger name="org.springframework.web.filter" level="DEBUG"/>
+	<logger name="org.springframework.jdbc.core.JdbcTemplate" level="DEBUG"/>
+	<logger name="feign.Logger" level="DEBUG"/>
+	<logger name="com.ibatis" level="DEBUG"/>
+	<logger name="com.ibatis.common.jdbc.SimpleDataSource" level="DEBUG"/>
+	<logger name="com.ibatis.common.jdbc.ScriptRunner" level="DEBUG"/>
+	<logger name="com.ibatis.sqlmap.engine.impl.SqlMapClientDelegate" level="DEBUG"/>
+	<logger name="jdbc" level="ERROR"/>
+	<logger name="jdbc.sql" level="ERROR"/>
+	<logger name="jdbc.audit" level="ERROR"/>
+	<logger name="jdbc.result" level="ERROR"/>
+	
+	
+	
+</configuration>
