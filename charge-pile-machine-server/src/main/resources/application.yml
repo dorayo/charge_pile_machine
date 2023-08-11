@@ -1,0 +1,63 @@
+server:
+  port: 8881
+  servlet:
+    context-path: /
+  tomcat:
+    uri-encoding: UTF-8
+    threads:
+      max: 1000
+      min-spare: 100
+    accept-count: 1000
+
+
+spring:
+  application:
+    name: charge-pile-machine
+  profiles:
+    active: default
+  cloud:
+    #    inetutils:
+    #      preferred-networks: 192.168
+    nacos:
+      config:
+        server-addr: @config.server-addr@
+        group: @config.group@
+        namespace: @config.namespace@
+      discovery:
+        server-addr: @config.server-addr@
+  autoconfigure:
+    exclude:
+      - org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration
+      - com.alibaba.druid.spring.boot.autoconfigure.DruidDataSourceAutoConfigure
+  main:
+    allow-bean-definition-overriding: false
+  rabbitmq:
+    host: rabbit.hm.com
+    port: 5672
+    virtual-host: /
+    username: guest
+    password: guest
+    publisher-confirm-type: CORRELATED
+    publisher-returns: true
+    listener:
+      direct:
+        prefetch: 1
+        acknowledge-mode: manual
+      simple:
+        prefetch: 1
+        acknowledge-mode: manual
+
+  redis:
+    host: redis.hm.com
+    port: 16379
+    database: 0
+    password: a8EYUSoT8wHbuRkX
+    timeout: 10s
+    lettuce:
+      pool:
+        max-active: 50
+        max-wait: 10s
+        max-idle: 20
+        min-idle: 2
+
+

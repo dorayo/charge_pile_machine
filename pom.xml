@@ -11,13 +11,15 @@
 		<relativePath/>
 	</parent>
 	
-	<groupId>com.huamar</groupId>
-	<artifactId>charge_pile_machine</artifactId>
+	<groupId>com.huamar.charg</groupId>
+	<artifactId>charge-pile-machine</artifactId>
 	<version>1.0.0-SNAPSHOT</version>
 	<packaging>pom</packaging>
 	
 	<modules>
-		<module>charge_pile_machine_server</module>
+		<module>charge-pile-machine-server</module>
+		<module>charge-pile-platform-api</module>
+		<module>charge-pile-machine-common</module>
 	</modules>
 	
 	<properties>
@@ -177,8 +179,8 @@
 			</activation>
 			<properties>
 				<profile.name>dev</profile.name>
-				<config.server-addr>127.0.0.1:8848</config.server-addr>
-				<config.namespace/>
+				<config.server-addr>dev.charge-pile-nacos.com:8848</config.server-addr>
+				<config.namespace>public</config.namespace>
 				<config.group>DEFAULT_GROUP</config.group>
 			</properties>
 			<repositories>
