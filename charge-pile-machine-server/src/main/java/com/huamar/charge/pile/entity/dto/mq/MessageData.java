@@ -7,6 +7,8 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 
+import java.time.LocalDateTime;
+
 /**
  * MessageBody 消息队列
  * date 2023/07/25
@@ -22,10 +24,28 @@ public class MessageData<T> extends BaseDTO {
     private static final long serialVersionUID = 1L;
 
     /**
+     * 幂等Id
+     */
+    private String messageId;
+
+    /**
      * businessCode
      */
     private String businessCode;
 
+    /**
+     * businessId
+     */
+    private String businessId;
+
+    /**
+     * 数据时间
+     */
+    private LocalDateTime dateTime;
+
+    /**
+     * 元数据
+     */
     private T data;
 
     public MessageData(MessageCodeEnum codeEnum, T data) {

@@ -21,7 +21,7 @@ import java.util.Map;
 @Component
 public class McParameterFactory implements InitializingBean, ApplicationContextAware {
 
-    private static final Map<McParameterEnum, McParameterExecute<? extends McBaseParameterDTO>> EXECUTE_MAP = new EnumMap<>(McParameterEnum.class);
+    private static final Map<McParameterEnum, McParameterExecute<McBaseParameterDTO>> EXECUTE_MAP = new EnumMap<>(McParameterEnum.class);
 
     private ApplicationContext applicationContext;
 
@@ -31,12 +31,12 @@ public class McParameterFactory implements InitializingBean, ApplicationContextA
      * @param eventEnum eventEnum
      * @return JobTicketFlowEventExec
      */
-    public McParameterExecute<? extends McBaseParameterDTO> getExecute(McParameterEnum eventEnum) {
+    public McParameterExecute<McBaseParameterDTO> getExecute(McParameterEnum eventEnum) {
         return EXECUTE_MAP.get(eventEnum);
     }
 
 
-    @SuppressWarnings({"unchecked", "rawtypes"})
+    @SuppressWarnings({"rawtypes", "unchecked"})
     @Override
     public void afterPropertiesSet() {
         Map<String, McParameterExecute> beans = applicationContext.getBeansOfType(McParameterExecute.class);

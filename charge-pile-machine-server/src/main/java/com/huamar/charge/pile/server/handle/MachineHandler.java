@@ -1,5 +1,6 @@
 package com.huamar.charge.pile.server.handle;
 
+import com.huamar.charge.pile.enums.ConstEnum;
 import com.huamar.charge.pile.enums.ProtocolCodeEnum;
 import com.huamar.charge.pile.protocol.DataPacket;
 import com.huamar.charge.pile.protocol.FailMathPacket;
@@ -10,6 +11,7 @@ import com.huamar.charge.pile.util.HexExtUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
+import org.slf4j.MDC;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.tio.core.ChannelContext;
@@ -43,20 +45,26 @@ public class MachineHandler extends AbstractHandler implements ServerAioHandler 
     @Override
     @SneakyThrows
     public void handler(Packet packet, ChannelContext channelContext) {
+        try {
+            if(packet instanceof DataPacket){
+                MDC.put(ConstEnum.ID_CODE.getCode(), new String(((DataPacket) packet).getIdCode()));
+                machineContext.handlerSession(packet, channelContext);
+                DataPacket dataPacket = (DataPacket) packet;
+                String code = HexExtUtil.encodeHexStr(dataPacket.getMsgId());
+                MachineMessageHandler<DataPacket> handler = machineMessageFactory.getHandler(ProtocolCodeEnum.getByCode(code));
+                handler.handler(dataPacket, channelContext);
+                return;
+            }
 
-        if(packet instanceof DataPacket){
-            machineContext.handlerSession(packet, channelContext);
-            DataPacket dataPacket = (DataPacket) packet;
-            String code = HexExtUtil.encodeHexStr(dataPacket.getMsgId());
-            MachineMessageHandler<DataPacket> handler = machineMessageFactory.getHandler(ProtocolCodeEnum.getByCode(code));
-            handler.handler(dataPacket, channelContext);
-            return;
-        }
-
-        if(packet instanceof FailMathPacket){
-            machineContext.handlerSession(packet, channelContext);
-            FailMathPacket dataPacket = (FailMathPacket) packet;
-            log.info("FailMathPacket :{}", dataPacket);
+            if(packet instanceof FailMathPacket){
+                machineContext.handlerSession(packet, channelContext);
+                FailMathPacket dataPacket = (FailMathPacket) packet;
+                log.info("FailMathPacket :{}", dataPacket);
+            }
+        }catch (Exception e){
+            log.error("error ==> e:{}", e.getMessage(), e);
+        }finally {
+            MDC.clear();
         }
 
     }

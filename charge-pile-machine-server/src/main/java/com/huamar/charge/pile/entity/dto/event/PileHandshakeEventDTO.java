@@ -1,4 +1,4 @@
-package com.huamar.charge.pile.entity.dto;
+package com.huamar.charge.pile.entity.dto.event;
 
 import com.huamar.charge.pile.common.codec.BCD;
 import lombok.Data;
@@ -12,7 +12,7 @@ import lombok.EqualsAndHashCode;
  */
 @EqualsAndHashCode(callSuper = true)
 @Data
-public class McHandshakeEventDTO extends McEventBaseDTO {
+public class PileHandshakeEventDTO extends PileEventBaseDTO {
 	/**
 	 * 充电枪编号
 	 */

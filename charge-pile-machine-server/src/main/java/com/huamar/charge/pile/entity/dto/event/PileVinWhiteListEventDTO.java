@@ -1,4 +1,4 @@
-package com.huamar.charge.pile.entity.dto;
+package com.huamar.charge.pile.entity.dto.event;
 
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -11,10 +11,11 @@ import lombok.EqualsAndHashCode;
  */
 @EqualsAndHashCode(callSuper = true)
 @Data
-public class McVinWhiteListEventDTO extends McEventBaseDTO {
+public class PileVinWhiteListEventDTO extends PileEventBaseDTO {
 
 	// 17 车辆识别码 BYTE[17] 默认 ASCII 码，不足 17 位，后面补’\0’
 	public String carIdentificationCode;
+
 	//枪序号
 	public byte gunSort;
 

@@ -1,7 +1,7 @@
 package com.huamar.charge.pile.server.service;
 
 import com.huamar.charge.pile.entity.dto.McCommonReq;
-import com.huamar.charge.pile.enums.McCommonResultEnum;
+import com.huamar.charge.pile.enums.PileCommonResultEnum;
 import com.huamar.charge.pile.server.service.common.McCommonResultExecute;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.context.ApplicationContext;
@@ -21,7 +21,7 @@ import java.util.Map;
 @Component
 public class McCommonResultFactory implements InitializingBean, ApplicationContextAware {
 
-    private static final Map<McCommonResultEnum, McCommonResultExecute<McCommonReq>> EXECUTE_MAP = new EnumMap<>(McCommonResultEnum.class);
+    private static final Map<PileCommonResultEnum, McCommonResultExecute<McCommonReq>> EXECUTE_MAP = new EnumMap<>(PileCommonResultEnum.class);
 
     private ApplicationContext applicationContext;
 
@@ -31,7 +31,7 @@ public class McCommonResultFactory implements InitializingBean, ApplicationConte
      * @param eventEnum eventEnum
      * @return JobTicketFlowEventExec
      */
-    public McCommonResultExecute<McCommonReq> getExecute(McCommonResultEnum eventEnum) {
+    public McCommonResultExecute<McCommonReq> getExecute(PileCommonResultEnum eventEnum) {
         return EXECUTE_MAP.get(eventEnum);
     }
 

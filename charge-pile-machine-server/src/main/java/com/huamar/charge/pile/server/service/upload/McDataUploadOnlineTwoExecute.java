@@ -67,7 +67,7 @@ public class McDataUploadOnlineTwoExecute implements McDataUploadExecute {
             return onlineInfoDto;
         }
 
-        // //老版本多个
+        //老版本多个
         if (reader.getBuffer().array().length == (32 * onlineInfoDto.getGunNum()) + 2) {
             this.parse(onlineInfoDto, reader);
             onlineInfoDto.setFaultCode1(reader.readInt());

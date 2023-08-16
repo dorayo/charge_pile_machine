@@ -173,6 +173,7 @@
 	<profiles>
 		<!-- 开发 -->
 		<profile>
+			
 			<id>dev</id>
 			<activation>
 				<activeByDefault>true</activeByDefault>
@@ -183,6 +184,7 @@
 				<config.namespace>public</config.namespace>
 				<config.group>DEFAULT_GROUP</config.group>
 			</properties>
+			
 			<repositories>
 				<repository>
 					<id>public</id>

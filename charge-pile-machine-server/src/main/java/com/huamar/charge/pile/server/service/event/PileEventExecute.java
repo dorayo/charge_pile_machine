@@ -1,8 +1,8 @@
 package com.huamar.charge.pile.server.service.event;
 
-import com.huamar.charge.pile.entity.dto.McEventBaseDTO;
-import com.huamar.charge.pile.entity.dto.McEventReqDTO;
-import com.huamar.charge.pile.enums.McEventEnum;
+import com.huamar.charge.pile.entity.dto.event.PileEventBaseDTO;
+import com.huamar.charge.pile.entity.dto.event.PileEventReqDTO;
+import com.huamar.charge.pile.enums.PileEventEnum;
 
 /**
  * 设备端数据汇报接口
@@ -10,7 +10,7 @@ import com.huamar.charge.pile.enums.McEventEnum;
  *
  * @author TiAmo(13721682347@163.com)
  */
-public interface McEventExecute {
+public interface PileEventExecute {
 
 
     /**
@@ -18,19 +18,19 @@ public interface McEventExecute {
      *
      * @return ProtocolCodeEnum
      */
-    McEventEnum getCode();
+    PileEventEnum getCode();
 
     /**
      * 执行方法
      *
      * @param reqDTO reqDTO
      */
-    void execute(McEventReqDTO reqDTO);
+    void execute(PileEventReqDTO reqDTO);
 
     /**
      * 解析元数据
      * @param reqDTO reqDTO
      * @return McEventBaseDTO
      */
-    McEventBaseDTO parse(McEventReqDTO reqDTO);
+    PileEventBaseDTO parse(PileEventReqDTO reqDTO);
 }

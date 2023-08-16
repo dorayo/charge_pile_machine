@@ -4,6 +4,12 @@ import lombok.Getter;
 
 import java.util.Objects;
 
+/**
+ * 终端数据汇报枚举
+ * 2023/06/11
+ *
+ * @author TiAmo(13721682347 @ 163.com)
+ */
 @Getter
 public enum McDataUploadEnum {
 

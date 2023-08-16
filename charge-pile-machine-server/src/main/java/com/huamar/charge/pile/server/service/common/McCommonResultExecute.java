@@ -1,6 +1,6 @@
 package com.huamar.charge.pile.server.service.common;
 
-import com.huamar.charge.pile.enums.McCommonResultEnum;
+import com.huamar.charge.pile.enums.PileCommonResultEnum;
 
 /**
  * 通用应答结果处理
@@ -16,7 +16,7 @@ public interface McCommonResultExecute<T> {
      *
      * @return ProtocolCodeEnum
      */
-    McCommonResultEnum getCode();
+    PileCommonResultEnum getCode();
 
 
     /**

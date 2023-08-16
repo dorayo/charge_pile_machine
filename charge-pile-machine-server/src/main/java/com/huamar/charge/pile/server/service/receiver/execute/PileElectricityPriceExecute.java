@@ -1,12 +1,15 @@
-package com.huamar.charge.pile.server.service.receiver;
+package com.huamar.charge.pile.server.service.receiver.execute;
 
+import com.alibaba.fastjson.JSON;
 import com.huamar.charge.pile.entity.dto.command.McElectricityPriceCommandDTO;
 import com.huamar.charge.pile.entity.dto.mq.MessageData;
 import com.huamar.charge.pile.entity.dto.platform.ChargPriceDTO;
+import com.huamar.charge.pile.entity.dto.platform.PileElectricityPriceDTO;
 import com.huamar.charge.pile.enums.McCommandEnum;
 import com.huamar.charge.pile.enums.MessageCodeEnum;
 import com.huamar.charge.pile.protocol.NumberFixStr;
 import com.huamar.charge.pile.server.service.McCommandFactory;
+import com.huamar.charge.pile.server.service.receiver.PileMessageExecute;
 import com.huamar.charge.pile.util.JSONParser;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
@@ -47,7 +50,8 @@ public class PileElectricityPriceExecute implements PileMessageExecute {
      */
     @Override
     public void execute(MessageData<String> body) {
-        List<ChargPriceDTO> list = JSONParser.toList(body.getData(), ChargPriceDTO.class);
+        PileElectricityPriceDTO pileElectricityPriceDTO = JSON.parseObject(body.getData(), PileElectricityPriceDTO.class);
+        List<ChargPriceDTO> list = pileElectricityPriceDTO.getList();
         Map<Integer, ChargPriceDTO> collect = list.stream().collect(Collectors.toMap(ChargPriceDTO::getSortNum, item -> item, (k1, k2) -> k1));
         McElectricityPriceCommandDTO commandDTO = buildPrice(collect);
         String[] timePriceBucket = new String[48];
@@ -60,6 +64,7 @@ public class PileElectricityPriceExecute implements PileMessageExecute {
             }
         });
         commandDTO.setGunSort((byte) 0);
+        commandDTO.setIdCode(body.getBusinessId());
         commandDTO.setTimeStage(new NumberFixStr(StringUtils.join(timePriceBucket).getBytes()));
         mcCommandFactory.getExecute(McCommandEnum.ELECTRICITY_PRICE).execute(commandDTO);
     }
@@ -83,20 +88,20 @@ public class PileElectricityPriceExecute implements PileMessageExecute {
         priceCommandDTO.setServicePrice2(price.getServiceCharge().multiply(unit).shortValue());
 
         price = priceMap.getOrDefault(2, defaultPrice);
-        priceCommandDTO.setPrice2(price.getCharge().multiply(unit).shortValue());
-        priceCommandDTO.setServicePrice2(price.getServiceCharge().multiply(unit).shortValue());
+        priceCommandDTO.setPrice3(price.getCharge().multiply(unit).shortValue());
+        priceCommandDTO.setServicePrice3(price.getServiceCharge().multiply(unit).shortValue());
 
         price = priceMap.getOrDefault(3, defaultPrice);
-        priceCommandDTO.setPrice2(price.getCharge().multiply(unit).shortValue());
-        priceCommandDTO.setServicePrice2(price.getServiceCharge().multiply(unit).shortValue());
+        priceCommandDTO.setPrice4(price.getCharge().multiply(unit).shortValue());
+        priceCommandDTO.setServicePrice4(price.getServiceCharge().multiply(unit).shortValue());
 
         price = priceMap.getOrDefault(4, defaultPrice);
-        priceCommandDTO.setPrice2(price.getCharge().multiply(unit).shortValue());
-        priceCommandDTO.setServicePrice2(price.getServiceCharge().multiply(unit).shortValue());
+        priceCommandDTO.setPrice5(price.getCharge().multiply(unit).shortValue());
+        priceCommandDTO.setServicePrice5(price.getServiceCharge().multiply(unit).shortValue());
 
         price = priceMap.getOrDefault(5, defaultPrice);
-        priceCommandDTO.setPrice2(price.getCharge().multiply(unit).shortValue());
-        priceCommandDTO.setServicePrice2(price.getServiceCharge().multiply(unit).shortValue());
+        priceCommandDTO.setPrice6(price.getCharge().multiply(unit).shortValue());
+        priceCommandDTO.setServicePrice6(price.getServiceCharge().multiply(unit).shortValue());
 
         return priceCommandDTO;
     }
@@ -104,6 +109,7 @@ public class PileElectricityPriceExecute implements PileMessageExecute {
 
     private ChargPriceDTO defaultPrice(){
         ChargPriceDTO defaultPrice = new ChargPriceDTO();
+        defaultPrice.setSortNum(0);
         defaultPrice.setCharge(new BigDecimal("0.00001"));
         defaultPrice.setServiceCharge(new BigDecimal("0.00001"));
         return defaultPrice;

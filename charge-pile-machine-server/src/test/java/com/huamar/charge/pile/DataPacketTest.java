@@ -1,7 +1,9 @@
 package com.huamar.charge.pile;
 
 import cn.hutool.core.convert.Convert;
+import com.huamar.charge.pile.entity.dto.McChargerOnlineInfoDTO;
 import com.huamar.charge.pile.util.HexExtUtil;
+import com.huamar.charge.pile.util.JSONParser;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -53,14 +55,32 @@ public class DataPacketTest {
         log.info("{}", unsignedString);
         log.info("{}", Convert.toShort(hexString));
 
-//        int parseInt = Integer.parseInt(hexString, 16);
-//        log.info("{}", parseInt);
+        int parseInt = Integer.parseInt(hexString, 16);
+        log.info("{}", parseInt);
 
         Short big = (short) Integer.parseUnsignedInt(hexString, 16);
         log.info("{}", big);
+        log.info("{}", Integer.toHexString(-1));
+
+        String encodeHexStr = HexExtUtil.encodeHexStr("ff");
+        log.info(encodeHexStr);
+
+        log.info("Short.parseShort：{}", Short.parseShort("00A0", 16));
+
+
+        log.info("str {}", Integer.toHexString(-1));
+        log.info("str {}", String.format("%04X", (short) -1));
+
 
     }
 
+    @Test
+    public void test5() {
+        String unitCode = HexExtUtil.encodeHexStr((byte) 0x0A);
+        log.info("unitCode:{}", unitCode);
 
-
+        McChargerOnlineInfoDTO dto = new McChargerOnlineInfoDTO();
+        dto.setGunSort((byte) 10);
+        log.info("dto:{}", JSONParser.jsonStr(dto));
+    }
 }

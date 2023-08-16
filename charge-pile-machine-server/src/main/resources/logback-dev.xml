@@ -48,7 +48,10 @@
 	<logger name="org.springframework.web.filter" level="DEBUG"/>
 	<logger name="org.springframework.jdbc.core.JdbcTemplate" level="DEBUG"/>
 	<logger name="feign.Logger" level="DEBUG"/>
-	
+
+	<!-- 心跳包日志输出 -->
+	<logger name="com.huamar.charge.pile.server.service.handler.MachineHeartbeatHandler" level="OFF"/>
+	<logger name="com.huamar.charge.pile.server" level="OFF"/>
 	
 	<!--1. 输出到控制台-->
 	<appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
@@ -59,10 +62,77 @@
 		</encoder>
 	</appender>
 	
+	<!-- 自定义字段分割日志 -->
+	<appender name="pile-sift-file" class="ch.qos.logback.classic.sift.SiftingAppender">
+		
+		<discriminator>
+			<key>idCode</key>
+			<defaultValue>0</defaultValue>
+		</discriminator>
+		
+		<sift>
+			<appender name="pile-${idCode}" class="ch.qos.logback.core.rolling.RollingFileAppender">
+				
+				<encoder>
+					<pattern>${FILE_LOG_PATTERN}</pattern>
+					<charset>${FILE_LOG_CHARSET}</charset>
+				</encoder>
+				
+				<file>${LOG_PATH}/pile-${idCode}.log</file>
+				<rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
+					<fileNamePattern>${LOG_PATH}/%d/pile-${idCode}-%i.gz</fileNamePattern>
+					<cleanHistoryOnStart>false</cleanHistoryOnStart>
+					<maxFileSize>100MB</maxFileSize>
+					<totalSizeCap>60GB</totalSizeCap>
+					<maxHistory>365</maxHistory>
+				</rollingPolicy>
+			
+			</appender>
+		</sift>
+	</appender>
+	
+	
+	<!-- 自定义字段分割日志 -->
+	<appender name="pile-heart-sift-file" class="ch.qos.logback.classic.sift.SiftingAppender">
+		
+		<discriminator>
+			<key>idCode</key>
+			<defaultValue>0</defaultValue>
+		</discriminator>
+		
+		<sift>
+			<appender name="pile-heart-log-${idCode}" class="ch.qos.logback.core.rolling.RollingFileAppender">
+				
+				<encoder>
+					<pattern>${FILE_LOG_PATTERN}</pattern>
+					<charset>${FILE_LOG_CHARSET}</charset>
+				</encoder>
+				
+				<file>${LOG_PATH}/pile-heart-${idCode}.log</file>
+				<rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
+					<fileNamePattern>${LOG_PATH}/%d/pile-heart-${idCode}-%i.gz</fileNamePattern>
+					<cleanHistoryOnStart>false</cleanHistoryOnStart>
+					<maxFileSize>100MB</maxFileSize>
+					<totalSizeCap>60GB</totalSizeCap>
+					<maxHistory>365</maxHistory>
+				</rollingPolicy>
+			
+			</appender>
+		</sift>
+	</appender>
+	
 	
 	<root level="INFO">
 		<appender-ref ref="STDOUT"/>
 	</root>
+	
+	<logger level="INFO" name="com.huamar.charge.pile.server" additivity="true">
+		<appender-ref ref="pile-sift-file"/>
+	</logger>
+	
+	<logger level="INFO" name="com.huamar.charge.pile.server.service.handler.MachineHeartbeatHandler" additivity="false">
+		<appender-ref ref="pile-heart-sift-file"/>
+	</logger>
 	
 	
 </configuration>

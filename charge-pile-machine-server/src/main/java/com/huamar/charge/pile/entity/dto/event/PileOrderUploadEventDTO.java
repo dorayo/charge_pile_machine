@@ -1,4 +1,4 @@
-package com.huamar.charge.pile.entity.dto;
+package com.huamar.charge.pile.entity.dto.event;
 
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -12,7 +12,7 @@ import lombok.EqualsAndHashCode;
  */
 @EqualsAndHashCode(callSuper = true)
 @Data
-public class McOrderUploadEventDTO extends McEventBaseDTO  {
+public class PileOrderUploadEventDTO extends PileEventBaseDTO {
 
 	/**
 	 * 卡号长度 BYTE 长度 1-255

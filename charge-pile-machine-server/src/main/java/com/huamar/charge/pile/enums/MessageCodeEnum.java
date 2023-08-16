@@ -14,7 +14,15 @@ import java.util.Objects;
 public enum MessageCodeEnum {
 
     PILE_UPDATE("PILE_UPDATE", "设备更新"),
+
+    PILE_START_CHARGE("PILE_START_CHARGE", "设备开启充电"),
+
+    PILE_STOP_CHARGE("PILE_STOP_CHARGE", "设备开启充电"),
+
     ELECTRICITY_PRICE("PILE_ELECTRICITY_PRICE_SEND", "电价下发"),
+
+    PILE_PARAMETER_UPDATE("PILE_PARAMETER_UPDATE", "设备远程参数下发"),
+
     ;
     private final String code;
     private final String desc;

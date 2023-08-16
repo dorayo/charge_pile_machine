@@ -1,4 +1,4 @@
-package com.huamar.charge.pile.entity.dto;
+package com.huamar.charge.pile.entity.dto.event;
 
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -12,7 +12,7 @@ import lombok.EqualsAndHashCode;
  */
 @EqualsAndHashCode(callSuper = true)
 @Data
-public class McPileUpgradeEventDTO extends McEventBaseDTO {
+public class PilePileUpgradeEventDTO extends PileEventBaseDTO {
 
 	/**
 	 * 是否开始升级  0x01:开始升级   0x02:停止升级

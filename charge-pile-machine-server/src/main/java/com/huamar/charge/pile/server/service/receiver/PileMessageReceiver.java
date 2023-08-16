@@ -20,8 +20,8 @@ import org.springframework.amqp.rabbit.listener.SimpleMessageListenerContainer;
 import org.springframework.amqp.rabbit.listener.api.ChannelAwareMessageListener;
 import org.springframework.beans.factory.DisposableBean;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
 import org.springframework.dao.DuplicateKeyException;
-import org.springframework.stereotype.Component;
 import org.springframework.util.Assert;
 
 import java.io.IOException;
@@ -31,11 +31,12 @@ import java.util.concurrent.TimeUnit;
 
 /**
  * 设备端消费者
- *  DATE: 2023.08.07
- * @author TiAmo(13721682347@163.com)
+ * date: 2023.08.07
+ *
+ * @author TiAmo(13721682347 @ 163.com)
  **/
 @Slf4j
-@Component
+@Configuration
 @RequiredArgsConstructor
 public class PileMessageReceiver implements ChannelAwareMessageListener, DisposableBean {
 
@@ -44,13 +45,14 @@ public class PileMessageReceiver implements ChannelAwareMessageListener, Disposa
      */
     private final PileMessageExecuteFactory pileMessageExecuteFactory;
 
+
     private final RedissonClient redissonClient;
 
     private SimpleMessageListenerContainer container;
 
     @SuppressWarnings("DuplicatedCode")
     @Bean
-    public SimpleMessageListenerContainer taskQueueMessageContainerV2(ConnectionFactory connectionFactory) {
+    public SimpleMessageListenerContainer pileMessageListenerContainer(ConnectionFactory connectionFactory) {
         log.info("PileMessageReceiver init start...");
         container = new SimpleMessageListenerContainer(connectionFactory);
         container.setConnectionFactory(connectionFactory);
@@ -69,6 +71,7 @@ public class PileMessageReceiver implements ChannelAwareMessageListener, Disposa
      * 消费者
      * lock 分布式锁控制消息幂等性
      * <p>
+     *
      * @param message message
      * @param channel channel
      */
@@ -79,10 +82,11 @@ public class PileMessageReceiver implements ChannelAwareMessageListener, Disposa
         String lockKey = "";
         RLock clientLock = null;
         try {
-            lockKey = MessageFormatter.format("lock:{}:{}",QueueConstant.PILE_COMMON_QUEUE, message.getMessageProperties().getMessageId()).toString();
+            lockKey = MessageFormatter.format("lock:{}:{}", QueueConstant.PILE_COMMON_QUEUE, message.getMessageProperties().getMessageId()).getMessage();
             clientLock = redissonClient.getLock(lockKey);
             lock = clientLock.tryLock(QueueConstant.LOCK_TIMEOUT.toMillis(), TimeUnit.MICROSECONDS);
-            MessageData<String> messageData = JSONObject.parseObject(new String(message.getBody()), new TypeReference<MessageData<String>>(){});
+            MessageData<String> messageData = JSONObject.parseObject(new String(message.getBody()), new TypeReference<MessageData<String>>() {
+            });
             if (lock) {
                 MessageCodeEnum messageCodeEnum = MessageCodeEnum.getByCode(messageData.getBusinessCode());
                 Assert.notNull(messageCodeEnum, "messageCodeEnum is null");

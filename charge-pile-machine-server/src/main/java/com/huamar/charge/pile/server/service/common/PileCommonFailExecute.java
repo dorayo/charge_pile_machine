@@ -8,14 +8,14 @@ import org.springframework.stereotype.Component;
 
 /**
  * 通用应答结果处理
- * 远程控制应答-电表故障
- * 2023/07/24
+ * 命令处理失败
+ * 2023-08
  *
  * @author TiAmo(13721682347@163.com)
  */
 @Slf4j
 @Component
-public class McEnergyMeterFailExecute implements McCommonResultExecute<McCommonReq> {
+public class PileCommonFailExecute implements McCommonResultExecute<McCommonReq> {
 
 
     /**
@@ -25,7 +25,7 @@ public class McEnergyMeterFailExecute implements McCommonResultExecute<McCommonR
      */
     @Override
     public PileCommonResultEnum getCode() {
-        return PileCommonResultEnum.ELECTRIC_METER_FAULT;
+        return PileCommonResultEnum.FAIL;
     }
 
     /**
@@ -35,6 +35,6 @@ public class McEnergyMeterFailExecute implements McCommonResultExecute<McCommonR
      */
     @Override
     public void execute(McCommonReq command) {
-        log.info("通用应答结果处理-{} start ==> command：{}", getCode().getDesc(), JSONParser.jsonStr(command));
+        log.info("通用应答结果处理-{} start ==> command：{}", getCode().getDesc(),JSONParser.jsonStr(command));
     }
 }

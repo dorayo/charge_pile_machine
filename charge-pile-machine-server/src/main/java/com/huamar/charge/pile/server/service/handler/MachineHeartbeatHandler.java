@@ -3,14 +3,20 @@ package com.huamar.charge.pile.server.service.handler;
 import com.huamar.charge.pile.convert.McHeartbeatConvert;
 import com.huamar.charge.pile.entity.dto.fault.McHeartbeatReqDTO;
 import com.huamar.charge.pile.entity.dto.resp.McCommonResp;
+import com.huamar.charge.pile.enums.ConstEnum;
 import com.huamar.charge.pile.enums.McAnswerEnum;
 import com.huamar.charge.pile.enums.ProtocolCodeEnum;
 import com.huamar.charge.pile.protocol.DataPacket;
 import com.huamar.charge.pile.server.service.McAnswerFactory;
 import lombok.RequiredArgsConstructor;
+import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
+import org.slf4j.MDC;
 import org.springframework.stereotype.Service;
 import org.tio.core.ChannelContext;
+
+import javax.annotation.PostConstruct;
+import java.util.concurrent.TimeUnit;
 
 /**
  * 设备心跳包
@@ -52,12 +58,11 @@ public class MachineHeartbeatHandler implements MachineMessageHandler<DataPacket
             McHeartbeatReqDTO reqDTO = this.reader(packet);
             // 通用应答
             answerFactory.getExecute(McAnswerEnum.COMMON).execute(McCommonResp.ok(packet), channelContext);
-            //TODO 业务实现
-
         }catch (Exception e){
             answerFactory.getExecute(McAnswerEnum.COMMON).execute(McCommonResp.fail(packet), channelContext);
         }
     }
+
 
     /**
      * 读取参数
@@ -68,5 +73,19 @@ public class MachineHeartbeatHandler implements MachineMessageHandler<DataPacket
     @Override
     public McHeartbeatReqDTO reader(DataPacket packet) {
         return McHeartbeatConvert.INSTANCE.convert(packet);
+    }
+
+    @PostConstruct
+    public void logTest() {
+        new Thread(new Runnable() {
+            @SneakyThrows
+            @Override
+            public void run() {
+                MDC.put(ConstEnum.ID_CODE.getCode(), "471000220714302005");
+                log.info("日志测试-设备心跳包，idCode:{}，ip={}", "471000220714302005", "0.0.0.0");
+                TimeUnit.SECONDS.sleep(1);
+                MDC.clear();
+            }
+        }).start();
     }
 }

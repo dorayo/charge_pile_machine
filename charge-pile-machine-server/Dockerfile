@@ -1,4 +1,4 @@
-FROM amazoncorretto:8
+FROM amazoncorretto:8u382
 USER root
 WORKDIR /opt/app
 

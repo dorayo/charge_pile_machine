@@ -2,11 +2,13 @@ package com.huamar.charge.pile.server.handle;
 
 import cn.hutool.core.util.HexUtil;
 import com.huamar.charge.pile.common.StringPool;
+import com.huamar.charge.pile.enums.ConstEnum;
 import com.huamar.charge.pile.protocol.*;
 import com.huamar.charge.pile.util.BCCUtil;
 import com.huamar.charge.pile.util.HexExtUtil;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
+import org.slf4j.MDC;
 import org.slf4j.helpers.MessageFormatter;
 import org.tio.core.exception.TioDecodeException;
 
@@ -21,7 +23,7 @@ import java.util.StringJoiner;
  * 协议转换类
  * 2023/07/24
  *
- * @author TiAmo(13721682347@163.com)
+ * @author TiAmo(13721682347 @ 163.com)
  */
 @Slf4j
 public class PacketProtocolCodec implements ProtocolCodec {
@@ -42,7 +44,7 @@ public class PacketProtocolCodec implements ProtocolCodec {
     protected Charset charSet = StandardCharsets.UTF_8;
 
     /**
-     * @return  DataPacket
+     * @return DataPacket
      */
     @Override
     public Class<DataPacket> getClazz() {
@@ -58,7 +60,7 @@ public class PacketProtocolCodec implements ProtocolCodec {
     @Override
     public ByteBuffer encode(BasePacket packet) {
         DataPacket dataPacket;
-        if(!Objects.equals(packet.getClass(), getClazz())){
+        if (!Objects.equals(packet.getClass(), getClazz())) {
             return null;
         }
         dataPacket = (DataPacket) packet;
@@ -83,6 +85,7 @@ public class PacketProtocolCodec implements ProtocolCodec {
         ByteBuffer buffer = ByteBuffer.allocate(bytes.length);
         buffer.put(bytes);
         buffer.flip();
+        log.info("encode:{}", HexExtUtil.encodeHexStrFormat(bytes, " "));
         return buffer;
     }
 
@@ -95,7 +98,7 @@ public class PacketProtocolCodec implements ProtocolCodec {
     @SneakyThrows
     @Override
     public BasePacket decode(ByteBuffer buffer) {
-        try{
+        try {
             buffer.order(ByteOrder.LITTLE_ENDIAN);
             // 收到的数据组不了业务包，则返回null以告诉框架数据不够
             if (buffer.remaining() < HEADER_LENGTH) {
@@ -126,7 +129,7 @@ public class PacketProtocolCodec implements ProtocolCodec {
 
             // 异常解析数据
             failBuffer.flip();
-            if(failBuffer.hasRemaining()){
+            if (failBuffer.hasRemaining()) {
                 byte[] bytes = new byte[failBuffer.limit()];
                 failBuffer.get(bytes);
                 return new FailMathPacket(bytes);
@@ -146,12 +149,13 @@ public class PacketProtocolCodec implements ProtocolCodec {
             packet.setMsgBodyLen(reader.readShort());
 
             // 不能小于0
-            if(packet.getMsgBodyLen() < (short) 0){
+            if (packet.getMsgBodyLen() < (short) 0) {
                 packet.setMsgBodyLen((short) 0);
             }
 
             // 消息包中数据是否完整
             if (bytes.length < packet.getMsgBodyLen() + BODY_CHECK_LENGTH) {
+                log.info("数据包长度异常：msgBodyLength:{}, bytes.length:{}, 数据头长度:{} ", packet.getMsgBodyLen(), bytes.length, BODY_CHECK_LENGTH);
                 return null;
             }
 
@@ -162,13 +166,16 @@ public class PacketProtocolCodec implements ProtocolCodec {
                 return null;
             }
 
+            MDC.put(ConstEnum.ID_CODE.getCode(), new String(packet.getIdCode()));
             StringJoiner joiner = new StringJoiner(StringPool.COMMA, StringPool.EMPTY, StringPool.EMPTY);
             joiner.add(MessageFormatter.format("终端号:{} msgId:{}", new String(packet.getIdCode()), HexExtUtil.encodeHexStr(packet.getMsgId())).getMessage());
             joiner.add(MessageFormatter.format("hexData:{}", HexExtUtil.encodeHexStrFormat(bytes, StringPool.SPACE)).getMessage());
             log.info(joiner.toString());
             return packet;
-        }catch (Exception e){
+        } catch (Exception e) {
             throw new TioDecodeException(e.getMessage());
+        } finally {
+            MDC.clear();
         }
     }
 
@@ -176,7 +183,7 @@ public class PacketProtocolCodec implements ProtocolCodec {
     /**
      * 转义编码
      *
-     * @author TiAmo(13721682347@163.com)
+     * @author TiAmo(13721682347 @ 163.com)
      */
     public byte[] transferEncode(byte[] hexBytes) {
         ByteBuffer buffer = getTransferEncodeBuffer(hexBytes);
@@ -200,6 +207,7 @@ public class PacketProtocolCodec implements ProtocolCodec {
      * 转义解码
      * 2201->22
      * 2202->23
+     *
      * @param hexBytes hexBytes
      * @return byte[]
      */
@@ -223,7 +231,7 @@ public class PacketProtocolCodec implements ProtocolCodec {
     /**
      * 转义Buffer
      *
-     * @author TiAmo(13721682347@163.com)
+     * @author TiAmo(13721682347 @ 163.com)
      */
     private ByteBuffer getTransferEncodeBuffer(byte[] hexBytes) {
         byte tag = DataPacket.TAG;
@@ -251,7 +259,7 @@ public class PacketProtocolCodec implements ProtocolCodec {
         return buffer;
     }
 
-    private ByteBuffer transferDecodeBuffer(byte[] hexBytes){
+    private ByteBuffer transferDecodeBuffer(byte[] hexBytes) {
         ByteBuffer buffer = ByteBuffer.allocate(hexBytes.length);
         boolean mark = false;
 

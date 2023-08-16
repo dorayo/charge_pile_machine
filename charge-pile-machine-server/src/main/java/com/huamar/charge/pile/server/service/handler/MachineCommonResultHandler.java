@@ -2,7 +2,7 @@ package com.huamar.charge.pile.server.service.handler;
 
 import com.huamar.charge.pile.convert.McCommonConvert;
 import com.huamar.charge.pile.entity.dto.McCommonReq;
-import com.huamar.charge.pile.enums.McCommonResultEnum;
+import com.huamar.charge.pile.enums.PileCommonResultEnum;
 import com.huamar.charge.pile.enums.ProtocolCodeEnum;
 import com.huamar.charge.pile.protocol.DataPacket;
 import com.huamar.charge.pile.server.service.McCommonResultFactory;
@@ -16,7 +16,7 @@ import org.tio.core.ChannelContext;
  * 通用应答处理
  * 2023/08/01
  *
- * @author TiAmo(13721682347@163.com)
+ * @author TiAmo(13721682347 @ 163.com)
  */
 @Slf4j
 @Service
@@ -47,13 +47,13 @@ public class MachineCommonResultHandler implements MachineMessageHandler<DataPac
     @Override
     public void handler(DataPacket packet, ChannelContext channelContext) {
         try {
-            log.info("通用应答处理，ip={}", channelContext.getClientNode().getIp());
             McCommonReq commonReq = this.reader(packet);
-            String hexString = Integer.toHexString(commonReq.getMsgResult());
-            McCommonResultEnum commonResultEnum = McCommonResultEnum.getByCode(hexString);
+            String resCode = Integer.toHexString(commonReq.getMsgResult());
+            log.info("通用应答处理，ip={}, idCode:{}, resCode:{}", channelContext.getClientNode().getIp(), commonReq.getIdCode(), resCode);
+            PileCommonResultEnum commonResultEnum = PileCommonResultEnum.getByCode(resCode);
             McCommonResultExecute<McCommonReq> execute = commonResultFactory.getExecute(commonResultEnum);
             execute.execute(commonReq);
-        }catch (Exception e){
+        } catch (Exception e) {
             log.error("handler MachineCommon error:{}, e ->", e.getMessage(), e);
         }
     }

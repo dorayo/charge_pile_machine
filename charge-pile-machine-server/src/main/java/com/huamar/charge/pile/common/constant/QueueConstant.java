@@ -12,8 +12,10 @@ public interface QueueConstant {
 
 	/**
 	 * 正常状态
+	 * pile.common.queue
+	 * pile.common.queue_local
 	 */
-	String PILE_COMMON_QUEUE = "pile.common.queue";
+	String PILE_COMMON_QUEUE = "pile.common.queue_local";
 
 	/**
 	 * 锁时长

@@ -3,9 +3,12 @@ package com.huamar.charge.pile.server.service.handler;
 import com.huamar.charge.pile.convert.MachineDataUploadConvert;
 import com.huamar.charge.pile.entity.dto.MachineDataUpItem;
 import com.huamar.charge.pile.entity.dto.MachineDataUploadReqDTO;
+import com.huamar.charge.pile.entity.dto.resp.McCommonResp;
+import com.huamar.charge.pile.enums.McAnswerEnum;
 import com.huamar.charge.pile.enums.McDataUploadEnum;
 import com.huamar.charge.pile.enums.ProtocolCodeEnum;
 import com.huamar.charge.pile.protocol.DataPacket;
+import com.huamar.charge.pile.server.service.McAnswerFactory;
 import com.huamar.charge.pile.server.service.McDataUploadFactory;
 import com.huamar.charge.pile.server.service.upload.McDataUploadExecute;
 import com.huamar.charge.pile.util.HexExtUtil;
@@ -33,6 +36,11 @@ public class MachineDataUploadHandler implements MachineMessageHandler<DataPacke
     private final McDataUploadFactory dataUploadFactory;
 
     /**
+     * 设备终端上下文
+     */
+    private final McAnswerFactory answerFactory;
+
+    /**
      * 执行器
      *
      * @param packet         packet
@@ -41,22 +49,20 @@ public class MachineDataUploadHandler implements MachineMessageHandler<DataPacke
     @Override
     public void handler(DataPacket packet, ChannelContext channelContext) {
         MachineDataUploadReqDTO dataUploadReqDTO = MachineDataUploadConvert.INSTANCE.convert(packet);
-        log.info("终端数据上报，ip={}", channelContext.getClientNode().getIp());
-
-        //TODO 通用应答
-        log.info("通用应答：{}", "通用应答实现");
+        log.info("终端数据汇报，idCode:{}，ip={}", packet.getIdCode(), channelContext.getClientNode().getIp());
+        answerFactory.getExecute(McAnswerEnum.COMMON).execute(McCommonResp.ok(packet), channelContext);
 
 
         List<MachineDataUpItem> unitList = dataUploadReqDTO.getDataUnitList();
         Map<String, List<MachineDataUpItem>> map = new HashMap<>();
-        if(CollectionUtils.isEmpty(unitList)){
+        if (CollectionUtils.isEmpty(unitList)) {
             return;
         }
 
-        for(MachineDataUpItem item : unitList){
+        for (MachineDataUpItem item : unitList) {
             String unitCode = HexExtUtil.encodeHexStr(item.getUnitId());
             unitCode = StringUtils.upperCase(unitCode);
-            if(!map.containsKey(unitCode)){
+            if (!map.containsKey(unitCode)) {
                 map.put(unitCode, new ArrayList<>());
             }
             map.get(unitCode).add(item);
@@ -64,12 +70,12 @@ public class MachineDataUploadHandler implements MachineMessageHandler<DataPacke
 
         map.forEach((key, value) -> {
             McDataUploadEnum uploadEnum = McDataUploadEnum.getByCode(key);
-            if(Objects.isNull(uploadEnum)){
+            if (Objects.isNull(uploadEnum)) {
                 log.error("McDataUploadEnum uploadEnum get null...key:{}", key);
                 return;
             }
             McDataUploadExecute execute = dataUploadFactory.getExecute(uploadEnum);
-            if(Objects.isNull(execute)){
+            if (Objects.isNull(execute)) {
                 log.error("McDataUploadExecute execute get null...uploadEnum:{}", uploadEnum);
                 return;
             }

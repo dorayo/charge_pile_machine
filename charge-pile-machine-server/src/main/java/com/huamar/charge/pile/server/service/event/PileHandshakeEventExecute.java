@@ -1,10 +1,12 @@
 package com.huamar.charge.pile.server.service.event;
 
-import com.huamar.charge.pile.entity.dto.McHandshakeEventDTO;
-import com.huamar.charge.pile.entity.dto.McEventReqDTO;
-import com.huamar.charge.pile.enums.McEventEnum;
+import com.huamar.charge.pile.entity.dto.event.PileHandshakeEventDTO;
+import com.huamar.charge.pile.entity.dto.event.PileEventReqDTO;
+import com.huamar.charge.pile.enums.PileEventEnum;
 import com.huamar.charge.pile.protocol.DataPacketReader;
 import com.huamar.charge.pile.util.HexExtUtil;
+import com.huamar.charge.pile.util.JSONParser;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
 /**
@@ -13,8 +15,9 @@ import org.springframework.stereotype.Component;
  *
  * @author TiAmo(13721682347@163.com)
  */
+@Slf4j
 @Component
-public class McHandshakeEventExecute implements McEventExecute{
+public class PileHandshakeEventExecute implements PileEventExecute {
 
 
     /**
@@ -23,8 +26,8 @@ public class McHandshakeEventExecute implements McEventExecute{
      * @return ProtocolCodeEnum
      */
     @Override
-    public McEventEnum getCode() {
-        return McEventEnum.HAND_SHAKE;
+    public PileEventEnum getCode() {
+        return PileEventEnum.HAND_SHAKE;
     }
 
     /**
@@ -33,9 +36,10 @@ public class McHandshakeEventExecute implements McEventExecute{
      * @param reqDTO reqDTO
      */
     @Override
-    public void execute(McEventReqDTO reqDTO) {
+    public void execute(PileEventReqDTO reqDTO) {
+        log.info("事件汇报：{}", getCode().getDesc());
         //TODO 业务实现
-        McHandshakeEventDTO eventDTO = this.parse(reqDTO);
+        PileHandshakeEventDTO eventDTO = this.parse(reqDTO);
     }
 
     /**
@@ -45,9 +49,9 @@ public class McHandshakeEventExecute implements McEventExecute{
      * @return McEventBaseDTO
      */
     @Override
-    public McHandshakeEventDTO parse(McEventReqDTO reqDTO) {
+    public PileHandshakeEventDTO parse(PileEventReqDTO reqDTO) {
         DataPacketReader reader = new DataPacketReader(reqDTO.getEventData());
-        McHandshakeEventDTO eventDTO = new McHandshakeEventDTO();
+        PileHandshakeEventDTO eventDTO = new PileHandshakeEventDTO();
         eventDTO.setGunSort(reader.readByte());
         eventDTO.setDistinguishResult(reader.readByte());
         eventDTO.setBmsProtocolVersion(HexExtUtil.encodeHexStr(reader.readBytes(3)));

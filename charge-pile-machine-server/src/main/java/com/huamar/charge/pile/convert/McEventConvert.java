@@ -1,7 +1,7 @@
 package com.huamar.charge.pile.convert;
 
 
-import com.huamar.charge.pile.entity.dto.McEventReqDTO;
+import com.huamar.charge.pile.entity.dto.event.PileEventReqDTO;
 import com.huamar.charge.pile.protocol.DataPacket;
 import com.huamar.charge.pile.protocol.DataPacketReader;
 import org.mapstruct.Mapper;
@@ -23,14 +23,15 @@ public interface McEventConvert {
 	 * @param dataPacket dataPacket
 	 * @return MachineAuthenticationReqDTO
 	 */
-	default McEventReqDTO convert(DataPacket dataPacket){
+	default PileEventReqDTO convert(DataPacket dataPacket){
 		DataPacketReader reader = new DataPacketReader(dataPacket.getMsgBody());
-		McEventReqDTO reqDTO = new McEventReqDTO();
+		PileEventReqDTO reqDTO = new PileEventReqDTO();
 		reqDTO.setEventState(reader.readByte());
 		reqDTO.setEventType(reader.readByte());
 		reqDTO.setEventStartTime(reader.readBCD());
 		reqDTO.setEventEndTime(reader.readBCD());
 		reqDTO.setEventData(reader.readRemainBytes());
+		reqDTO.setIdCode(new String(dataPacket.getIdCode()));
 		return reqDTO;
 	}
 }

@@ -3,6 +3,7 @@ package com.huamar.charge.pile.entity.dto.parameter;
 import com.huamar.charge.pile.common.BaseDTO;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
+import lombok.Getter;
 
 /**
  * 设备远程参数控制
@@ -27,5 +28,11 @@ public class McParamItemDTO extends BaseDTO {
     /**
      * 参数数据
      */
+    @Getter
     private String paramData;
+
+    public void setParamData(String paramData) {
+        this.paramData = paramData;
+        this.paramLength = (short) paramData.getBytes().length;
+    }
 }

@@ -7,6 +7,12 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+/**
+ * 命令测试
+ * Date: 2023/07/24
+ *
+ * @author TiAmo(13721682347@163.com)
+ */
 @Slf4j
 @RestController
 @RequestMapping("/server")

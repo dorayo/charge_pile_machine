@@ -1,8 +1,9 @@
 package com.huamar.charge.pile.server.service.event;
 
-import com.huamar.charge.pile.entity.dto.McEventBaseDTO;
-import com.huamar.charge.pile.entity.dto.McEventReqDTO;
-import com.huamar.charge.pile.enums.McEventEnum;
+import com.huamar.charge.pile.entity.dto.event.PileEventBaseDTO;
+import com.huamar.charge.pile.entity.dto.event.PileEventReqDTO;
+import com.huamar.charge.pile.enums.PileEventEnum;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
 /**
@@ -12,7 +13,8 @@ import org.springframework.stereotype.Component;
  * @author TiAmo(13721682347@163.com)
  */
 @Component
-public class McArgConfigEventExecute implements McEventExecute{
+@Slf4j
+public class PileArgConfigEventExecute implements PileEventExecute {
 
 
     /**
@@ -21,8 +23,8 @@ public class McArgConfigEventExecute implements McEventExecute{
      * @return ProtocolCodeEnum
      */
     @Override
-    public McEventEnum getCode() {
-        return McEventEnum.CONFIG_EVENT;
+    public PileEventEnum getCode() {
+        return PileEventEnum.CONFIG_EVENT;
     }
 
     /**
@@ -31,8 +33,9 @@ public class McArgConfigEventExecute implements McEventExecute{
      * @param reqDTO reqDTO
      */
     @Override
-    public void execute(McEventReqDTO reqDTO) {
+    public void execute(PileEventReqDTO reqDTO) {
         //TODO 业务实现
+        log.info("事件汇报：{}", getCode().getDesc());
     }
 
     /**
@@ -42,7 +45,7 @@ public class McArgConfigEventExecute implements McEventExecute{
      * @return McEventBaseDTO
      */
     @Override
-    public McEventBaseDTO parse(McEventReqDTO reqDTO) {
+    public PileEventBaseDTO parse(PileEventReqDTO reqDTO) {
         return null;
     }
 

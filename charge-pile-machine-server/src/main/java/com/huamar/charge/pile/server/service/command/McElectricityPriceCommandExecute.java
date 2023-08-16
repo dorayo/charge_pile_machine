@@ -7,6 +7,7 @@ import com.huamar.charge.pile.enums.McCommandEnum;
 import com.huamar.charge.pile.protocol.DataPacket;
 import com.huamar.charge.pile.protocol.DataPacketWriter;
 import com.huamar.charge.pile.server.service.MachineContext;
+import com.huamar.charge.pile.util.JSONParser;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
@@ -74,7 +75,9 @@ public class McElectricityPriceCommandExecute implements McCommandExecute<McElec
         writer.write(command.getServicePrice5());
         writer.write(command.getServicePrice6());
         writer.write(command.getTimeStage());
-        return new McCommandDTO(typeCode, command.getFieldsByteLength(), writer.toByteArray());
+        McCommandDTO commandDTO = new McCommandDTO(typeCode, command.getFieldsByteLength(), writer.toByteArray());
+        log.info("McCommandDTO:{}", JSONParser.jsonStr(commandDTO));
+        return commandDTO;
     }
 
 }

@@ -1,9 +1,11 @@
 package com.huamar.charge.pile.server.service.event;
 
-import com.huamar.charge.pile.entity.dto.McChargeFinishEventDTO;
-import com.huamar.charge.pile.entity.dto.McEventReqDTO;
-import com.huamar.charge.pile.enums.McEventEnum;
+import com.huamar.charge.pile.entity.dto.event.PileChargeFinishEventDTO;
+import com.huamar.charge.pile.entity.dto.event.PileEventReqDTO;
+import com.huamar.charge.pile.enums.PileEventEnum;
 import com.huamar.charge.pile.protocol.DataPacketReader;
+import com.huamar.charge.pile.util.JSONParser;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
 /**
@@ -12,8 +14,9 @@ import org.springframework.stereotype.Component;
  *
  * @author TiAmo(13721682347@163.com)
  */
+@Slf4j
 @Component
-public class McChargeFinishEventExecute implements McEventExecute{
+public class PileChargeFinishEventExecute implements PileEventExecute {
 
 
     /**
@@ -22,8 +25,8 @@ public class McChargeFinishEventExecute implements McEventExecute{
      * @return ProtocolCodeEnum
      */
     @Override
-    public McEventEnum getCode() {
-        return McEventEnum.CHARGE_FINISH;
+    public PileEventEnum getCode() {
+        return PileEventEnum.CHARGE_FINISH;
     }
 
     /**
@@ -32,9 +35,9 @@ public class McChargeFinishEventExecute implements McEventExecute{
      * @param reqDTO reqDTO
      */
     @Override
-    public void execute(McEventReqDTO reqDTO) {
-        //TODO 业务实现
-        McChargeFinishEventDTO eventDTO = this.parse(reqDTO);
+    public void execute(PileEventReqDTO reqDTO) {
+        log.info("事件汇报：{}", getCode().getDesc());
+        PileChargeFinishEventDTO eventDTO = this.parse(reqDTO);
     }
 
     /**
@@ -44,9 +47,9 @@ public class McChargeFinishEventExecute implements McEventExecute{
      * @return McEventBaseDTO
      */
     @Override
-    public McChargeFinishEventDTO parse(McEventReqDTO reqDTO) {
+    public PileChargeFinishEventDTO parse(PileEventReqDTO reqDTO) {
         DataPacketReader reader = new DataPacketReader(reqDTO.getEventData());
-        McChargeFinishEventDTO eventDTO = new McChargeFinishEventDTO();
+        PileChargeFinishEventDTO eventDTO = new PileChargeFinishEventDTO();
         eventDTO.setTerminationElectricityState(reader.readByte());
         eventDTO.setBatteryMinVoltage(reader.readShort());
         eventDTO.setBatteryMaxVoltage(reader.readShort());

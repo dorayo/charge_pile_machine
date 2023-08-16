@@ -1,4 +1,4 @@
-package com.huamar.charge.pile.entity.dto;
+package com.huamar.charge.pile.entity.dto.event;
 
 import com.huamar.charge.pile.common.BaseDTO;
 import com.huamar.charge.pile.common.codec.BCD;
@@ -13,7 +13,12 @@ import lombok.EqualsAndHashCode;
  */
 @Data
 @EqualsAndHashCode(callSuper = true)
-public class McEventReqDTO extends BaseDTO {
+public class PileEventReqDTO extends BaseDTO {
+
+	/**
+	 * idCode
+	 */
+	public String idCode;
 
 	/**
 	 * 事件状态  0x01表示事件开始    0x02表示事件结束  0xFF 表示事件异常结束，例如掉电、重启等

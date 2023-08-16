@@ -1,9 +1,11 @@
 package com.huamar.charge.pile.server.service.event;
 
-import com.huamar.charge.pile.entity.dto.McEventReqDTO;
-import com.huamar.charge.pile.entity.dto.McOrderUploadEventDTO;
-import com.huamar.charge.pile.enums.McEventEnum;
+import com.huamar.charge.pile.entity.dto.event.PileEventReqDTO;
+import com.huamar.charge.pile.entity.dto.event.PileOrderUploadEventDTO;
+import com.huamar.charge.pile.enums.PileEventEnum;
 import com.huamar.charge.pile.protocol.DataPacketReader;
+import com.huamar.charge.pile.util.JSONParser;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
 /**
@@ -12,8 +14,9 @@ import org.springframework.stereotype.Component;
  *
  * @author TiAmo(13721682347@163.com)
  */
+@Slf4j
 @Component
-public class McOrderUploadEventExecute implements McEventExecute{
+public class PileOrderUploadEventExecute implements PileEventExecute {
 
 
     /**
@@ -22,8 +25,8 @@ public class McOrderUploadEventExecute implements McEventExecute{
      * @return ProtocolCodeEnum
      */
     @Override
-    public McEventEnum getCode() {
-        return McEventEnum.ORDER_UPLOAD;
+    public PileEventEnum getCode() {
+        return PileEventEnum.ORDER_UPLOAD;
     }
 
     /**
@@ -32,9 +35,10 @@ public class McOrderUploadEventExecute implements McEventExecute{
      * @param reqDTO reqDTO
      */
     @Override
-    public void execute(McEventReqDTO reqDTO) {
+    public void execute(PileEventReqDTO reqDTO) {
+        log.info("事件汇报：{}", getCode().getDesc());
         //TODO 业务实现
-        McOrderUploadEventDTO eventDTO = this.parse(reqDTO);
+        PileOrderUploadEventDTO eventDTO = this.parse(reqDTO);
     }
 
     /**
@@ -44,9 +48,9 @@ public class McOrderUploadEventExecute implements McEventExecute{
      * @return McEventBaseDTO
      */
     @Override
-    public McOrderUploadEventDTO parse(McEventReqDTO reqDTO) {
+    public PileOrderUploadEventDTO parse(PileEventReqDTO reqDTO) {
         DataPacketReader reader = new DataPacketReader(reqDTO.getEventData());
-        McOrderUploadEventDTO eventDTO = new McOrderUploadEventDTO();
+        PileOrderUploadEventDTO eventDTO = new PileOrderUploadEventDTO();
         eventDTO.setCardNumberLen(reader.readByte());
         try {
             eventDTO.setCardNumber(Integer.valueOf(String.valueOf(reader.readBCD8())).toString());

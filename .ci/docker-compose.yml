@@ -6,8 +6,8 @@ services:
     restart: always
     privileged: true
     extra_hosts:
-      - "redis.hm.com:120.46.159.203"
       - "rabbit.hm.com:120.46.210.11"
+      - "redis.hm.com:120.46.159.203"
       - "hm-charge-mysql.com:120.46.159.203"
     environment:
       MODE: standalone

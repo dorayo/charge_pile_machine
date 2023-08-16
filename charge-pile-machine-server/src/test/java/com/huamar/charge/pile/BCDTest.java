@@ -1,5 +1,6 @@
 package com.huamar.charge.pile;
 
+import cn.hutool.core.convert.Convert;
 import cn.hutool.core.util.HexUtil;
 import com.huamar.charge.pile.protocol.DataPacketReader;
 import com.huamar.charge.pile.util.BCCUtil;
@@ -67,6 +68,9 @@ public class BCDTest {
         String str = "23220223";
         byte[] transferDecode = HexExtUtil.decodeHex(str);
         System.out.println(HexExtUtil.encodeHexStrFormat(transferDecode, "-"));
+
+        short typeCode = Convert.toShort("0003");
+        log.info("code:{}", typeCode);
     }
 
 }

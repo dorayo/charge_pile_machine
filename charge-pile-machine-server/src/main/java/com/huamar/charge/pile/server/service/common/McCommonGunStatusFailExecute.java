@@ -1,7 +1,8 @@
 package com.huamar.charge.pile.server.service.common;
 
 import com.huamar.charge.pile.entity.dto.McCommonReq;
-import com.huamar.charge.pile.enums.McCommonResultEnum;
+import com.huamar.charge.pile.enums.PileCommonResultEnum;
+import com.huamar.charge.pile.util.JSONParser;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
@@ -23,8 +24,8 @@ public class McCommonGunStatusFailExecute implements McCommonResultExecute<McCom
      * @return ProtocolCodeEnum
      */
     @Override
-    public McCommonResultEnum getCode() {
-        return McCommonResultEnum.GUN_STATE_ERROR;
+    public PileCommonResultEnum getCode() {
+        return PileCommonResultEnum.GUN_STATE_ERROR;
     }
 
     /**
@@ -34,6 +35,6 @@ public class McCommonGunStatusFailExecute implements McCommonResultExecute<McCom
      */
     @Override
     public void execute(McCommonReq command) {
-        log.info("远程控制应答-枪状态错误 start ==>");
+        log.info("通用应答结果处理-{} start ==> command：{}", getCode().getDesc(), JSONParser.jsonStr(command));
     }
 }

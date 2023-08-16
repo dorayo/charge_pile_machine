@@ -97,6 +97,7 @@ public class MachineAuthenticationHandler implements MachineMessageHandler<DataP
             return;
         }
 
+        authResp.setIdCode(pile.getPileCode());
         authResp.setStatus(MachineAuthStatus.SUCCESS.getCode());
         // 更新对象
         PileDTO update = new PileDTO();

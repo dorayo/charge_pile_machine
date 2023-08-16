@@ -25,6 +25,7 @@ public interface ISysPileApi {
      * @param pileCode pileCode
      * @return Result<PileDTO>
      */
+    @SuppressWarnings("DefaultAnnotationParam")
     @GetMapping(value = "/sys/communication/pile/get")
     Result<PileDTO> getByCode(@RequestParam(name = "pileCode", required = true) String pileCode);
 }

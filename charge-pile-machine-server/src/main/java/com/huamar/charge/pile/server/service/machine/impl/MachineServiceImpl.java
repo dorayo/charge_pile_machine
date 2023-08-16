@@ -30,7 +30,11 @@ public class MachineServiceImpl implements MachineService {
     @Override
     public PileDTO getPile(String idCode) {
         //Result<PileDTO> result = iSysPileApi.getByCode(idCode);
-        Result<PileDTO> result = Result.OK(null);
+
+        PileDTO pileDTO = new PileDTO();
+        pileDTO.setId(1);
+        pileDTO.setPileCode("471000220714302005");
+        Result<PileDTO> result = Result.OK(pileDTO);
         if(result.isSuccess()){
             return result.getResult();
         }

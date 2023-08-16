@@ -4,12 +4,17 @@ import cn.hutool.core.convert.Convert;
 import com.huamar.charge.pile.enums.ConstEnum;
 import com.huamar.charge.pile.protocol.DataPacket;
 import com.huamar.charge.pile.server.MachineServer;
+import lombok.SneakyThrows;
+import lombok.extern.slf4j.Slf4j;
+import org.slf4j.MDC;
 import org.springframework.stereotype.Component;
 import org.tio.core.ChannelContext;
 import org.tio.core.Tio;
 import org.tio.core.intf.Packet;
 
+import javax.annotation.PostConstruct;
 import java.util.Objects;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
 /**
@@ -19,6 +24,7 @@ import java.util.concurrent.atomic.AtomicInteger;
  * @author TiAmo(13721682347@163.com)
  */
 @Component
+@Slf4j
 public class MachineContext {
 
     private final AtomicInteger messageNumber = new AtomicInteger(0);
@@ -77,6 +83,21 @@ public class MachineContext {
             return Convert.toShort(messageNumber.getAndIncrement());
         }
         return Convert.toShort(andIncrement);
+    }
+
+
+    @PostConstruct
+    public void logTest() {
+        new Thread(new Runnable() {
+            @SneakyThrows
+            @Override
+            public void run() {
+                MDC.put(ConstEnum.ID_CODE.getCode(), "471000220714302005");
+                log.info("业务日志，idCode:{}，ip={}", "471000220714302005", "0.0.0.0");
+                TimeUnit.SECONDS.sleep(1);
+                MDC.clear();
+            }
+        }).start();
     }
 
 }

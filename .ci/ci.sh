@@ -1,33 +1,30 @@
 #!/bin/bash
-#echo -n "Enter your name: "
-#read name
-#echo "Hello $name,welcome to my program"
-
-
-# 必须在当前目录下执行脚本
-# 临时目录
-hmTmpDir=/tmp/tmp.$(openssl rand -hex 8)/hm-mchine
 
 ## build
 #mvn -DskipTests=true clean package -P dev
 
+# 必须在当前目录下执行脚本
+# 临时目录
+host_name=root@192.168.10.14
+tmp_dir=/tmp/tmp-devops-$(openssl rand -hex 8)
+
 
 # SCP 发布包
-echo "start deploy to server path:$hmTmpDir"
-ssh -p 22 root@221.176.140.236 "mkdir -p $hmTmpDir/target/"
-scp -P 22 -r ./docker-compose.yml                                          root@221.176.140.236:$hmTmpDir
-scp -P 22 -r ./.env                                                        root@221.176.140.236:$hmTmpDir
-scp -P 22 -r ../charge-pile-machine-server/target/application.jar          root@221.176.140.236:$hmTmpDir/target/
-scp -P 22 -r ../charge-pile-machine-server/Dockerfile                      root@221.176.140.236:$hmTmpDir
-scp -P 22 -r ../charge-pile-machine-server/docker-entrypoint.sh            root@221.176.140.236:$hmTmpDir
+echo "start deploy to server path:${tmp_dir}"
+ssh ${host_name} "mkdir -p ${tmp_dir}/target/"
+
+# 发布包
+scp -r ./.env                                                       ${host_name}:$tmp_dir
+scp -r ./docker-compose.yml                                         ${host_name}:$tmp_dir
+scp -r ../charge-pile-machine-server/Dockerfile                     ${host_name}:$tmp_dir
+scp -r ../charge-pile-machine-server/docker-entrypoint.sh           ${host_name}:$tmp_dir
+scp -r ../charge-pile-machine-server/target/application.jar         ${host_name}:$tmp_dir/target/
 
 
-ssh -p 22 -tt root@221.176.140.236 << remotessh
-cd $hmTmpDir
-docker build -t charge_pile_machine:latest .
-docker-compose down
-docker-compose up -d
+ssh -tt ${host_name} << remotessh
+cd ${tmp_dir}
+docker buildx build -t charge_pile_machine:latest .
+docker-compose -p charge_pile_machine up -d
 exit
 remotessh
-
 echo "end"

@@ -1,5 +1,7 @@
 package com.huamar.charge.pile;
 
+import cn.hutool.core.convert.Convert;
+import cn.hutool.core.util.IdUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.junit.jupiter.api.Test;
@@ -43,5 +45,18 @@ public class LocalTimeTest {
         int hour = parse.getHour();
         int minute = parse.getMinute();
         return (hour * 2 + (minute >= 30 ? 1 : 0));
+    }
+
+
+    @org.junit.Test
+    public void fastUUID() {
+        String string = IdUtil.fastUUID();
+        log.info(string);
+        byte toByte = Convert.intToByte(200);
+        log.info("toByte:{}", toByte);
+
+        Integer i = 200;
+        log.info("toByte:{}",i.byteValue());
+
     }
 }

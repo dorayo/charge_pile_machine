@@ -1,9 +1,11 @@
 package com.huamar.charge.pile.server.service.event;
 
-import com.huamar.charge.pile.entity.dto.McEventReqDTO;
-import com.huamar.charge.pile.entity.dto.McPileUpgradeEventDTO;
-import com.huamar.charge.pile.enums.McEventEnum;
+import com.huamar.charge.pile.entity.dto.event.PileEventReqDTO;
+import com.huamar.charge.pile.entity.dto.event.PilePileUpgradeEventDTO;
+import com.huamar.charge.pile.enums.PileEventEnum;
 import com.huamar.charge.pile.protocol.DataPacketReader;
+import com.huamar.charge.pile.util.JSONParser;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
 /**
@@ -12,8 +14,9 @@ import org.springframework.stereotype.Component;
  *
  * @author TiAmo(13721682347@163.com)
  */
+@Slf4j
 @Component
-public class McPileUpgradeEventExecute implements McEventExecute{
+public class PilePileUpgradeEventExecute implements PileEventExecute {
 
 
     /**
@@ -22,8 +25,8 @@ public class McPileUpgradeEventExecute implements McEventExecute{
      * @return ProtocolCodeEnum
      */
     @Override
-    public McEventEnum getCode() {
-        return McEventEnum.PILE_UPGRADE;
+    public PileEventEnum getCode() {
+        return PileEventEnum.PILE_UPGRADE;
     }
 
     /**
@@ -32,9 +35,9 @@ public class McPileUpgradeEventExecute implements McEventExecute{
      * @param reqDTO reqDTO
      */
     @Override
-    public void execute(McEventReqDTO reqDTO) {
-        //TODO 业务实现
-        McPileUpgradeEventDTO eventDTO = this.parse(reqDTO);
+    public void execute(PileEventReqDTO reqDTO) {
+        log.info("事件汇报：{}", getCode().getDesc());
+        PilePileUpgradeEventDTO eventDTO = this.parse(reqDTO);
     }
 
     /**
@@ -44,9 +47,9 @@ public class McPileUpgradeEventExecute implements McEventExecute{
      * @return McEventBaseDTO
      */
     @Override
-    public McPileUpgradeEventDTO parse(McEventReqDTO reqDTO) {
+    public PilePileUpgradeEventDTO parse(PileEventReqDTO reqDTO) {
         DataPacketReader reader = new DataPacketReader(reqDTO.getEventData());
-        McPileUpgradeEventDTO eventDTO = new McPileUpgradeEventDTO();
+        PilePileUpgradeEventDTO eventDTO = new PilePileUpgradeEventDTO();
         eventDTO.setUploadType(reader.readByte());
         return eventDTO;
     }

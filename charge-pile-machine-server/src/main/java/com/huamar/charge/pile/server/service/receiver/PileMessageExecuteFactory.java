@@ -12,8 +12,9 @@ import java.util.Map;
 
 /**
  * 设备消息执行工厂
- *  DATE: 2023.08.07
- * @author TiAmo(13721682347@163.com)
+ * tag_date: 2023.08.07
+ *
+ * @author TiAmo(13721682347 @ 163.com)
  **/
 @Component
 public class PileMessageExecuteFactory implements InitializingBean, ApplicationContextAware {

@@ -77,7 +77,7 @@ public class McDataUploadOnlineExecute implements McDataUploadExecute {
             onlineInfoDto.setFaultCode2(reader.readInt());
             return onlineInfoDto;
         }
-        return null;
+        return onlineInfoDto;
     }
 
     /**

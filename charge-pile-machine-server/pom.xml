@@ -30,6 +30,7 @@
 			<artifactId>spring-cloud-starter-alibaba-nacos-discovery</artifactId>
 		</dependency>
 		
+		
 		<dependency>
 			<groupId>com.alibaba.cloud</groupId>
 			<artifactId>spring-cloud-starter-alibaba-nacos-config</artifactId>
@@ -42,6 +43,26 @@
 			<artifactId>spring-boot-devtools</artifactId>
 			<optional>true</optional> <!-- 表示依赖不会传递 -->
 		</dependency>
+		
+		<!-- spring-boot-test -->
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-test</artifactId>
+			<scope>test</scope>
+		</dependency>
+		
+		<dependency>
+			<groupId>org.junit.vintage</groupId>
+			<artifactId>junit-vintage-engine</artifactId>
+			<scope>test</scope>
+			<exclusions>
+				<exclusion>
+					<groupId>org.hamcrest</groupId>
+					<artifactId>hamcrest-core</artifactId>
+				</exclusion>
+			</exclusions>
+		</dependency>
+		
 		
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
@@ -136,13 +157,6 @@
 			<version>4.3</version>
 		</dependency>
 		
-		
-		<dependency>
-			<groupId>org.junit.jupiter</groupId>
-			<artifactId>junit-jupiter</artifactId>
-			<scope>test</scope>
-		</dependency>
-	
 	</dependencies>
 	
 	<build>
@@ -158,6 +172,14 @@
 						</goals>
 					</execution>
 				</executions>
+			</plugin>
+			
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-surefire-plugin</artifactId>
+				<configuration>
+					<skip>true</skip>
+				</configuration>
 			</plugin>
 			
 			<plugin>

@@ -11,25 +11,32 @@ import java.util.Objects;
  * @author TiAmo(13721682347@163.com)
  */
 @Getter
-public enum McEventEnum {
+public enum PileEventEnum {
 
     CONFIG_EVENT("12", "充电参数配置信息 (0x12)"),
+
     HAND_SHAKE("14", "充电握手事件 (0x14)"),
+
     CHARGE_FINISH("16", "充电结束统计阶段事件 (0x16)"),
+
     ORDER_UPLOAD("18", "订单上传事件 (0x18)"),
+
     VIN_WHITE_LIST("19", "VIN白名单查询事件 (0x19)"),
+
     PILE_UPGRADE("20", "开始升级事件 (0x20)"),
+
     STARTUP("21", "充电桩主动请求重启 (0x21)"),
+
     ;
     private final String code;
     private final String desc;
-    McEventEnum(String code, String desc) {
+    PileEventEnum(String code, String desc) {
         this.code = code;
         this.desc = desc;
     }
 
-    public static McEventEnum getByCode(String code) {
-        for (McEventEnum e : values()) {
+    public static PileEventEnum getByCode(String code) {
+        for (PileEventEnum e : values()) {
             if (Objects.equals(code, e.getCode())) {
                 return e;
             }

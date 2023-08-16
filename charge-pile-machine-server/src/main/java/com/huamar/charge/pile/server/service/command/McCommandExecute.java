@@ -7,6 +7,7 @@ import com.huamar.charge.pile.enums.ProtocolCodeEnum;
 import com.huamar.charge.pile.protocol.DataPacket;
 import com.huamar.charge.pile.protocol.DataPacketWriter;
 import com.huamar.charge.pile.util.HexExtUtil;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * 远程控制执行接口
