@@ -3,8 +3,9 @@ package com.huamar.charge.pile.server.service.parameter;
 import cn.hutool.core.collection.CollectionUtil;
 import com.huamar.charge.pile.entity.dto.parameter.McParameterDTO;
 import com.huamar.charge.pile.enums.McParameterEnum;
-import com.huamar.charge.pile.protocol.DataPacket;
-import com.huamar.charge.pile.protocol.DataPacketWriter;
+import com.huamar.charge.pile.enums.ProtocolCodeEnum;
+import com.huamar.charge.common.protocol.DataPacket;
+import com.huamar.charge.common.protocol.DataPacketWriter;
 import com.huamar.charge.pile.server.service.MachineContext;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -44,6 +45,7 @@ public class McParameterSendExecute implements McParameterExecute<McParameterDTO
     @Override
     public void execute(McParameterDTO command) {
         DataPacket packet = this.packet(command);
+        packet.setMsgId(ProtocolCodeEnum.PARAMETER_SEND.codeByte());
         boolean sendCommand = machineContext.sendCommand(packet);
         log.info("Parameter Send idCode:{} sendCommand:{} ", command.getIdCode(), sendCommand);
     }

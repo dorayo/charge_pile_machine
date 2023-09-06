@@ -1,13 +1,16 @@
 package com.huamar.charge.pile.server.handle;
 
 import cn.hutool.core.util.HexUtil;
-import com.huamar.charge.pile.common.StringPool;
+import com.huamar.charge.common.common.StringPool;
+import com.huamar.charge.common.protocol.*;
 import com.huamar.charge.pile.enums.ConstEnum;
+import com.huamar.charge.pile.enums.LoggerEnum;
 import com.huamar.charge.pile.protocol.*;
-import com.huamar.charge.pile.util.BCCUtil;
-import com.huamar.charge.pile.util.HexExtUtil;
+import com.huamar.charge.common.util.BCCUtil;
+import com.huamar.charge.common.util.HexExtUtil;
 import lombok.SneakyThrows;
-import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.slf4j.MDC;
 import org.slf4j.helpers.MessageFormatter;
 import org.tio.core.exception.TioDecodeException;
@@ -25,8 +28,9 @@ import java.util.StringJoiner;
  *
  * @author TiAmo(13721682347 @ 163.com)
  */
-@Slf4j
 public class PacketProtocolCodec implements ProtocolCodec {
+
+    private final Logger log = LoggerFactory.getLogger(LoggerEnum.MACHINE_PACKET_LOGGER.getCode());
 
     /**
      * 最小包长度
@@ -85,7 +89,6 @@ public class PacketProtocolCodec implements ProtocolCodec {
         ByteBuffer buffer = ByteBuffer.allocate(bytes.length);
         buffer.put(bytes);
         buffer.flip();
-        log.info("encode:{}", HexExtUtil.encodeHexStrFormat(bytes, " "));
         return buffer;
     }
 
@@ -104,40 +107,20 @@ public class PacketProtocolCodec implements ProtocolCodec {
             if (buffer.remaining() < HEADER_LENGTH) {
                 return null;
             }
+
             ByteBuffer failBuffer = ByteBuffer.allocate(buffer.capacity());
-
-            while (true) {
-                buffer.mark();
-                byte data = buffer.get();
-                if (data != DataPacket.TAG) {
-                    failBuffer.put(data);
-                    continue;
-                }
-
-                buffer.mark();
-                byte next = buffer.get();
-                // 去除尾
-                if (next == DataPacket.TAG) {
-                    failBuffer.put(next);
-                    buffer.reset();
-                    break;
-                }
-
-                buffer.reset();
-                break;
-            }
+            ByteBuffer packetBuffer = ByteBuffer.allocate(buffer.capacity());
+            this.unpack(buffer, failBuffer, packetBuffer);
 
             // 异常解析数据
-            failBuffer.flip();
             if (failBuffer.hasRemaining()) {
-                byte[] bytes = new byte[failBuffer.limit()];
+                byte[] bytes = new byte[failBuffer.remaining()];
                 failBuffer.get(bytes);
                 return new FailMathPacket(bytes);
             }
 
-            buffer.rewind();
-            byte[] bytes = new byte[buffer.remaining()];
-            buffer.get(bytes);
+            byte[] bytes = new byte[packetBuffer.remaining()];
+            packetBuffer.get(bytes);
             bytes = this.transferDecode(bytes);
 
             // 新包
@@ -162,13 +145,13 @@ public class PacketProtocolCodec implements ProtocolCodec {
             // 数据包完整
             Boolean readPacket = reader.readPacket(packet, bytes);
             if (!readPacket) {
-                buffer.clear();
-                return null;
+                return new FailMathPacket(bytes);
             }
 
+            String messageId = HexExtUtil.encodeHexStr(packet.getMsgId());
             MDC.put(ConstEnum.ID_CODE.getCode(), new String(packet.getIdCode()));
             StringJoiner joiner = new StringJoiner(StringPool.COMMA, StringPool.EMPTY, StringPool.EMPTY);
-            joiner.add(MessageFormatter.format("终端号:{} msgId:{}", new String(packet.getIdCode()), HexExtUtil.encodeHexStr(packet.getMsgId())).getMessage());
+            joiner.add(MessageFormatter.format("终端号:{} msgId:{}", new String(packet.getIdCode()), messageId).getMessage());
             joiner.add(MessageFormatter.format("hexData:{}", HexExtUtil.encodeHexStrFormat(bytes, StringPool.SPACE)).getMessage());
             log.info(joiner.toString());
             return packet;
@@ -291,4 +274,57 @@ public class PacketProtocolCodec implements ProtocolCodec {
         buffer.put(DataPacket.TAG);
         return buffer;
     }
+
+    /**
+     * 粘包处理
+     *
+     * @param buffer buffer
+     */
+    private void unpack(ByteBuffer buffer, ByteBuffer failBuffer, ByteBuffer packetBuffer) {
+        while (true) {
+            buffer.mark();
+            byte data = buffer.get();
+            if (data != DataPacket.TAG) {
+                failBuffer.put(data);
+                continue;
+            }
+
+            // 去除粘包尾巴 tag 35
+            byte next = buffer.get();
+            if (next == DataPacket.TAG) {
+                buffer.reset();
+                failBuffer.put(buffer.get());
+            }
+            break;
+        }
+
+        // 异常解析数据
+        failBuffer.flip();
+        if (failBuffer.hasRemaining()) {
+            return;
+        }
+
+        buffer.reset();
+
+        byte make = buffer.get();
+        packetBuffer.put(make);
+        while (true){
+            byte next = buffer.get();
+            packetBuffer.put(next);
+            if(next == DataPacket.TAG){
+                break;
+            }
+        }
+
+        // 不可封包数据
+        packetBuffer.flip();
+        if(packetBuffer.remaining() < HEADER_LENGTH){
+            failBuffer.clear();
+            byte[] failBytes = new byte[packetBuffer.remaining()];
+            packetBuffer.get(failBytes);
+            failBuffer.put(failBytes);
+            failBuffer.flip();
+        }
+    }
+
 }

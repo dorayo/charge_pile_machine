@@ -1,0 +1,29 @@
+knife4j:
+  enable: true
+  production: false
+  setting:
+    custom-code: 500
+    enable-footer-custom: false
+    footer-custom-content: 我是自定义的Footer
+    language: zh_cn
+    enable-footer: true
+    enable-debug: true
+    enable-open-api: true
+    enable-host: false
+    enable-host-text: localhost:9090
+  openapi:
+    title: "openapi"
+    description: "openapi"
+    email: "openapi@foxmail.com"
+    concat: "八一菜刀"
+    url: "https://docs.xiaominfo.com"
+    version: "v4.0"
+    license: "Apache 2.0"
+    license-url: "https://stackoverflow.com/"
+    terms-of-service-url: "https://stackoverflow.com/"
+    group:
+      annotation:
+        group-name: openApi
+        api-rule: annotation
+        api-rule-resources:
+          - io.swagger.annotations.ApiOperation

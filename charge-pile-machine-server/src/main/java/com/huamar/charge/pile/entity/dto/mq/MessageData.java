@@ -1,6 +1,6 @@
 package com.huamar.charge.pile.entity.dto.mq;
 
-import com.huamar.charge.pile.common.BaseDTO;
+import com.huamar.charge.common.common.BaseDTO;
 import com.huamar.charge.pile.enums.MessageCodeEnum;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -44,12 +44,22 @@ public class MessageData<T> extends BaseDTO {
     private LocalDateTime dateTime;
 
     /**
+     * 32位id, 上下文跟踪ID
+     */
+    private String requestId;
+
+    /**
      * 元数据
      */
     private T data;
 
     public MessageData(MessageCodeEnum codeEnum, T data) {
         this.businessCode = codeEnum.getCode();
+        this.data = data;
+        this.dateTime = LocalDateTime.now();
+    }
+
+    public MessageData(T data) {
         this.data = data;
     }
 }

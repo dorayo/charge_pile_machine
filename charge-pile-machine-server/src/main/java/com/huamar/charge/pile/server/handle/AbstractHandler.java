@@ -1,17 +1,17 @@
 package com.huamar.charge.pile.server.handle;
 
-import com.huamar.charge.pile.protocol.BasePacket;
+import cn.hutool.core.util.IdUtil;
+import com.huamar.charge.common.protocol.BasePacket;
 import lombok.Getter;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
+import org.slf4j.MDC;
 import org.tio.core.ChannelContext;
 import org.tio.core.TioConfig;
 import org.tio.core.intf.AioHandler;
 import org.tio.core.intf.Packet;
 
 import java.nio.ByteBuffer;
-import java.nio.charset.Charset;
-import java.nio.charset.StandardCharsets;
 
 /**
  * 消息解码、编码
@@ -36,6 +36,7 @@ public abstract class AbstractHandler implements AioHandler {
     @SneakyThrows
     @Override
     public Packet decode(ByteBuffer buffer, int limit, int position, int readableLength, ChannelContext channelContext) {
+        Thread.currentThread().setName(IdUtil.getSnowflakeNextIdStr());
         return ProtocolCodecFactory.decode(buffer);
     }
 

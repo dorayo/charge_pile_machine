@@ -1,6 +1,6 @@
 package com.huamar.charge.pile.entity.dto;
 
-import com.huamar.charge.pile.common.codec.BCD;
+import com.huamar.charge.common.common.codec.BCD;
 import lombok.Data;
 
 import java.util.List;

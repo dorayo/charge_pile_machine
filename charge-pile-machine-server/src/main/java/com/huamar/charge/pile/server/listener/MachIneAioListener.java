@@ -1,6 +1,8 @@
 package com.huamar.charge.pile.server.listener;
 
+import cn.hutool.core.util.IdUtil;
 import lombok.extern.slf4j.Slf4j;
+import org.slf4j.MDC;
 import org.springframework.stereotype.Component;
 import org.tio.core.ChannelContext;
 import org.tio.core.TioConfig;
@@ -9,6 +11,7 @@ import org.tio.server.intf.ServerAioListener;
 
 /**
  * 服务端监听器
+ * @author TiAmo
  */
 @Slf4j
 @Component
@@ -53,7 +56,8 @@ public class MachIneAioListener implements ServerAioListener {
      */
     @Override
     public void onAfterReceivedBytes(ChannelContext channelContext, int receivedBytes) {
-        log.info("接收到TCP层传过来的数据，本次接收了多少字节：" + receivedBytes);
+        //log.info("接收到TCP层传过来的数据，本次接收了多少字节：" + receivedBytes);
+        Thread.currentThread().setName(IdUtil.getSnowflakeNextIdStr());
     }
 
     /**
@@ -77,7 +81,7 @@ public class MachIneAioListener implements ServerAioListener {
      */
     @Override
     public void onAfterHandled(ChannelContext channelContext, Packet packet, long cost) {
-        log.info("处理一个消息包，耗时：" + cost + "ms");
+        //log.info("处理一个消息包，耗时：" + cost + "ms");
     }
 
     /**

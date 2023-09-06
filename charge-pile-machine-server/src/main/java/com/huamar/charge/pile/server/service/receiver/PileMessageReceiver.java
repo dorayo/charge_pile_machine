@@ -3,7 +3,8 @@ package com.huamar.charge.pile.server.service.receiver;
 
 import com.alibaba.fastjson.JSONObject;
 import com.alibaba.fastjson.TypeReference;
-import com.huamar.charge.pile.common.constant.QueueConstant;
+import com.huamar.charge.common.common.StringPool;
+import com.huamar.charge.common.common.constant.QueueConstant;
 import com.huamar.charge.pile.entity.dto.mq.MessageData;
 import com.huamar.charge.pile.enums.MessageCodeEnum;
 import com.rabbitmq.client.Channel;
@@ -13,19 +14,14 @@ import org.apache.commons.lang3.StringUtils;
 import org.redisson.api.RLock;
 import org.redisson.api.RedissonClient;
 import org.slf4j.helpers.MessageFormatter;
-import org.springframework.amqp.core.AcknowledgeMode;
 import org.springframework.amqp.core.Message;
-import org.springframework.amqp.rabbit.connection.ConnectionFactory;
-import org.springframework.amqp.rabbit.listener.SimpleMessageListenerContainer;
 import org.springframework.amqp.rabbit.listener.api.ChannelAwareMessageListener;
-import org.springframework.beans.factory.DisposableBean;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
 import org.springframework.dao.DuplicateKeyException;
 import org.springframework.util.Assert;
 
 import java.io.IOException;
 import java.util.Objects;
+import java.util.StringJoiner;
 import java.util.concurrent.TimeUnit;
 
 
@@ -36,35 +32,18 @@ import java.util.concurrent.TimeUnit;
  * @author TiAmo(13721682347 @ 163.com)
  **/
 @Slf4j
-@Configuration
 @RequiredArgsConstructor
-public class PileMessageReceiver implements ChannelAwareMessageListener, DisposableBean {
+public class PileMessageReceiver implements ChannelAwareMessageListener {
 
     /**
      * 消息处理工厂
      */
     private final PileMessageExecuteFactory pileMessageExecuteFactory;
 
-
+    /**
+     * redisson client
+     */
     private final RedissonClient redissonClient;
-
-    private SimpleMessageListenerContainer container;
-
-    @SuppressWarnings("DuplicatedCode")
-    @Bean
-    public SimpleMessageListenerContainer pileMessageListenerContainer(ConnectionFactory connectionFactory) {
-        log.info("PileMessageReceiver init start...");
-        container = new SimpleMessageListenerContainer(connectionFactory);
-        container.setConnectionFactory(connectionFactory);
-        container.setQueueNames(QueueConstant.PILE_COMMON_QUEUE);
-        container.setExposeListenerChannel(true);
-        container.setPrefetchCount(1);
-        container.setConcurrentConsumers(5);
-        container.setMaxConcurrentConsumers(5);
-        container.setAcknowledgeMode(AcknowledgeMode.MANUAL);
-        container.setMessageListener(this);
-        return container;
-    }
 
 
     /**
@@ -99,6 +78,13 @@ public class PileMessageReceiver implements ChannelAwareMessageListener, Disposa
             }
         } catch (DuplicateKeyException e) {
             log.info("message 已经消费了,lockKey: {}", lockKey);
+        } catch (IllegalArgumentException e) {
+            StringJoiner joiner = new StringJoiner(StringPool.COMMA, StringPool.EMPTY, StringPool.EMPTY);
+            StackTraceElement traceElement = e.getStackTrace()[0];
+            joiner.add("methName:").add(traceElement.getMethodName());
+            joiner.add("line:").add(String.valueOf(traceElement.getLineNumber()));
+            joiner.add("message:").add(e.getMessage());
+            log.error("error e:{} ==> ", joiner);
         } catch (Exception e) {
             log.error("error e:{} ==> ", e.getMessage(), e);
         } finally {
@@ -111,10 +97,5 @@ public class PileMessageReceiver implements ChannelAwareMessageListener, Disposa
                 clientLock.unlock();
             }
         }
-    }
-
-    @Override
-    public void destroy() {
-        container.destroy();
     }
 }

@@ -1,7 +1,9 @@
 package com.huamar.charge.pile.entity.dto;
-import com.huamar.charge.pile.common.codec.BCD;
+
+import com.huamar.charge.common.common.codec.BCD;
 import com.huamar.charge.pile.enums.PileStateEnum;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 
 /**
  * 充电机实时状态信息
@@ -10,8 +12,9 @@ import lombok.Data;
  *
  * @author TiAmo(13721682347@163.com)
  */
+@EqualsAndHashCode(callSuper = true)
 @Data
-public class McChargerOnlineInfoDTO {
+public class McChargerOnlineInfoDTO extends BaseReqDTO {
 
 	/**
 	 * 充电枪编号 充电桩/补电车中充电枪对应编号 范围 1-254，0xff 表示无效
@@ -27,7 +30,7 @@ public class McChargerOnlineInfoDTO {
 	 * 5.结束
 	 * 6.故障
 	 */
-	public byte gunState = PileStateEnum.FREE.getCode();
+	public byte gunState = PileStateEnum.UN_KNOW.getCode();
 	/**
 	 * 充电开始时间
 	 */

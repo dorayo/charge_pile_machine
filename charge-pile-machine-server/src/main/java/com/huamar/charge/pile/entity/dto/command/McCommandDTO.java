@@ -1,6 +1,6 @@
 package com.huamar.charge.pile.entity.dto.command;
 
-import com.huamar.charge.pile.common.BaseDTO;
+import com.huamar.charge.common.common.BaseDTO;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 

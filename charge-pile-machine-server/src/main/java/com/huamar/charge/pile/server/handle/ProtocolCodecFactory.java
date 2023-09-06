@@ -1,9 +1,9 @@
 package com.huamar.charge.pile.server.handle;
 
-import com.huamar.charge.pile.exception.ProtocolCodecException;
-import com.huamar.charge.pile.protocol.BasePacket;
-import com.huamar.charge.pile.protocol.DataPacket;
-import com.huamar.charge.pile.protocol.ProtocolCodec;
+import com.huamar.charge.common.exception.ProtocolCodecException;
+import com.huamar.charge.common.protocol.BasePacket;
+import com.huamar.charge.common.protocol.DataPacket;
+import com.huamar.charge.common.protocol.ProtocolCodec;
 import lombok.Getter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -49,7 +49,6 @@ public class ProtocolCodecFactory {
         if(Objects.isNull(protocolCodec)){
             return null;
         }
-        logger.info("BasePacket encode codec:{} packet:{}", protocolCodec.getClass(), packet.getClass());
         return protocolCodec.encode(packet);
     }
 

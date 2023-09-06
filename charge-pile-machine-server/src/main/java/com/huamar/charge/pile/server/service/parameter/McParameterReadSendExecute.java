@@ -1,10 +1,11 @@
 package com.huamar.charge.pile.server.service.parameter;
 
-import com.huamar.charge.pile.common.BCDUtils;
+import com.huamar.charge.common.common.BCDUtils;
 import com.huamar.charge.pile.entity.dto.parameter.McParameterReadDTO;
 import com.huamar.charge.pile.enums.McParameterEnum;
-import com.huamar.charge.pile.protocol.DataPacket;
-import com.huamar.charge.pile.protocol.DataPacketWriter;
+import com.huamar.charge.pile.enums.ProtocolCodeEnum;
+import com.huamar.charge.common.protocol.DataPacket;
+import com.huamar.charge.common.protocol.DataPacketWriter;
 import com.huamar.charge.pile.server.service.MachineContext;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -44,6 +45,7 @@ public class McParameterReadSendExecute implements McParameterExecute<McParamete
     @Override
     public void execute(McParameterReadDTO command) {
         DataPacket packet = this.packet(command);
+        packet.setMsgId(ProtocolCodeEnum.PARAMETER_READ_SEND.codeByte());
         boolean sendCommand = machineContext.sendCommand(packet);
         log.info("Parameter Read idCode:{} sendCommand:{} ", command.getIdCode(), sendCommand);
     }

@@ -3,8 +3,8 @@ package com.huamar.charge.pile.server.service.event;
 import com.huamar.charge.pile.entity.dto.event.PileEventReqDTO;
 import com.huamar.charge.pile.entity.dto.event.PileStartupChargeEvent;
 import com.huamar.charge.pile.enums.PileEventEnum;
-import com.huamar.charge.pile.protocol.DataPacketReader;
-import com.huamar.charge.pile.util.JSONParser;
+import com.huamar.charge.common.protocol.DataPacketReader;
+import com.huamar.charge.common.util.JSONParser;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
@@ -38,6 +38,7 @@ public class PileStartupEventExecute implements PileEventExecute {
     public void execute(PileEventReqDTO reqDTO) {
         log.info("事件汇报：{}", getCode().getDesc());
         PileStartupChargeEvent eventDTO = this.parse(reqDTO);
+        log.info("事件汇报：{}, data:{}", getCode().getDesc(), JSONParser.jsonString(eventDTO));
     }
 
     /**

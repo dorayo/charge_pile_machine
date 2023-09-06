@@ -1,6 +1,6 @@
 package com.huamar.charge.pile.enums;
 
-import com.huamar.charge.pile.util.HexExtUtil;
+import com.huamar.charge.common.util.HexExtUtil;
 import lombok.Getter;
 
 import java.util.Objects;
@@ -29,6 +29,8 @@ public enum ProtocolCodeEnum {
     COMMON_SEND("35", "(0x35 远程控制（指令下发）)"),
 
     PARAMETER_SEND("40", "远程控制 参数下发 (0x40)"),
+
+    PARAMETER_READ_SEND("41", "远程控制 参数下发 (0x41)"),
 
     PARAMETER_PARAMETER("42", "远程参数读取 (0x42)"),
 

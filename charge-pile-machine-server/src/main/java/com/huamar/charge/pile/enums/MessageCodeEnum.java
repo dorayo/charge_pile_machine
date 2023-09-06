@@ -13,6 +13,9 @@ import java.util.Objects;
 @Getter
 public enum MessageCodeEnum {
 
+    PILE_HEART_BEAT("PILE_HEART_BEAT", "设备心跳"),
+
+    // >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> 远程控制 >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
     PILE_UPDATE("PILE_UPDATE", "设备更新"),
 
     PILE_START_CHARGE("PILE_START_CHARGE", "设备开启充电"),
@@ -22,9 +25,33 @@ public enum MessageCodeEnum {
     ELECTRICITY_PRICE("PILE_ELECTRICITY_PRICE_SEND", "电价下发"),
 
     PILE_PARAMETER_UPDATE("PILE_PARAMETER_UPDATE", "设备远程参数下发"),
+    // <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< 远程控制 <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
 
-    ;
+
+
+    // >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> 远程控制应答 >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+    PILE_MESSAGE_COMMON_RESP("PILE_MESSAGE_COMMON_RESP", "远程控制请求应答"),
+    // <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< 远程控制应答 <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+
+
+
+
+    // >>>>>>>>>>>>>>>> 事件汇报 >>>>>>>>>>>>>>>>
+    EVENT_CONFIG_EVENT("EVENT_CONFIG_ARG", "充电参数配置信息"),
+
+
+
+
+
+    // >>>>>>>>>>>>>>>>>>>>>>> 数据汇报 >>>>>>>>>>>>>>>>>>>>>>>
+    PILE_ONLINE("PILE_ONLINE", "充电桩实时状态"),
+    // <<<<<<<<<<<<<<<<<<<<<<<< 数据汇报 <<<<<<<<<<<<<<<<<<<<<<<<
+
+
+    WARNING("WARNING", "压制警告");
+
     private final String code;
+
     private final String desc;
 
     MessageCodeEnum(String code, String desc) {

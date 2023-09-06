@@ -2,7 +2,7 @@ package com.huamar.charge.pile.server.service.common;
 
 import com.huamar.charge.pile.entity.dto.McCommonReq;
 import com.huamar.charge.pile.enums.PileCommonResultEnum;
-import com.huamar.charge.pile.util.JSONParser;
+import com.huamar.charge.common.util.JSONParser;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
@@ -36,6 +36,6 @@ public class PileCommonUnknownErrorExecute implements McCommonResultExecute<McCo
     @Override
     public void execute(McCommonReq command) {
         String hexCodeStr = String.format("%04X", command.getMsgResult());
-        log.info("通用应答结果处理-{} start ==> code:{}, command：{}", getCode().getDesc(), hexCodeStr, JSONParser.jsonStr(command));
+        log.info("通用应答结果处理-{} start ==> code:{}, command：{}", getCode().getDesc(), hexCodeStr, JSONParser.jsonString(command));
     }
 }

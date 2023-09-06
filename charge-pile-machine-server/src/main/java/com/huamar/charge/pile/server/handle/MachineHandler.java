@@ -1,13 +1,15 @@
 package com.huamar.charge.pile.server.handle;
 
+import cn.hutool.core.util.IdUtil;
+import com.huamar.charge.common.common.StringPool;
 import com.huamar.charge.pile.enums.ConstEnum;
 import com.huamar.charge.pile.enums.ProtocolCodeEnum;
-import com.huamar.charge.pile.protocol.DataPacket;
-import com.huamar.charge.pile.protocol.FailMathPacket;
+import com.huamar.charge.common.protocol.DataPacket;
+import com.huamar.charge.common.protocol.FailMathPacket;
 import com.huamar.charge.pile.server.service.MachineContext;
 import com.huamar.charge.pile.server.service.MachineMessageFactory;
 import com.huamar.charge.pile.server.service.handler.MachineMessageHandler;
-import com.huamar.charge.pile.util.HexExtUtil;
+import com.huamar.charge.common.util.HexExtUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
@@ -57,9 +59,8 @@ public class MachineHandler extends AbstractHandler implements ServerAioHandler 
             }
 
             if(packet instanceof FailMathPacket){
-                machineContext.handlerSession(packet, channelContext);
                 FailMathPacket dataPacket = (FailMathPacket) packet;
-                log.info("FailMathPacket :{}", dataPacket);
+                log.info("FailMathPacket data:{}", HexExtUtil.encodeHexStrFormat(dataPacket.getBody(), StringPool.SPACE));
             }
         }catch (Exception e){
             log.error("error ==> e:{}", e.getMessage(), e);

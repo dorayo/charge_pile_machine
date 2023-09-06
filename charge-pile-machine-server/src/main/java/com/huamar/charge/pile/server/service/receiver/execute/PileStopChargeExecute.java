@@ -7,7 +7,7 @@ import com.huamar.charge.pile.enums.McCommandEnum;
 import com.huamar.charge.pile.enums.MessageCodeEnum;
 import com.huamar.charge.pile.server.service.McCommandFactory;
 import com.huamar.charge.pile.server.service.receiver.PileMessageExecute;
-import com.huamar.charge.pile.util.JSONParser;
+import com.huamar.charge.common.util.JSONParser;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
@@ -40,10 +40,19 @@ public class PileStopChargeExecute implements PileMessageExecute {
         chargeCommand.setChargeControl(chargeControl.getChargeControl().byteValue());
         chargeCommand.setGunSort(chargeControl.getGunSort().byteValue());
         chargeCommand.setChargeEndType(chargeControl.getChargeEndType().byteValue());
-        chargeCommand.setChargeEndValue(chargeControl.getChargeEndValue());
         chargeCommand.setOrderSerialNumber(chargeControl.getOrderSerialNumber().getBytes());
         chargeCommand.setBalance(chargeControl.getBalance().multiply(multiply).intValue());
         chargeCommand.setIdCode(body.getBusinessId());
+
+        int endType = chargeControl.getChargeEndType();
+        switch (endType){
+            case 3:
+                BigDecimal endValue = new BigDecimal(chargeControl.getChargeEndValue());
+                endValue = endValue.multiply(multiply);
+                chargeCommand.setChargeEndValue(endValue.intValue());
+                break;
+        }
+
         mcCommandFactory.getExecute(McCommandEnum.CHARGE).execute(chargeCommand);
     }
 

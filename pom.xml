@@ -11,7 +11,7 @@
 		<relativePath/>
 	</parent>
 	
-	<groupId>com.huamar.charg</groupId>
+	<groupId>com.huamar.charge</groupId>
 	<artifactId>charge-pile-machine</artifactId>
 	<version>1.0.0-SNAPSHOT</version>
 	<packaging>pom</packaging>
@@ -20,6 +20,7 @@
 		<module>charge-pile-machine-server</module>
 		<module>charge-pile-platform-api</module>
 		<module>charge-pile-machine-common</module>
+		<module>charge-pile-client-network</module>
 	</modules>
 	
 	<properties>
@@ -36,6 +37,12 @@
 		<lombok.version>1.18.24</lombok.version>
 		<org.mapstruct.version>1.5.3.Final</org.mapstruct.version>
 		<lombok-mapstruct-binding.version>0.2.0</lombok-mapstruct-binding.version>
+		<knife4j.version>4.3.0</knife4j.version>
+		<swagger.version>2.10.5</swagger.version>
+		<redisson-spring-boot-starter.version>3.18.0</redisson-spring-boot-starter.version>
+		<hutool.version>5.7.22</hutool.version>
+		<guava.version>31.1-jre</guava.version>
+	
 	</properties>
 	
 	
@@ -68,13 +75,19 @@
 				<scope>import</scope>
 			</dependency>
 			
+			<dependency>
+				<groupId>com.github.xiaoymin</groupId>
+				<artifactId>knife4j-dependencies</artifactId>
+				<version>${knife4j.version}</version>
+				<type>pom</type>
+				<scope>import</scope>
+			</dependency>
+			
 			<!-- t-io核心依赖包 -->
 			<dependency>
 				<groupId>org.t-io</groupId>
 				<artifactId>tio-core</artifactId>
 				<version>${t-io.version}</version>
-				<type>pom</type>
-				<scope>import</scope>
 			</dependency>
 			
 			<!-- 阿里数据库连接池 -->
@@ -115,9 +128,30 @@
 			<dependency>
 				<groupId>com.google.guava</groupId>
 				<artifactId>guava</artifactId>
-				<version>31.1-jre</version>
+				<version>${guava.version}</version>
 			</dependency>
-		
+			
+			<dependency>
+				<groupId>cn.hutool</groupId>
+				<artifactId>hutool-all</artifactId>
+				<version>${hutool.version}</version>
+			</dependency>
+			
+			<!-- Redisson : 注意跟 SpringBoot 版本的匹配 -->
+			<!-- https://github.com/redisson/redisson/tree/master/redisson-spring-data#spring-data-redis-integration -->
+			<!--redisson-->
+			<dependency>
+				<groupId>org.redisson</groupId>
+				<artifactId>redisson-spring-boot-starter</artifactId>
+				<version>${redisson-spring-boot-starter.version}</version>
+			</dependency>
+			
+			<dependency>
+				<groupId>io.springfox</groupId>
+				<artifactId>springfox-swagger-ui</artifactId>
+				<version>${swagger.version}</version>
+			</dependency>
+			
 		</dependencies>
 	</dependencyManagement>
 	
@@ -180,7 +214,7 @@
 			</activation>
 			<properties>
 				<profile.name>dev</profile.name>
-				<config.server-addr>dev.charge-pile-nacos.com:8848</config.server-addr>
+				<config.server-addr>dev.charge-pile-nacos-internal.huamar.com:8848</config.server-addr>
 				<config.namespace>public</config.namespace>
 				<config.group>DEFAULT_GROUP</config.group>
 			</properties>
@@ -210,6 +244,6 @@
 			</pluginRepositories>
 		</profile>
 	</profiles>
-	
-	
+
+
 </project>

@@ -2,8 +2,8 @@ package com.huamar.charge.pile.convert;
 
 
 import com.huamar.charge.pile.entity.dto.event.PileEventReqDTO;
-import com.huamar.charge.pile.protocol.DataPacket;
-import com.huamar.charge.pile.protocol.DataPacketReader;
+import com.huamar.charge.common.protocol.DataPacket;
+import com.huamar.charge.common.protocol.DataPacketReader;
 import org.mapstruct.Mapper;
 import org.mapstruct.factory.Mappers;
 

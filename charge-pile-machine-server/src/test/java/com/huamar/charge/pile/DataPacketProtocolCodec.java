@@ -1,10 +1,11 @@
 package com.huamar.charge.pile;
 
 import cn.hutool.core.util.HexUtil;
-import com.huamar.charge.pile.common.StringPool;
+import com.huamar.charge.common.common.StringPool;
+import com.huamar.charge.common.protocol.*;
 import com.huamar.charge.pile.protocol.*;
-import com.huamar.charge.pile.util.BCCUtil;
-import com.huamar.charge.pile.util.HexExtUtil;
+import com.huamar.charge.common.util.BCCUtil;
+import com.huamar.charge.common.util.HexExtUtil;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.slf4j.helpers.MessageFormatter;

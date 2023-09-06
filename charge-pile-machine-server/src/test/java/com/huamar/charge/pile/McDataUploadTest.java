@@ -1,15 +1,18 @@
 package com.huamar.charge.pile;
 
 import cn.hutool.core.convert.Convert;
-import com.huamar.charge.pile.common.BCDUtils;
-import com.huamar.charge.pile.common.StringPool;
+import com.huamar.charge.common.common.BCDUtils;
+import com.huamar.charge.common.common.StringPool;
+import com.huamar.charge.common.protocol.BasePacket;
+import com.huamar.charge.common.protocol.DataPacketReader;
+import com.huamar.charge.common.protocol.DataPacketWriter;
+import com.huamar.charge.common.protocol.PacketBuilder;
 import com.huamar.charge.pile.entity.dto.command.McChargeCommandDTO;
 import com.huamar.charge.pile.entity.dto.command.McCommandDTO;
 import com.huamar.charge.pile.enums.ProtocolCodeEnum;
-import com.huamar.charge.pile.protocol.*;
 import com.huamar.charge.pile.server.handle.ProtocolCodecFactory;
 import com.huamar.charge.pile.server.service.MachineContext;
-import com.huamar.charge.pile.util.HexExtUtil;
+import com.huamar.charge.common.util.HexExtUtil;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.DisplayName;
@@ -98,9 +101,9 @@ public class McDataUploadTest {
         writer.write((short) 0xFFFF);
         writer.write(BCDUtils.bcdTime().getData());
 
-        DataPacketBuilder builder = DataPacketBuilder.builder(new MachineContext())
+        PacketBuilder builder = PacketBuilder.builder()
                 .idCode("471000200519302002")
-                .messageId(ProtocolCodeEnum.COMMON_ACK)
+                .messageId(ProtocolCodeEnum.COMMON_ACK.getCode())
                 .body(writer);
 
 

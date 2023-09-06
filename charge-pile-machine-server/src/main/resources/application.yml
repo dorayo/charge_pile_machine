@@ -7,7 +7,6 @@ spring:
       - amqp
 ---
 
-
 server:
   port: 8881
   servlet:
@@ -35,7 +34,7 @@ spring:
   main:
     allow-bean-definition-overriding: false
   rabbitmq:
-    host: rabbit.hm.com
+    host: 120.46.210.11
     port: 5672
     virtual-host: /
     username: guest
@@ -51,11 +50,12 @@ spring:
         acknowledge-mode: manual
 
   redis:
-    host: redis.hm.com
+    host: 120.46.159.203
     port: 16379
     database: 0
     password: a8EYUSoT8wHbuRkX
     timeout: 10s
+    client-type: lettuce
     lettuce:
       pool:
         max-active: 50
@@ -64,3 +64,9 @@ spring:
         min-idle: 2
 
 
+
+pile:
+  machine:
+    enable-consume: false
+    pile-control-queue: "pile.machine.control.queue"
+    pile-message-queue: "pile.machine.message.queue"

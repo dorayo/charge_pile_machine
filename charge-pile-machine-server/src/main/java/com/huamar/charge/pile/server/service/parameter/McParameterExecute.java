@@ -2,10 +2,9 @@ package com.huamar.charge.pile.server.service.parameter;
 
 import com.huamar.charge.pile.entity.dto.parameter.McBaseParameterDTO;
 import com.huamar.charge.pile.enums.McParameterEnum;
-import com.huamar.charge.pile.enums.ProtocolCodeEnum;
-import com.huamar.charge.pile.protocol.DataPacket;
-import com.huamar.charge.pile.protocol.DataPacketWriter;
-import com.huamar.charge.pile.util.HexExtUtil;
+import com.huamar.charge.common.protocol.DataPacket;
+import com.huamar.charge.common.protocol.DataPacketWriter;
+import com.huamar.charge.common.util.HexExtUtil;
 
 /**
  * 远程控制执行接口
@@ -59,7 +58,6 @@ public interface McParameterExecute<T extends McBaseParameterDTO> {
     default DataPacket packet(T command){
         DataPacket packet= new DataPacket();
         packet.setTag(DataPacket.TAG);
-        packet.setMsgId(ProtocolCodeEnum.PARAMETER_SEND.codeByte());
         packet.setIdCode(command.getIdCode().getBytes());
         packet.setMsgBodyAttr(HexExtUtil.decodeHex("00")[0]);
         packet.setTagEnd(DataPacket.TAG);

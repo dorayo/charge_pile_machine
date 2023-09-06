@@ -1,10 +1,10 @@
 package com.huamar.charge.pile;
 
 import cn.hutool.core.convert.Convert;
-import cn.hutool.core.util.HexUtil;
-import com.huamar.charge.pile.protocol.DataPacketReader;
-import com.huamar.charge.pile.util.BCCUtil;
-import com.huamar.charge.pile.util.HexExtUtil;
+import com.huamar.charge.common.common.BCDUtils;
+import com.huamar.charge.common.protocol.DataPacketReader;
+import com.huamar.charge.common.util.BCCUtil;
+import com.huamar.charge.common.util.HexExtUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -25,6 +25,8 @@ public class BCDTest {
         String str =new String(bytes,"GBK");
         String bcd2Str = cn.hutool.core.codec.BCD.bcdToStr(b);
         System.out.println(bcd2Str);
+
+        log.info("BCD:{}", BCDUtils.bcdTime().toString());
     }
 
 

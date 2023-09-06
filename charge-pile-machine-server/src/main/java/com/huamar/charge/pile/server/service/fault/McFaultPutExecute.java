@@ -1,8 +1,8 @@
 package com.huamar.charge.pile.server.service.fault;
 
 import com.huamar.charge.pile.enums.McFaultPutEnum;
-import com.huamar.charge.pile.protocol.DataPacket;
-import com.huamar.charge.pile.protocol.DataPacketWriter;
+import com.huamar.charge.common.protocol.DataPacket;
+import com.huamar.charge.common.protocol.DataPacketWriter;
 
 /**
  * 设备端数据汇报接口

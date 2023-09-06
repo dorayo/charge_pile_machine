@@ -1,10 +1,10 @@
 package com.huamar.charge.pile.server.service.answer;
 
+import com.huamar.charge.common.protocol.PacketBuilder;
 import com.huamar.charge.pile.entity.dto.resp.McUpgradeResp;
 import com.huamar.charge.pile.enums.McAnswerEnum;
 import com.huamar.charge.pile.enums.ProtocolCodeEnum;
-import com.huamar.charge.pile.protocol.DataPacketBuilder;
-import com.huamar.charge.pile.protocol.DataPacketWriter;
+import com.huamar.charge.common.protocol.DataPacketWriter;
 import com.huamar.charge.pile.server.service.MachineContext;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -39,16 +39,17 @@ public class McUpgradeAnswerExecute implements McAnswerExecute<McUpgradeResp> {
     /**
      * 执行方法
      *
-     * @param resp resp
+     * @param resp           resp
      * @param channelContext channelContext
      */
     @Override
     public void execute(McUpgradeResp resp, ChannelContext channelContext) {
         DataPacketWriter writer = this.writer(resp);
-        DataPacketBuilder builder = DataPacketBuilder.builder(machineContext);
-        builder.body(writer)
-                .messageId(ProtocolCodeEnum.UPGRADE)
-                .idCode(resp.getIdCode());
+        PacketBuilder builder = PacketBuilder.builder()
+                .idCode(resp.getIdCode())
+                .messageId(ProtocolCodeEnum.UPGRADE.getCode())
+                .messageNumber(machineContext.getMessageNumber(resp.getIdCode()))
+                .body(writer);
         machineContext.answer(builder.build(), channelContext);
     }
 

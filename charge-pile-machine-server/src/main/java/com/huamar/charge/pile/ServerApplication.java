@@ -29,10 +29,11 @@ public class ServerApplication {
         SpringApplication.run(ServerApplication.class, args);
     }
 
-    @EventListener(ApplicationReadyEvent.class)
     @Order(0)
+    @EventListener(ApplicationReadyEvent.class)
     public void listen(ApplicationReadyEvent event) throws Exception {
         MachineServer machineServer = event.getApplicationContext().getBean(MachineServer.class);
         machineServer.start();
     }
+
 }

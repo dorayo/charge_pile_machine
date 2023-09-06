@@ -19,6 +19,9 @@ public enum ConstEnum {
     ID_CODE("idCode", "设备ID"),
 
     BASE("压制警告", "压制警告"),
+
+
+
     ;
     private final String code;
     private final String desc;

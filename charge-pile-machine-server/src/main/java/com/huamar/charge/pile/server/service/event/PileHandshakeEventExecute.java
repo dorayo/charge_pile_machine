@@ -1,11 +1,11 @@
 package com.huamar.charge.pile.server.service.event;
 
-import com.huamar.charge.pile.entity.dto.event.PileHandshakeEventDTO;
 import com.huamar.charge.pile.entity.dto.event.PileEventReqDTO;
+import com.huamar.charge.pile.entity.dto.event.PileHandshakeEventDTO;
 import com.huamar.charge.pile.enums.PileEventEnum;
-import com.huamar.charge.pile.protocol.DataPacketReader;
-import com.huamar.charge.pile.util.HexExtUtil;
-import com.huamar.charge.pile.util.JSONParser;
+import com.huamar.charge.common.protocol.DataPacketReader;
+import com.huamar.charge.common.util.HexExtUtil;
+import com.huamar.charge.common.util.JSONParser;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
@@ -38,8 +38,8 @@ public class PileHandshakeEventExecute implements PileEventExecute {
     @Override
     public void execute(PileEventReqDTO reqDTO) {
         log.info("事件汇报：{}", getCode().getDesc());
-        //TODO 业务实现
         PileHandshakeEventDTO eventDTO = this.parse(reqDTO);
+        log.info("事件汇报：{}, data:{}", getCode().getDesc(), JSONParser.jsonString(eventDTO));
     }
 
     /**
@@ -58,8 +58,8 @@ public class PileHandshakeEventExecute implements PileEventExecute {
         eventDTO.setBatteryType(reader.readByte());
         eventDTO.setCarRatedCapacity(reader.readInt());
         eventDTO.setCarRatedVoltage(reader.readShort());
-        eventDTO.setDantidianya(reader.readShort());
-        eventDTO.setZuigaodianliu(reader.readShort());
+        eventDTO.setBatteryCellVoltage(reader.readShort());
+        eventDTO.setBatteryCellElectricity(reader.readShort());
         eventDTO.setBatterySerialNumber(reader.readShort());
         eventDTO.setBatteryProductionDate(reader.readBCD3());
         eventDTO.setBatteryChargeCount(reader.readInt());

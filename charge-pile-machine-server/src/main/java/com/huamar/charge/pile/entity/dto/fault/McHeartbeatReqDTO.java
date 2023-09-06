@@ -1,6 +1,8 @@
 package com.huamar.charge.pile.entity.dto.fault;
 
-import com.huamar.charge.pile.common.codec.BCD;
+import com.alibaba.fastjson.annotation.JSONField;
+import com.huamar.charge.common.common.codec.BCD;
+import com.huamar.charge.common.util.json.BCDHexValueSerializer;
 import com.huamar.charge.pile.entity.dto.BaseReqDTO;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -18,6 +20,7 @@ public class McHeartbeatReqDTO extends BaseReqDTO {
 	/**
 	 * 服务器时间
 	 */
+	@JSONField(serializeUsing = BCDHexValueSerializer.class)
 	public BCD time;
 
 	/**

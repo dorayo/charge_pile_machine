@@ -2,8 +2,8 @@ package com.huamar.charge.pile.server.service.fault;
 
 import com.huamar.charge.pile.entity.dto.fault.McFaultPutReqDTO;
 import com.huamar.charge.pile.enums.McFaultPutEnum;
-import com.huamar.charge.pile.protocol.DataPacket;
-import com.huamar.charge.pile.protocol.DataPacketWriter;
+import com.huamar.charge.common.protocol.DataPacket;
+import com.huamar.charge.common.protocol.DataPacketWriter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 

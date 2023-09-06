@@ -6,11 +6,11 @@ import com.huamar.charge.pile.entity.dto.resp.McCommonResp;
 import com.huamar.charge.pile.enums.McAnswerEnum;
 import com.huamar.charge.pile.enums.PileEventEnum;
 import com.huamar.charge.pile.enums.ProtocolCodeEnum;
-import com.huamar.charge.pile.protocol.DataPacket;
+import com.huamar.charge.common.protocol.DataPacket;
 import com.huamar.charge.pile.server.service.McAnswerFactory;
 import com.huamar.charge.pile.server.service.PileEventFactory;
 import com.huamar.charge.pile.server.service.event.PileEventExecute;
-import com.huamar.charge.pile.util.HexExtUtil;
+import com.huamar.charge.common.util.HexExtUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -57,11 +57,13 @@ public class MachineEventHandler implements MachineMessageHandler<DataPacket> {
     @Override
     public void handler(DataPacket packet, ChannelContext channelContext) {
         try {
+            log.info("设备事件汇报 start ==>");
+            String ip = channelContext.getClientNode().getIp();
             PileEventReqDTO reqDTO = McEventConvert.INSTANCE.convert(packet);
-            log.info("设备事件汇报，ip={}", channelContext.getClientNode().getIp());
+            String eventCode = HexExtUtil.encodeHexStr(reqDTO.getEventType());
+            log.info("设备事件汇报，ip={} eventCode:{}", ip, eventCode);
             answerFactory.getExecute(McAnswerEnum.COMMON).execute(McCommonResp.ok(packet), channelContext);
 
-            String eventCode = HexExtUtil.encodeHexStr(reqDTO.getEventType());
             PileEventEnum eventEnum = PileEventEnum.getByCode(eventCode);
             if(Objects.isNull(eventEnum)){
                 log.error("eventEnum is null eventCode:{}", eventCode);
@@ -71,7 +73,6 @@ public class MachineEventHandler implements MachineMessageHandler<DataPacket> {
             if(Objects.isNull(execute)){
                 log.error("eventFactory get null eventEnum:{}", eventEnum);
             }
-
             execute.execute(reqDTO);
         }catch (Exception e){
             answerFactory.getExecute(McAnswerEnum.COMMON)

@@ -4,8 +4,8 @@ import cn.hutool.core.convert.Convert;
 import com.huamar.charge.pile.entity.dto.command.McChargeCommandDTO;
 import com.huamar.charge.pile.entity.dto.command.McCommandDTO;
 import com.huamar.charge.pile.enums.McCommandEnum;
-import com.huamar.charge.pile.protocol.DataPacket;
-import com.huamar.charge.pile.protocol.DataPacketWriter;
+import com.huamar.charge.common.protocol.DataPacket;
+import com.huamar.charge.common.protocol.DataPacketWriter;
 import com.huamar.charge.pile.server.service.MachineContext;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -45,8 +45,13 @@ public class McChargeCommandExecute implements McCommandExecute<McChargeCommandD
      */
     @Override
     public void execute(McChargeCommandDTO command) {
+        Short messageNumber = machineContext.getMessageNumber(command.getIdCode());
         DataPacket packet = this.packet(command);
+        packet.setMsgNumber(messageNumber);
+
         boolean sendCommand = machineContext.sendCommand(packet);
+        command.headCommandState(sendCommand);
+        command.headMessageNum(messageNumber);
         log.info("ChargeCommand idCode:{} sendCommand:{} ", command.getIdCode(), sendCommand);
     }
 
@@ -67,6 +72,5 @@ public class McChargeCommandExecute implements McCommandExecute<McChargeCommandD
         short typeCode = Convert.toShort(getCode().getCode());
         return new McCommandDTO(typeCode, command.getFieldsByteLength(), writer.toByteArray());
     }
-
 
 }

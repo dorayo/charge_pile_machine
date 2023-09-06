@@ -1,8 +1,8 @@
 package com.huamar.charge.pile.server.service.answer;
 
-import com.huamar.charge.pile.common.BaseResp;
+import com.huamar.charge.common.common.BaseResp;
 import com.huamar.charge.pile.enums.McAnswerEnum;
-import com.huamar.charge.pile.protocol.DataPacketWriter;
+import com.huamar.charge.common.protocol.DataPacketWriter;
 import org.tio.core.ChannelContext;
 
 /**

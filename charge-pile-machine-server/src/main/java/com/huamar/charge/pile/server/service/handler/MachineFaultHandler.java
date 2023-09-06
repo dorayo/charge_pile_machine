@@ -5,7 +5,7 @@ import com.huamar.charge.pile.entity.dto.fault.McFaultPutReqDTO;
 import com.huamar.charge.pile.entity.dto.resp.McCommonResp;
 import com.huamar.charge.pile.enums.McAnswerEnum;
 import com.huamar.charge.pile.enums.ProtocolCodeEnum;
-import com.huamar.charge.pile.protocol.DataPacket;
+import com.huamar.charge.common.protocol.DataPacket;
 import com.huamar.charge.pile.server.service.McAnswerFactory;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

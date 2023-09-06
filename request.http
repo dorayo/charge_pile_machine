@@ -12,3 +12,27 @@ POST http://120.46.210.11:8848/v1/ns/instance?serviceName=nacos.naming.serviceNa
 
 ###
 
+### 远程参数下发读取
+POST http://127.0.0.1:8881/server/sendReadParameter
+Content-Type: application/x-www-form-urlencoded
+
+idCode=471000220714302005
+
+### 远程参数下发读取
+POST http://127.0.0.1:8881/server/setParameter
+Content-Type: application/x-www-form-urlencoded
+
+idCode=471000220714302005
+
+### 启动充电
+POST http://127.0.0.1:8881/server/startCharge
+Content-Type: application/x-www-form-urlencoded
+
+idCode=471000220714302005
+
+
+### 命令转义
+POST http://127.0.0.1:8881/codec/transferEncode
+Content-Type: application/x-www-form-urlencoded
+
+body=23 31 01 0A 00 9B 05 34 37 31 30 30 30 32 32 30 37 31 34 33 30 32 30 30 35 23 08 17 16 57 54 FF FF FF FF 89 23

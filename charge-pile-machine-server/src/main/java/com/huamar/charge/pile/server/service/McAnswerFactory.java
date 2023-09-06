@@ -1,6 +1,6 @@
 package com.huamar.charge.pile.server.service;
 
-import com.huamar.charge.pile.common.BaseResp;
+import com.huamar.charge.common.common.BaseResp;
 import com.huamar.charge.pile.enums.McAnswerEnum;
 import com.huamar.charge.pile.server.service.answer.McAnswerExecute;
 import org.springframework.beans.factory.InitializingBean;

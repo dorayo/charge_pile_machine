@@ -2,7 +2,7 @@ package com.huamar.charge.pile.server.service.common;
 
 import com.huamar.charge.pile.entity.dto.McCommonReq;
 import com.huamar.charge.pile.enums.PileCommonResultEnum;
-import com.huamar.charge.pile.util.JSONParser;
+import com.huamar.charge.common.util.JSONParser;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
@@ -35,6 +35,6 @@ public class PileCommonGunCodeErrorExecute implements McCommonResultExecute<McCo
      */
     @Override
     public void execute(McCommonReq command) {
-        log.info("通用应答结果处理-{} start ==> command：{}", getCode().getDesc(),JSONParser.jsonStr(command));
+        log.info("通用应答结果处理-{} start ==> command：{}", getCode().getDesc(),JSONParser.jsonString(command));
     }
 }

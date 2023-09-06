@@ -1,7 +1,7 @@
 package com.huamar.charge.pile.server.service;
 
 import com.huamar.charge.pile.enums.ProtocolCodeEnum;
-import com.huamar.charge.pile.protocol.DataPacket;
+import com.huamar.charge.common.protocol.DataPacket;
 import com.huamar.charge.pile.server.service.handler.MachineMessageHandler;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.context.ApplicationContext;

@@ -7,11 +7,11 @@ import com.huamar.charge.pile.entity.dto.resp.McCommonResp;
 import com.huamar.charge.pile.enums.McAnswerEnum;
 import com.huamar.charge.pile.enums.McDataUploadEnum;
 import com.huamar.charge.pile.enums.ProtocolCodeEnum;
-import com.huamar.charge.pile.protocol.DataPacket;
+import com.huamar.charge.common.protocol.DataPacket;
 import com.huamar.charge.pile.server.service.McAnswerFactory;
 import com.huamar.charge.pile.server.service.McDataUploadFactory;
 import com.huamar.charge.pile.server.service.upload.McDataUploadExecute;
-import com.huamar.charge.pile.util.HexExtUtil;
+import com.huamar.charge.common.util.HexExtUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
@@ -49,7 +49,7 @@ public class MachineDataUploadHandler implements MachineMessageHandler<DataPacke
     @Override
     public void handler(DataPacket packet, ChannelContext channelContext) {
         MachineDataUploadReqDTO dataUploadReqDTO = MachineDataUploadConvert.INSTANCE.convert(packet);
-        log.info("终端数据汇报，idCode:{}，ip={}", packet.getIdCode(), channelContext.getClientNode().getIp());
+        log.info("终端数据汇报，ip={},idCode:{},msgNum:{}", new String(packet.getIdCode()), channelContext.getClientNode().getIp(), packet.getMsgNumber());
         answerFactory.getExecute(McAnswerEnum.COMMON).execute(McCommonResp.ok(packet), channelContext);
 
 
@@ -60,6 +60,7 @@ public class MachineDataUploadHandler implements MachineMessageHandler<DataPacke
         }
 
         for (MachineDataUpItem item : unitList) {
+            item.setIdCode(new String(packet.getIdCode()));
             String unitCode = HexExtUtil.encodeHexStr(item.getUnitId());
             unitCode = StringUtils.upperCase(unitCode);
             if (!map.containsKey(unitCode)) {

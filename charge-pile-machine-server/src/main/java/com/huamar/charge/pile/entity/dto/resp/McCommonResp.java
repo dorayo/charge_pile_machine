@@ -1,10 +1,10 @@
 package com.huamar.charge.pile.entity.dto.resp;
 
-import com.huamar.charge.pile.common.BCDUtils;
-import com.huamar.charge.pile.common.BaseResp;
-import com.huamar.charge.pile.common.ResultCode;
-import com.huamar.charge.pile.common.codec.BCD;
-import com.huamar.charge.pile.protocol.DataPacket;
+import com.huamar.charge.common.common.BCDUtils;
+import com.huamar.charge.common.common.BaseResp;
+import com.huamar.charge.common.common.ResultCode;
+import com.huamar.charge.common.common.codec.BCD;
+import com.huamar.charge.common.protocol.DataPacket;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 

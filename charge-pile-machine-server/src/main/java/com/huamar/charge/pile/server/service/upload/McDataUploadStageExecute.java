@@ -1,10 +1,12 @@
 package com.huamar.charge.pile.server.service.upload;
 
-import com.huamar.charge.pile.common.codec.BCD;
+import com.huamar.charge.common.common.codec.BCD;
 import com.huamar.charge.pile.entity.dto.MachineDataUpItem;
 import com.huamar.charge.pile.entity.dto.McChargeStageDataDTO;
 import com.huamar.charge.pile.enums.McDataUploadEnum;
-import com.huamar.charge.pile.protocol.DataPacketReader;
+import com.huamar.charge.common.protocol.DataPacketReader;
+import com.huamar.charge.common.util.JSONParser;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -17,6 +19,7 @@ import java.util.List;
  * @author TiAmo(13721682347@163.com)
  */
 @Service
+@Slf4j
 public class McDataUploadStageExecute implements McDataUploadExecute {
 
 
@@ -27,7 +30,7 @@ public class McDataUploadStageExecute implements McDataUploadExecute {
      */
     @Override
     public McDataUploadEnum getCode() {
-        return McDataUploadEnum.COMMON_0X08;
+        return McDataUploadEnum.COMMON_0X0A;
     }
 
     /**
@@ -37,6 +40,10 @@ public class McDataUploadStageExecute implements McDataUploadExecute {
     @Override
     public void execute(BCD time, List<MachineDataUpItem> list) {
         // TODO 业务实现
+        list.forEach( item -> {
+            McChargeStageDataDTO parse = this.parse(item);
+            log.info("充电桩实时状态信息表 data:{}", JSONParser.jsonString(parse));
+        });
     }
 
     /**

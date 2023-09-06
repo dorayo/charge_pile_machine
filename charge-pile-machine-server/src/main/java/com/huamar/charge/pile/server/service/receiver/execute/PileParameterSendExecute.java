@@ -8,7 +8,7 @@ import com.huamar.charge.pile.enums.McParameterEnum;
 import com.huamar.charge.pile.enums.MessageCodeEnum;
 import com.huamar.charge.pile.server.service.McParameterFactory;
 import com.huamar.charge.pile.server.service.receiver.PileMessageExecute;
-import com.huamar.charge.pile.util.JSONParser;
+import com.huamar.charge.common.util.JSONParser;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 

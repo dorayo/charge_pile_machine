@@ -1,10 +1,10 @@
 package com.huamar.charge.pile.server.service.answer;
 
+import com.huamar.charge.common.protocol.PacketBuilder;
 import com.huamar.charge.pile.entity.dto.resp.McCommonResp;
 import com.huamar.charge.pile.enums.McAnswerEnum;
 import com.huamar.charge.pile.enums.ProtocolCodeEnum;
-import com.huamar.charge.pile.protocol.DataPacketBuilder;
-import com.huamar.charge.pile.protocol.DataPacketWriter;
+import com.huamar.charge.common.protocol.DataPacketWriter;
 import com.huamar.charge.pile.server.service.MachineContext;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -45,10 +45,11 @@ public class McCommonAnswerExecute implements McAnswerExecute<McCommonResp> {
     @Override
     public void execute(McCommonResp resp, ChannelContext channelContext) {
         DataPacketWriter writer = this.writer(resp);
-        DataPacketBuilder builder = DataPacketBuilder.builder(machineContext);
+        PacketBuilder builder = PacketBuilder.builder();
         builder.body(writer)
-                .messageId(ProtocolCodeEnum.COMMON_ACK)
-                .idCode(resp.getIdCode());
+                .idCode(resp.getIdCode())
+                .messageId(ProtocolCodeEnum.COMMON_ACK.getCode())
+                .messageNumber(resp.getMsgNumber());
         machineContext.answer(builder.build(), channelContext);
     }
 

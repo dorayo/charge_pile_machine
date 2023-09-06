@@ -2,6 +2,7 @@ package com.huamar.charge.pile.entity.dto;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 
 /**
@@ -10,10 +11,11 @@ import lombok.NoArgsConstructor;
  *
  * @author TiAmo(13721682347@163.com)
  */
+@EqualsAndHashCode(callSuper = true)
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class MachineDataUpItem {
+public class MachineDataUpItem extends BaseReqDTO {
 
 	private byte unitId;
 

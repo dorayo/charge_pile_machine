@@ -2,7 +2,7 @@ package com.huamar.charge.pile.server.service.handler;
 
 import com.huamar.charge.pile.entity.dto.BaseReqDTO;
 import com.huamar.charge.pile.enums.ProtocolCodeEnum;
-import com.huamar.charge.pile.protocol.DataPacket;
+import com.huamar.charge.common.protocol.DataPacket;
 import org.tio.core.ChannelContext;
 import org.tio.core.intf.Packet;
 

@@ -3,8 +3,7 @@ package com.huamar.charge.pile.server.service.event;
 import com.huamar.charge.pile.entity.dto.event.PileEventReqDTO;
 import com.huamar.charge.pile.entity.dto.event.PileVinWhiteListEventDTO;
 import com.huamar.charge.pile.enums.PileEventEnum;
-import com.huamar.charge.pile.protocol.DataPacketReader;
-import com.huamar.charge.pile.util.JSONParser;
+import com.huamar.charge.common.protocol.DataPacketReader;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 

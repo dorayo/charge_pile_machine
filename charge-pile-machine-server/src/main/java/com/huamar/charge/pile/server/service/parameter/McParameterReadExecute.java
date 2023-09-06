@@ -3,7 +3,7 @@ package com.huamar.charge.pile.server.service.parameter;
 import com.huamar.charge.pile.convert.McParameterConvert;
 import com.huamar.charge.pile.entity.dto.McParameterReqDTO;
 import com.huamar.charge.pile.enums.McParameterEnum;
-import com.huamar.charge.pile.protocol.DataPacket;
+import com.huamar.charge.common.protocol.DataPacket;
 import com.huamar.charge.pile.server.service.MachineContext;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

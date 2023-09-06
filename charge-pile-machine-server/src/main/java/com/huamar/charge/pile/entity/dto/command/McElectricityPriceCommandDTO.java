@@ -1,6 +1,6 @@
 package com.huamar.charge.pile.entity.dto.command;
 
-import com.huamar.charge.pile.protocol.NumberFixStr;
+import com.huamar.charge.common.protocol.NumberFixStr;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 

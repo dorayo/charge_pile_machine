@@ -2,7 +2,9 @@ package com.huamar.charge.pile.server.service.produce;
 
 import cn.hutool.core.lang.Snowflake;
 import cn.hutool.core.util.IdUtil;
-import com.huamar.charge.pile.util.JSONParser;
+import com.huamar.charge.common.util.JSONParser;
+import com.huamar.charge.pile.config.PileMachineProperties;
+import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.amqp.core.Message;
@@ -20,7 +22,7 @@ import org.springframework.stereotype.Component;
  * 消息生产者
  * 2023/07/24
  *
- * @author TiAmo(13721682347@163.com)
+ * @author TiAmo(13721682347 @ 163.com)
  */
 @Component
 @Slf4j
@@ -29,19 +31,26 @@ public class McMessageProduce implements InitializingBean, RabbitTemplate.Confir
 
     private final ConnectionFactory connectionFactory;
 
+    /**
+     * 设备参数配置
+     */
+    @Getter
+    private final PileMachineProperties pileMachineProperties;
+
     private RabbitTemplate rabbitTemplate;
 
 
     /**
      * 发送消息
+     *
      * @param routingKey routingKey
-     * @param object object
+     * @param object     object
      */
     public void send(String routingKey, Object object) {
         MessageProperties messageProperties = new MessageProperties();
         Snowflake snowflake = IdUtil.getSnowflake();
         messageProperties.setMessageId(snowflake.nextIdStr());
-        rabbitTemplate.send(routingKey, new Message(JSONParser.jsonStr(object).getBytes(), messageProperties));
+        rabbitTemplate.send(routingKey, new Message(JSONParser.jsonString(object).getBytes(), messageProperties));
     }
 
 
@@ -54,14 +63,12 @@ public class McMessageProduce implements InitializingBean, RabbitTemplate.Confir
 
     /**
      * @param correlationData correlationData
-     * @param ack ack
-     * @param cause case
+     * @param ack             ack
+     * @param cause           case
      */
     @Override
     public void confirm(CorrelationData correlationData, boolean ack, String cause) {
-        log.info("消息唯一标识: {}", correlationData);
-        log.info("确认状态: {}", ack);
-        log.info("造成原因: {}", cause);
+        log.debug("消息唯一标识: {}，确认状态: {}，造成原因: {}", correlationData, ack, cause);
     }
 
 

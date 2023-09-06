@@ -28,7 +28,11 @@ public class PileChargeControlDTO extends PileBaseControlDTO {
     private Integer gunSort;
 
     /**
-     * 充电结束方式 BYTE 0x00：充满为止 0x01：电量控制 0x02：时间控制 0x03：金额控制
+     * 充电结束方式 BYTE
+     * 0x00：充满为止
+     * 0x01：电量控制
+     * 0x02：时间控制
+     * 0x03：金额控制
      */
     private Integer chargeEndType;
 
@@ -48,7 +52,7 @@ public class PileChargeControlDTO extends PileBaseControlDTO {
     private String orderSerialNumber;
 
     /**
-     * 当前账号余额，单位元
+     * 当前账号余额，单位 0.01元
      */
     private BigDecimal balance;
 }

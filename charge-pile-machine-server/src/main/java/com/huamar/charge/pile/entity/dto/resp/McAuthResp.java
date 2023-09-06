@@ -1,8 +1,8 @@
 package com.huamar.charge.pile.entity.dto.resp;
 
-import com.huamar.charge.pile.common.BaseResp;
-import com.huamar.charge.pile.common.codec.BCD;
-import com.huamar.charge.pile.protocol.FixString;
+import com.huamar.charge.common.common.BaseResp;
+import com.huamar.charge.common.common.codec.BCD;
+import com.huamar.charge.common.protocol.FixString;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 

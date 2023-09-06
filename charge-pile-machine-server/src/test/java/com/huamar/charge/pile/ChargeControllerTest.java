@@ -4,11 +4,11 @@ import cn.hutool.core.convert.Convert;
 import cn.hutool.core.lang.Snowflake;
 import cn.hutool.core.util.IdUtil;
 import com.huamar.charge.pile.entity.dto.platform.PileChargeControlDTO;
-import com.huamar.charge.pile.common.constant.QueueConstant;
+import com.huamar.charge.common.common.constant.QueueConstant;
 import com.huamar.charge.pile.entity.dto.mq.MessageData;
 import com.huamar.charge.pile.entity.dto.platform.ChargPriceDTO;
 import com.huamar.charge.pile.enums.MessageCodeEnum;
-import com.huamar.charge.pile.util.JSONParser;
+import com.huamar.charge.common.util.JSONParser;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -110,7 +110,7 @@ public class ChargeControllerTest {
         MessageProperties messageProperties = new MessageProperties();
         Snowflake snowflake = IdUtil.getSnowflake();
         messageProperties.setMessageId(snowflake.nextIdStr());
-        rabbitTemplate.send(QueueConstant.PILE_COMMON_QUEUE, new Message(JSONParser.jsonStr(messageData).getBytes(), messageProperties));
+        rabbitTemplate.send(QueueConstant.PILE_COMMON_QUEUE, new Message(JSONParser.jsonString(messageData).getBytes(), messageProperties));
     }
 
     @Test
@@ -132,7 +132,7 @@ public class ChargeControllerTest {
 
         // 消息发送
         RabbitTemplate rabbitTemplate = new RabbitTemplate(this.connectionFactory);
-        rabbitTemplate.send(QueueConstant.PILE_COMMON_QUEUE, new Message(JSONParser.jsonStr(messageData).getBytes(), messageProperties));
+        rabbitTemplate.send(QueueConstant.PILE_COMMON_QUEUE, new Message(JSONParser.jsonString(messageData).getBytes(), messageProperties));
 
 
 

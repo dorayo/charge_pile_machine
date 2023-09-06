@@ -1,14 +1,16 @@
 package com.huamar.charge.pile;
 
 import cn.hutool.core.convert.Convert;
-import com.huamar.charge.pile.entity.dto.McChargerOnlineInfoDTO;
-import com.huamar.charge.pile.util.HexExtUtil;
-import com.huamar.charge.pile.util.JSONParser;
+import com.huamar.charge.common.common.BCDUtils;
+import com.huamar.charge.pile.entity.dto.event.PileChargeArgConfigDTO;
+import com.huamar.charge.pile.entity.dto.platform.event.PileChargeArgConfigPushDTO;
+import com.huamar.charge.common.util.HexExtUtil;
+import com.huamar.charge.common.util.JSONParser;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.springframework.beans.BeanUtils;
 
-import java.math.BigInteger;
 import java.nio.charset.Charset;
 import java.util.Arrays;
 
@@ -76,11 +78,11 @@ public class DataPacketTest {
 
     @Test
     public void test5() {
-        String unitCode = HexExtUtil.encodeHexStr((byte) 0x0A);
-        log.info("unitCode:{}", unitCode);
-
-        McChargerOnlineInfoDTO dto = new McChargerOnlineInfoDTO();
-        dto.setGunSort((byte) 10);
-        log.info("dto:{}", JSONParser.jsonStr(dto));
+        PileChargeArgConfigDTO argConfigDTO = new PileChargeArgConfigDTO();
+        argConfigDTO.setSynTime(BCDUtils.bcdTime());
+        argConfigDTO.setGunSort((byte) 1);
+        PileChargeArgConfigPushDTO pushDTO = new PileChargeArgConfigPushDTO();
+        BeanUtils.copyProperties(argConfigDTO, pushDTO);
+        log.info("data:{}", JSONParser.jsonString(argConfigDTO));
     }
 }

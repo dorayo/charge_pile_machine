@@ -1,0 +1,57 @@
+package com.huamar.charge.pile.enums;
+
+import lombok.Getter;
+
+import java.time.Duration;
+import java.util.Objects;
+
+/**
+ * 缓存空间枚举
+ * 2023/07/24
+ *
+ * @author TiAmo(13721682347@163.com)
+ */
+@Getter
+public enum CacheKeyEnum {
+
+    MACHINE_MESSAGE_NUM_INCR("mc:msg:number:incr", "设备流水号滚动缓存", Duration.ofDays(365)),
+
+    MACHINE_COMMAND_ANSWER("mc:cmd:answer:", "设备命令应答缓存 key=idCode-messageNumber", Duration.ofMinutes(10)),
+
+    WARNING("压制警告", "压制警告", Duration.ofMinutes(1)),
+
+    ;
+    private final String code;
+
+    private final String desc;
+
+    /**
+     * 过期时间
+     */
+    private final Duration duration;
+
+    CacheKeyEnum(String code, String desc, Duration duration) {
+        this.code = code;
+        this.desc = desc;
+        this.duration = duration;
+    }
+
+    public static CacheKeyEnum getByCode(String code) {
+        for (CacheKeyEnum e : values()) {
+            if (Objects.equals(code, e.getCode())) {
+                return e;
+            }
+        }
+        throw new RuntimeException("enum not exists.");
+    }
+
+
+    /**
+     * 拼接缓存名字
+     * @param text text
+     * @return String
+     */
+    public String joinKey(String text){
+        return this.getCode() + ":" + text;
+    }
+}

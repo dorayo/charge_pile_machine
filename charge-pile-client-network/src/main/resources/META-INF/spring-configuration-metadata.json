@@ -1,0 +1,17 @@
+{"properties": [
+  {
+    "name": "machine.server.host",
+    "type": "java.lang.String",
+    "description": "服务端地址"
+  },
+  {
+    "name": "machine.server.port",
+    "type": "java.lang.String",
+    "description": "服务端地址"
+  },
+  {
+    "name": "machine.server.port",
+    "type": "java.lang.String",
+    "description": "服务端地址"
+  }
+]}
