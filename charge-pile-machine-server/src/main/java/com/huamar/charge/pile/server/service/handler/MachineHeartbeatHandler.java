@@ -9,10 +9,9 @@ import com.huamar.charge.pile.entity.dto.resp.McCommonResp;
 import com.huamar.charge.pile.enums.*;
 import com.huamar.charge.common.protocol.DataPacket;
 import com.huamar.charge.pile.server.service.McAnswerFactory;
-import com.huamar.charge.pile.server.service.produce.McMessageProduce;
+import com.huamar.charge.pile.server.service.produce.PileMessageProduce;
 import com.huamar.charge.common.util.JSONParser;
 import lombok.RequiredArgsConstructor;
-import lombok.SneakyThrows;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.MDC;
@@ -22,7 +21,6 @@ import org.tio.core.ChannelContext;
 
 import javax.annotation.PostConstruct;
 import java.time.LocalDateTime;
-import java.util.concurrent.TimeUnit;
 
 /**
  * 设备心跳包
@@ -45,7 +43,7 @@ public class MachineHeartbeatHandler implements MachineMessageHandler<DataPacket
     /**
      * 消息投递
      */
-    private final McMessageProduce mcMessageProduce;
+    private final PileMessageProduce pileMessageProduce;
 
     /**
      * 设备参数配置
@@ -91,7 +89,7 @@ public class MachineHeartbeatHandler implements MachineMessageHandler<DataPacket
             pileHeartbeatDTO.setDateTime(LocalDateTime.now());
             pileHeartbeatDTO.setTime(reqDTO.getTime().toString());
             MessageData<PileHeartbeatDTO> messageData = new MessageData<>(MessageCodeEnum.PILE_HEART_BEAT, pileHeartbeatDTO);
-            mcMessageProduce.send(pileMachineProperties.getPileMessageQueue(), messageData);
+            pileMessageProduce.send(pileMachineProperties.getPileMessageQueue(), messageData);
         }catch (Exception e){
             log.error("心跳包发送远程失败 mcMessageProduce send error e:{}", e.getMessage(), e);
         }

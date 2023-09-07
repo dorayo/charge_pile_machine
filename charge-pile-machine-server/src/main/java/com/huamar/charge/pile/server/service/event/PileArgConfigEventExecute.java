@@ -1,6 +1,5 @@
 package com.huamar.charge.pile.server.service.event;
 
-import com.huamar.charge.common.common.constant.QueueConstant;
 import com.huamar.charge.pile.entity.dto.event.PileChargeArgConfigDTO;
 import com.huamar.charge.pile.entity.dto.event.PileEventReqDTO;
 import com.huamar.charge.pile.entity.dto.mq.MessageData;
@@ -8,7 +7,7 @@ import com.huamar.charge.pile.entity.dto.platform.event.PileChargeArgConfigPushD
 import com.huamar.charge.pile.enums.MessageCodeEnum;
 import com.huamar.charge.pile.enums.PileEventEnum;
 import com.huamar.charge.common.protocol.DataPacketReader;
-import com.huamar.charge.pile.server.service.produce.McMessageProduce;
+import com.huamar.charge.pile.server.service.produce.PileMessageProduce;
 import com.huamar.charge.common.util.JSONParser;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -26,7 +25,8 @@ import org.springframework.stereotype.Component;
 @RequiredArgsConstructor
 public class PileArgConfigEventExecute implements PileEventExecute {
 
-    private final McMessageProduce messageProduce;
+    private final PileMessageProduce messageProduce;
+
 
     /**
      * 协议编码
@@ -61,7 +61,7 @@ public class PileArgConfigEventExecute implements PileEventExecute {
 
         MessageData<PileChargeArgConfigPushDTO> messageData = new MessageData<>(pushDTO);
         messageData.setBusinessCode(MessageCodeEnum.EVENT_CONFIG_EVENT.getCode());
-        messageProduce.send(QueueConstant.PILE_PLATFORM_QUEUE, messageData);
+        messageProduce.send(messageProduce.getPileMachineProperties().getPileMessageQueue(), messageData);
 
     }
 

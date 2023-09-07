@@ -1,5 +1,7 @@
 package com.huamar.charge.pile.server.service.command.impl;
 
+import cn.hutool.core.lang.Snowflake;
+import cn.hutool.core.util.IdUtil;
 import com.huamar.charge.common.util.JSONParser;
 import com.huamar.charge.pile.config.PileMachineProperties;
 import com.huamar.charge.pile.entity.dto.command.MessageCommonRespDTO;
@@ -7,7 +9,7 @@ import com.huamar.charge.pile.entity.dto.mq.MessageData;
 import com.huamar.charge.pile.enums.CacheKeyEnum;
 import com.huamar.charge.pile.enums.MessageCodeEnum;
 import com.huamar.charge.pile.server.service.command.MessageCommandRespService;
-import com.huamar.charge.pile.server.service.produce.McMessageProduce;
+import com.huamar.charge.pile.server.service.produce.PileMessageProduce;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.redisson.api.RBucket;
@@ -35,7 +37,7 @@ public class MessageCommandRespServiceImpl implements MessageCommandRespService 
     /**
      * 消息生产者
      */
-    private final McMessageProduce mcMessageProduce;
+    private final PileMessageProduce pileMessageProduce;
 
     /**
      * 更新缓存信息
@@ -44,7 +46,7 @@ public class MessageCommandRespServiceImpl implements MessageCommandRespService 
     @Override
     public void put(MessageCommonRespDTO commonRespDTO) {
         Assert.hasLength(commonRespDTO.getIdCode(), "id code is null");
-        Assert.hasLength(commonRespDTO.getRequestId(), "request id is null");
+        Assert.hasLength(commonRespDTO.getCommandId(), "request id is null");
 
         CacheKeyEnum keyEnum = CacheKeyEnum.MACHINE_COMMAND_ANSWER;
         String key = commonRespDTO.getIdCode() + "_" +commonRespDTO.getMsgNumber();
@@ -76,10 +78,13 @@ public class MessageCommandRespServiceImpl implements MessageCommandRespService 
     @Override
     public void sendCommonResp(MessageCommonRespDTO commonRespDTO){
         log.info("消息控制命令响应 data:{}", JSONParser.jsonString(commonRespDTO));
-        PileMachineProperties properties = mcMessageProduce.getPileMachineProperties();
+        Snowflake snowflake = IdUtil.getSnowflake();
+        String idStr = snowflake.nextIdStr();
+        PileMachineProperties properties = pileMessageProduce.getPileMachineProperties();
         MessageData<Object> messageData = new MessageData<>(MessageCodeEnum.PILE_MESSAGE_COMMON_RESP, commonRespDTO);
-        messageData.setRequestId(commonRespDTO.getRequestId());
+        messageData.setMessageId(idStr);
+        messageData.setRequestId(idStr);
         messageData.setBusinessId(commonRespDTO.getIdCode());
-        mcMessageProduce.send(properties.getPileMessageQueue(), messageData);
+        pileMessageProduce.send(properties.getPileMessageQueue(), messageData);
     }
 }

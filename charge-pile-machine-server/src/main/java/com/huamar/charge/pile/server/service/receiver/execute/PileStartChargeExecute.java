@@ -51,13 +51,13 @@ public class PileStartChargeExecute implements PileMessageExecute {
     @SuppressWarnings("ExtractMethodRecommender")
     @Override
     public void execute(MessageData<String> body) {
+        PileChargeControlDTO chargeControl = JSONParser.parseObject(body.getData(), PileChargeControlDTO.class);
         try {
-            PileChargeControlDTO chargeControl = JSONParser.parseObject(body.getData(), PileChargeControlDTO.class);
             McChargeCommandDTO chargeCommand = new McChargeCommandDTO();
             chargeCommand.setChargeControl((byte) 1);
             chargeCommand.setChargeEndType(chargeControl.getChargeEndType().byteValue());
+            chargeCommand.setChargeEndValue(chargeControl.getChargeEndValue().byteValue());
             chargeCommand.setGunSort(chargeControl.getGunSort().byteValue());
-            chargeCommand.setChargeEndType(chargeControl.getChargeEndType().byteValue());
             chargeCommand.setOrderSerialNumber(chargeControl.getOrderSerialNumber().getBytes());
             chargeCommand.setBalance(chargeControl.getBalance().intValue());
             chargeCommand.setIdCode(chargeControl.getIdCode());
@@ -66,7 +66,7 @@ public class PileStartChargeExecute implements PileMessageExecute {
 
             MessageCommonRespDTO commonResp = new MessageCommonRespDTO();
             commonResp.setIdCode(chargeControl.getIdCode());
-            commonResp.setRequestId(body.getRequestId());
+            commonResp.setCommandId(chargeControl.getCommandId());
             commonResp.setMsgResult(MessageCommonResultEnum.FAIL.getCode());
             commonResp.setMsgNumber(chargeCommand.headMessageNum().intValue());
             commonResp.setCommandTypeCode(this.getCode().getCode());
@@ -78,8 +78,8 @@ public class PileStartChargeExecute implements PileMessageExecute {
 
         } catch (Exception e) {
             MessageCommonRespDTO commonResp = new MessageCommonRespDTO();
-            commonResp.setIdCode(body.getBusinessId());
-            commonResp.setRequestId(body.getRequestId());
+            commonResp.setIdCode(chargeControl.getIdCode());
+            commonResp.setCommandId(chargeControl.getCommandId());
             commonResp.setMsgResult(MessageCommonResultEnum.FAIL.getCode());
             messageCommandRespService.sendCommonResp(commonResp);
         }

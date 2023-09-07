@@ -19,4 +19,9 @@ public abstract class PileBaseControlDTO extends BaseDTO {
      */
     public String idCode;
 
+    /**
+     * 命令请求ID，联系上下文的id
+     */
+    protected String commandId;
+
 }

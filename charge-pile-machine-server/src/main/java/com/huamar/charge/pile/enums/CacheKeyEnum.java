@@ -14,9 +14,9 @@ import java.util.Objects;
 @Getter
 public enum CacheKeyEnum {
 
-    MACHINE_MESSAGE_NUM_INCR("mc:msg:number:incr", "设备流水号滚动缓存", Duration.ofDays(365)),
+    MACHINE_MESSAGE_NUM_INCR("charge:mc:msg:number:incr", "设备流水号滚动缓存", Duration.ofDays(365)),
 
-    MACHINE_COMMAND_ANSWER("mc:cmd:answer:", "设备命令应答缓存 key=idCode-messageNumber", Duration.ofMinutes(10)),
+    MACHINE_COMMAND_ANSWER("charge:mc:cmd:answer:", "设备命令应答缓存 key=idCode-messageNumber", Duration.ofMinutes(10)),
 
     WARNING("压制警告", "压制警告", Duration.ofMinutes(1)),
 

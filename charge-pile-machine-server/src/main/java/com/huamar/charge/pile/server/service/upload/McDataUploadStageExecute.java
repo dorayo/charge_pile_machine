@@ -1,13 +1,20 @@
 package com.huamar.charge.pile.server.service.upload;
 
+import cn.hutool.core.util.IdUtil;
 import com.huamar.charge.common.common.codec.BCD;
+import com.huamar.charge.pile.config.PileMachineProperties;
 import com.huamar.charge.pile.entity.dto.MachineDataUpItem;
-import com.huamar.charge.pile.entity.dto.McChargeStageDataDTO;
+import com.huamar.charge.pile.entity.dto.ChargeStageDataDTO;
+import com.huamar.charge.pile.entity.dto.mq.MessageData;
 import com.huamar.charge.pile.enums.McDataUploadEnum;
 import com.huamar.charge.common.protocol.DataPacketReader;
 import com.huamar.charge.common.util.JSONParser;
+import com.huamar.charge.pile.enums.MessageCodeEnum;
+import com.huamar.charge.pile.server.service.produce.PileMessageProduce;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.util.Assert;
 
 import java.util.List;
 
@@ -20,8 +27,18 @@ import java.util.List;
  */
 @Service
 @Slf4j
+@RequiredArgsConstructor
 public class McDataUploadStageExecute implements McDataUploadExecute {
 
+    /**
+     * 消息投递
+     */
+    private final PileMessageProduce pileMessageProduce;
+
+    /**
+     * 设备参数配置
+     */
+    private final PileMachineProperties pileMachineProperties;
 
     /**
      * 协议编码
@@ -41,9 +58,28 @@ public class McDataUploadStageExecute implements McDataUploadExecute {
     public void execute(BCD time, List<MachineDataUpItem> list) {
         // TODO 业务实现
         list.forEach( item -> {
-            McChargeStageDataDTO parse = this.parse(item);
+            ChargeStageDataDTO parse = this.parse(item);
             log.info("充电桩实时状态信息表 data:{}", JSONParser.jsonString(parse));
+            this.sendMessage(parse);
         });
+    }
+
+
+    /**
+     * 发送设备端消息
+     * @param chargeStageDataDTO chargeStageDataDTO
+     */
+    private void sendMessage(ChargeStageDataDTO chargeStageDataDTO){
+        try {
+            Assert.notNull(chargeStageDataDTO, "chargeStageDataDTO noNull");
+            MessageData<ChargeStageDataDTO> messageData = new MessageData<>(MessageCodeEnum.PILE_CHARGE_STAGE, chargeStageDataDTO);
+            messageData.setBusinessId(chargeStageDataDTO.getIdCode());
+            messageData.setMessageId(IdUtil.simpleUUID());
+            messageData.setRequestId(IdUtil.simpleUUID());
+            pileMessageProduce.send(pileMachineProperties.getPileMessageQueue(), messageData);
+        }catch (Exception e){
+            log.error("sendMessage send error e:{}", e.getMessage(), e);
+        }
     }
 
     /**
@@ -51,9 +87,9 @@ public class McDataUploadStageExecute implements McDataUploadExecute {
      * @param data data
      * @return McChargerOnlineInfoDto
      */
-    private McChargeStageDataDTO parse(MachineDataUpItem data){
+    private ChargeStageDataDTO parse(MachineDataUpItem data){
         DataPacketReader reader = new DataPacketReader(data.getData());
-        McChargeStageDataDTO chargeStageDataDTO = new McChargeStageDataDTO();
+        ChargeStageDataDTO chargeStageDataDTO = new ChargeStageDataDTO();
         chargeStageDataDTO.setBatteryChargeVoltage(reader.readShort());
         chargeStageDataDTO.setBatteryChargeElectricity(reader.readShort());
         chargeStageDataDTO.setElectricityState(reader.readByte());

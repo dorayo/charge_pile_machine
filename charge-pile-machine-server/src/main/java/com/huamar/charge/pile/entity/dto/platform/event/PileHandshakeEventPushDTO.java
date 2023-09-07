@@ -1,4 +1,4 @@
-package com.huamar.charge.pile.entity.dto.event;
+package com.huamar.charge.pile.entity.dto.platform.event;
 
 import com.alibaba.fastjson.annotation.JSONField;
 import com.huamar.charge.common.common.codec.BCD;
@@ -14,17 +14,17 @@ import lombok.EqualsAndHashCode;
  */
 @EqualsAndHashCode(callSuper = true)
 @Data
-public class PileHandshakeEventDTO extends PileEventBaseDTO {
+public class PileHandshakeEventPushDTO extends PileEventPushBaseDTO {
 
     /**
      * 充电枪编号
      */
-    public byte gunSort;
+    public Integer gunSort;
 
     /**
      * 辨识结果  BYTE  1/bit， 偏移 0
      */
-    public byte distinguishResult;
+    public Integer distinguishResult;
 
     /**
      * BMS 通信协议版本号  BYTE[3]
@@ -35,32 +35,32 @@ public class PileHandshakeEventDTO extends PileEventBaseDTO {
     /**
      * 电池类型  BYTE 1 ： 锂电池 2 ： 超级电容
      */
-    public byte batteryType;
+    public Integer batteryType;
 
     /**
      * 整车动力蓄电池系统额定容量  DWORD  单位：KW.h/bit，偏移 0
      */
-    public int carRatedCapacity;
+    public Integer carRatedCapacity;
 
     /**
      * 整车动力蓄电池系统额定总电压  WORD  单位：0.1V/bit，偏移 0
      */
-    public short carRatedVoltage;
+    public Integer carRatedVoltage;
 
     /**
      * 单体最高允许充电电压  WORD  范围：1~65535， 偏移 0
      */
-    public short batteryCellVoltage;
+    public Integer batteryCellVoltage;
 
     /**
      * 最高允许充电总电流  WORD  范围：1~65535， 偏移 0
      */
-    public short batteryCellElectricity;
+    public Integer batteryCellElectricity;
 
     /**
      * 最高允许充电总电压  WORD  范围：1~65535， 偏移 0
      */
-    public short batterySerialNumber;
+    public Integer batterySerialNumber;
 
     /**
      * 电池组生产日期：年/月/日  BCD[3]
@@ -71,12 +71,12 @@ public class PileHandshakeEventDTO extends PileEventBaseDTO {
     /**
      * 电池组充电次数  DWORD 最小值 1， 偏移 0
      */
-    public int batteryChargeCount;
+    public Integer batteryChargeCount;
 
     /**
      * 最高允许温度  BYTE 1/bit， 偏移 0
      */
-    public byte batteryTag;
+    public Integer batteryTag;
 
     /**
      * 车辆识别码  BYTE[17]默认 ASCII 码，不足 17 位，后面补’\0’

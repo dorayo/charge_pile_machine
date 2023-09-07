@@ -17,7 +17,7 @@ public class MessageCommonRespDTO extends BaseReqDTO {
 	/**
 	 * 命令请求ID
 	 */
-	private String requestId;
+	private String commandId;
 
 	/**
 	 * 原消息序号

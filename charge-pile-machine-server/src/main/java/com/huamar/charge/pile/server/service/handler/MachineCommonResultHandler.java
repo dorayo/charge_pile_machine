@@ -73,6 +73,7 @@ public class MachineCommonResultHandler implements MachineMessageHandler<DataPac
             // 发送命令执行结果
             MessageCommonRespDTO commonRespDTO = messageCommandRespService.get(commonReq.getIdCode(), commonReq.getMsgNumber());
             if(Objects.nonNull(commonRespDTO)){
+                commonRespDTO.setMsgResult(resCode);
                 messageCommandRespService.sendCommonResp(commonRespDTO);
             }
 

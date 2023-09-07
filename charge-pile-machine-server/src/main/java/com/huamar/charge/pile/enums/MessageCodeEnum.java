@@ -13,14 +13,12 @@ import java.util.Objects;
 @Getter
 public enum MessageCodeEnum {
 
-    PILE_HEART_BEAT("PILE_HEART_BEAT", "设备心跳"),
 
     // >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> 远程控制 >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-    PILE_UPDATE("PILE_UPDATE", "设备更新"),
 
     PILE_START_CHARGE("PILE_START_CHARGE", "设备开启充电"),
 
-    PILE_STOP_CHARGE("PILE_STOP_CHARGE", "设备开启充电"),
+    PILE_STOP_CHARGE("PILE_STOP_CHARGE", "设备停止充电"),
 
     ELECTRICITY_PRICE("PILE_ELECTRICITY_PRICE_SEND", "电价下发"),
 
@@ -36,15 +34,30 @@ public enum MessageCodeEnum {
 
 
 
-    // >>>>>>>>>>>>>>>> 事件汇报 >>>>>>>>>>>>>>>>
-    EVENT_CONFIG_EVENT("EVENT_CONFIG_ARG", "充电参数配置信息"),
+    // >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> 事件汇报 >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+
+    EVENT_CONFIG_EVENT("EVENT_CONFIG_ARG", "充电参数配置事件"),
+
+    EVENT_HAND_SHAKE("EVENT_HAND_SHAKE", "充电握手事件"),
+
+    EVENT_CHARGE_FINISH("EVENT_CHARGE_FINISH", "充电完成事件"),
+
+    // <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< 事件汇报 <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
 
 
 
 
 
     // >>>>>>>>>>>>>>>>>>>>>>> 数据汇报 >>>>>>>>>>>>>>>>>>>>>>>
+
+    PILE_HEART_BEAT("PILE_HEART_BEAT", "设备心跳"),
+
+    PILE_UPDATE("PILE_UPDATE", "设备更新"),
+
     PILE_ONLINE("PILE_ONLINE", "充电桩实时状态"),
+
+    PILE_CHARGE_STAGE("PILE_CHARGE_STAGE", "数据汇报-充电桩电阶信息"),
+
     // <<<<<<<<<<<<<<<<<<<<<<<< 数据汇报 <<<<<<<<<<<<<<<<<<<<<<<<
 
 

@@ -5,7 +5,6 @@ import cn.hutool.crypto.digest.HmacAlgorithm;
 import com.huamar.charge.pile.api.dto.PileDTO;
 import com.huamar.charge.common.common.BCDUtils;
 import com.huamar.charge.common.common.BaseResp;
-import com.huamar.charge.common.common.constant.QueueConstant;
 import com.huamar.charge.pile.convert.MachineAuthenticationConvert;
 import com.huamar.charge.pile.entity.dto.MachineAuthenticationReqDTO;
 import com.huamar.charge.pile.entity.dto.command.McQrCodeCommandDTO;
@@ -18,7 +17,7 @@ import com.huamar.charge.pile.server.service.McAnswerFactory;
 import com.huamar.charge.pile.server.service.McCommandFactory;
 import com.huamar.charge.pile.server.service.answer.McAnswerExecute;
 import com.huamar.charge.pile.server.service.machine.MachineService;
-import com.huamar.charge.pile.server.service.produce.McMessageProduce;
+import com.huamar.charge.pile.server.service.produce.PileMessageProduce;
 import com.huamar.charge.common.util.HexExtUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -59,7 +58,7 @@ public class MachineAuthenticationHandler implements MachineMessageHandler<DataP
     /**
      * 消息生产者
      */
-    private final McMessageProduce mcMessageProduce;
+    private final PileMessageProduce pileMessageProduce;
 
     /**
      * 协议编码
@@ -125,10 +124,10 @@ public class MachineAuthenticationHandler implements MachineMessageHandler<DataP
         // 二维码下发
         this.sendQrCode(authResp);
         // 设备更新
-        mcMessageProduce.send(QueueConstant.PILE_COMMON_QUEUE, new MessageData<>(MessageCodeEnum.PILE_UPDATE, update));
+        pileMessageProduce.send(pileMessageProduce.getPileMachineProperties().getPileMessageQueue(), new MessageData<>(MessageCodeEnum.PILE_UPDATE, update));
 
         //电价更新
-        mcMessageProduce.send(QueueConstant.PILE_COMMON_QUEUE, new MessageData<>(MessageCodeEnum.ELECTRICITY_PRICE, update));
+        pileMessageProduce.send(pileMessageProduce.getPileMachineProperties().getPileMessageQueue(), new MessageData<>(MessageCodeEnum.ELECTRICITY_PRICE, update));
 
 
     }

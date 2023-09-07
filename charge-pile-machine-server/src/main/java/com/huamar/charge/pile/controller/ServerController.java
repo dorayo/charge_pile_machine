@@ -3,7 +3,7 @@ package com.huamar.charge.pile.controller;
 import cn.hutool.core.lang.Snowflake;
 import cn.hutool.core.util.IdUtil;
 import com.huamar.charge.common.common.BCDUtils;
-import com.huamar.charge.common.common.constant.QueueConstant;
+import com.huamar.charge.pile.config.PileMachineProperties;
 import com.huamar.charge.pile.entity.dto.mq.MessageData;
 import com.huamar.charge.pile.entity.dto.parameter.McBaseParameterDTO;
 import com.huamar.charge.pile.entity.dto.parameter.McParamItemDTO;
@@ -12,6 +12,7 @@ import com.huamar.charge.pile.entity.dto.parameter.McParameterReadDTO;
 import com.huamar.charge.pile.entity.dto.platform.PileChargeControlDTO;
 import com.huamar.charge.pile.enums.McParameterEnum;
 import com.huamar.charge.pile.enums.MessageCodeEnum;
+import com.huamar.charge.pile.server.MachineProperties;
 import com.huamar.charge.pile.server.service.McParameterFactory;
 import com.huamar.charge.pile.server.service.parameter.McParameterExecute;
 import com.huamar.charge.common.util.JSONParser;
@@ -47,6 +48,8 @@ public class ServerController {
     private final McParameterFactory parameterFactory;
 
     private final ConnectionFactory connectionFactory;
+
+    private final PileMachineProperties pileMachineProperties;
 
     @SneakyThrows
     @PostMapping("/send")
@@ -113,7 +116,7 @@ public class ServerController {
 
         // 消息发送
         RabbitTemplate rabbitTemplate = new RabbitTemplate(this.connectionFactory);
-        rabbitTemplate.send(QueueConstant.PILE_COMMON_QUEUE, new Message(JSONParser.jsonString(messageData).getBytes(), messageProperties));
+        rabbitTemplate.send(pileMachineProperties.getPileControlQueue(), new Message(JSONParser.jsonString(messageData).getBytes(), messageProperties));
 
         return "success:{}" + orderNumber;
     }
@@ -143,7 +146,7 @@ public class ServerController {
 
         // 消息发送
         RabbitTemplate rabbitTemplate = new RabbitTemplate(this.connectionFactory);
-        rabbitTemplate.send(QueueConstant.PILE_COMMON_QUEUE, new Message(JSONParser.jsonString(messageData).getBytes(), messageProperties));
+        rabbitTemplate.send(pileMachineProperties.getPileControlQueue(), new Message(JSONParser.jsonString(messageData).getBytes(), messageProperties));
 
         return "success" + orderNumber;
     }

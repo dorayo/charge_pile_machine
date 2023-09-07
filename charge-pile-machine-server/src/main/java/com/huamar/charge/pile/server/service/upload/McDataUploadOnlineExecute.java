@@ -6,20 +6,15 @@ import com.huamar.charge.pile.config.PileMachineProperties;
 import com.huamar.charge.pile.entity.dto.MachineDataUpItem;
 import com.huamar.charge.pile.entity.dto.McChargerOnlineInfoDTO;
 import com.huamar.charge.pile.entity.dto.mq.MessageData;
-import com.huamar.charge.pile.entity.dto.platform.PileHeartbeatDTO;
-import com.huamar.charge.pile.entity.dto.resp.McCommonResp;
-import com.huamar.charge.pile.enums.McAnswerEnum;
 import com.huamar.charge.pile.enums.McDataUploadEnum;
 import com.huamar.charge.common.protocol.DataPacketReader;
 import com.huamar.charge.pile.enums.MessageCodeEnum;
-import com.huamar.charge.pile.server.service.McAnswerFactory;
-import com.huamar.charge.pile.server.service.produce.McMessageProduce;
+import com.huamar.charge.pile.server.service.produce.PileMessageProduce;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import org.springframework.util.Assert;
 
-import java.time.LocalDateTime;
 import java.util.List;
 
 
@@ -37,17 +32,12 @@ public class McDataUploadOnlineExecute implements McDataUploadExecute {
     /**
      * 消息投递
      */
-    private final McMessageProduce mcMessageProduce;
+    private final PileMessageProduce pileMessageProduce;
 
     /**
      * 设备参数配置
      */
     private final PileMachineProperties pileMachineProperties;
-
-    /**
-     * 应答工厂
-     */
-    private final McAnswerFactory answerFactory;
 
     /**
      * 协议编码
@@ -85,7 +75,7 @@ public class McDataUploadOnlineExecute implements McDataUploadExecute {
             messageData.setBusinessId(onlineInfoDTO.getIdCode());
             messageData.setMessageId(IdUtil.simpleUUID());
             messageData.setRequestId(IdUtil.simpleUUID());
-            mcMessageProduce.send(pileMachineProperties.getPileMessageQueue(), messageData);
+            pileMessageProduce.send(pileMachineProperties.getPileMessageQueue(), messageData);
         }catch (Exception e){
             log.error("sendMessage send error e:{}", e.getMessage(), e);
         }

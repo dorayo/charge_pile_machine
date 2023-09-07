@@ -4,7 +4,6 @@ package com.huamar.charge.pile.server.service.receiver;
 import com.alibaba.fastjson.JSONObject;
 import com.alibaba.fastjson.TypeReference;
 import com.huamar.charge.common.common.StringPool;
-import com.huamar.charge.common.common.constant.QueueConstant;
 import com.huamar.charge.pile.entity.dto.mq.MessageData;
 import com.huamar.charge.pile.enums.MessageCodeEnum;
 import com.rabbitmq.client.Channel;
@@ -20,6 +19,7 @@ import org.springframework.dao.DuplicateKeyException;
 import org.springframework.util.Assert;
 
 import java.io.IOException;
+import java.time.Duration;
 import java.util.Objects;
 import java.util.StringJoiner;
 import java.util.concurrent.TimeUnit;
@@ -61,9 +61,15 @@ public class PileMessageReceiver implements ChannelAwareMessageListener {
         String lockKey = "";
         RLock clientLock = null;
         try {
-            lockKey = MessageFormatter.format("lock:{}:{}", QueueConstant.PILE_COMMON_QUEUE, message.getMessageProperties().getMessageId()).getMessage();
+            lockKey = MessageFormatter
+                    .format(
+                            "charge:lock:{}:{}",
+                            "mq",
+                            message.getMessageProperties().getMessageId()
+                    )
+                    .getMessage();
             clientLock = redissonClient.getLock(lockKey);
-            lock = clientLock.tryLock(QueueConstant.LOCK_TIMEOUT.toMillis(), TimeUnit.MICROSECONDS);
+            lock = clientLock.tryLock(Duration.ofSeconds(15).toMillis(), TimeUnit.MICROSECONDS);
             MessageData<String> messageData = JSONObject.parseObject(new String(message.getBody()), new TypeReference<MessageData<String>>() {
             });
             if (lock) {

@@ -75,8 +75,8 @@ public class MachineEventHandler implements MachineMessageHandler<DataPacket> {
             }
             execute.execute(reqDTO);
         }catch (Exception e){
-            answerFactory.getExecute(McAnswerEnum.COMMON)
-                    .execute(McCommonResp.fail(packet), channelContext);
+            log.error("event handler error ==> e:{}",e.getMessage(), e);
+            answerFactory.getExecute(McAnswerEnum.COMMON).execute(McCommonResp.fail(packet), channelContext);
         }
     }
 
