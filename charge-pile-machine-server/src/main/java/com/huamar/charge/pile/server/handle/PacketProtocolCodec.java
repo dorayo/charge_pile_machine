@@ -115,6 +115,7 @@ public class PacketProtocolCodec implements ProtocolCodec {
             if (failBuffer.hasRemaining()) {
                 byte[] bytes = new byte[failBuffer.remaining()];
                 failBuffer.get(bytes);
+                log.warn("fail packet:{}", HexExtUtil.encodeHexStrFormat(bytes, StringPool.SPACE));
                 return new FailMathPacket(bytes);
             }
 
@@ -144,6 +145,7 @@ public class PacketProtocolCodec implements ProtocolCodec {
             // 数据包完整
             Boolean readPacket = reader.readPacket(packet, bytes);
             if (!readPacket) {
+                log.warn("fail packet:{}", HexExtUtil.encodeHexStrFormat(bytes, StringPool.SPACE));
                 return new FailMathPacket(bytes);
             }
 
@@ -155,6 +157,7 @@ public class PacketProtocolCodec implements ProtocolCodec {
             log.info(joiner.toString());
             return packet;
         } catch (Exception e) {
+            log.error("fail TioDecodeException:{}", e.getMessage(), e);
             throw new TioDecodeException(e.getMessage());
         } finally {
             MDC.clear();

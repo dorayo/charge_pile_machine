@@ -99,7 +99,7 @@ public class DataPacketReader {
 
     public String readString(int len) {
         byte[] bytes = readBytes(len);
-        return new String(bytes, GBK);
+        return new String(bytes, charset);
     }
 
     @SuppressWarnings("AlibabaLowerCamelCaseVariableNaming")

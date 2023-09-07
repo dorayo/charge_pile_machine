@@ -1,5 +1,7 @@
 package com.huamar.charge.pile.server.service.handler;
 
+import com.huamar.charge.common.common.StringPool;
+import com.huamar.charge.common.util.JSONParser;
 import com.huamar.charge.pile.convert.McFaultConvert;
 import com.huamar.charge.pile.entity.dto.fault.McFaultPutReqDTO;
 import com.huamar.charge.pile.entity.dto.resp.McCommonResp;
@@ -9,8 +11,11 @@ import com.huamar.charge.common.protocol.DataPacket;
 import com.huamar.charge.pile.server.service.McAnswerFactory;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.slf4j.helpers.MessageFormatter;
 import org.springframework.stereotype.Service;
 import org.tio.core.ChannelContext;
+
+import java.util.StringJoiner;
 
 /**
  * 设备故障上报
@@ -48,16 +53,32 @@ public class MachineFaultHandler implements MachineMessageHandler<DataPacket> {
     @Override
     public void handler(DataPacket packet, ChannelContext channelContext) {
         try {
-            log.info("设备故障上报，ip={}", channelContext.getClientNode().getIp());
+
+            String ip = channelContext.getClientNode().getIp();
+            StringJoiner logText = new StringJoiner(StringPool.COMMA, StringPool.EMPTY, StringPool.EMPTY);
+            logText.add(MessageFormatter.format("设备故障上报，ip={}", ip).getMessage());
             McFaultPutReqDTO reqDTO = this.reader(packet);
-            // 通用应答
+            printInfo(logText, reqDTO);
+
             answerFactory.getExecute(McAnswerEnum.COMMON).execute(McCommonResp.ok(packet), channelContext);
-
-            //TODO 业务实现
-
-
         }catch (Exception e){
             answerFactory.getExecute(McAnswerEnum.COMMON).execute(McCommonResp.fail(packet), channelContext);
+        }
+    }
+
+    /**
+     * 拼接打印日志
+     * @param logText logText
+     */
+    private void printInfo(StringJoiner logText, McFaultPutReqDTO faultPutReqDTO) {
+        if (!log.isInfoEnabled()) {
+            return;
+        }
+
+        try {
+            logText.add(MessageFormatter.format("data:{}", JSONParser.jsonString(faultPutReqDTO)).getMessage());
+            log.info(logText.toString());
+        } catch (Exception ignored) {
         }
     }
 
