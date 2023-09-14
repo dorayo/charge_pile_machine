@@ -10,7 +10,7 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
  * @author TiAmo(13721682347@163.com)
  */
 @ConfigurationProperties(
-        prefix = "pile.machine"
+        prefix = "machine.pile.mq"
 )
 @Data
 public class PileMachineProperties {

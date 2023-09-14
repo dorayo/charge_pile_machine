@@ -29,7 +29,7 @@ public class ProtocolCodecFactory {
      *  不是当前解码器抛出异常 ProtocolCodecException
      * 返回系统
      */
-    public static BasePacket decode(ByteBuffer buffer) throws TioDecodeException {
+    public static BasePacket decode(ByteBuffer buffer) {
         for (ProtocolCodecEnum codec : ProtocolCodecEnum.values()) {
             try {
                 return codec.getProtocolCodec().decode(buffer);
@@ -56,7 +56,7 @@ public class ProtocolCodecFactory {
 
     @Getter
     enum ProtocolCodecEnum{
-        DATA_PACKET(DataPacket.class, new PacketProtocolCodec());
+        DATA_PACKET(DataPacket.class, new ClientProtocolCodec());
 
         private final Class<?> clazz;
         private final ProtocolCodec protocolCodec;

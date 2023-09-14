@@ -1,11 +1,12 @@
-package com.huamar.charge.pile.server.handle;
+package com.huamar.charge.pile.server.handle.tio;
 
 import cn.hutool.core.util.IdUtil;
 import com.huamar.charge.common.protocol.BasePacket;
+import com.huamar.charge.pile.server.protocol.ProtocolCodecFactory;
+import com.huamar.charge.pile.server.protocol.TioPacket;
 import lombok.Getter;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
-import org.slf4j.MDC;
 import org.tio.core.ChannelContext;
 import org.tio.core.TioConfig;
 import org.tio.core.intf.AioHandler;
@@ -37,7 +38,7 @@ public abstract class AbstractHandler implements AioHandler {
     @Override
     public Packet decode(ByteBuffer buffer, int limit, int position, int readableLength, ChannelContext channelContext) {
         Thread.currentThread().setName(IdUtil.getSnowflakeNextIdStr());
-        return ProtocolCodecFactory.decode(buffer);
+        return new TioPacket(ProtocolCodecFactory.decode(buffer));
     }
 
     /**
@@ -47,7 +48,8 @@ public abstract class AbstractHandler implements AioHandler {
     @SneakyThrows
     @Override
     public ByteBuffer encode(Packet packet, TioConfig tioConfig, ChannelContext channelContext) {
-        return ProtocolCodecFactory.encode((BasePacket) packet);
+        TioPacket tioPacket = (TioPacket) packet;
+        return ProtocolCodecFactory.encode(tioPacket.getBasePacket());
     }
 
 }

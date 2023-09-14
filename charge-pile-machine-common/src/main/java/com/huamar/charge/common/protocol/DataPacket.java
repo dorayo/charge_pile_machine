@@ -73,4 +73,13 @@ public class DataPacket extends BasePacket {
 	 */
 	private byte tagEnd;
 
+	/**
+	 * 获取
+	 *
+	 * @return byte[]
+	 */
+	@Override
+	byte[] getBytes() {
+		return new byte[0];
+	}
 }

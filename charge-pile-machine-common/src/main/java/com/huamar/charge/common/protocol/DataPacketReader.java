@@ -4,8 +4,9 @@ import com.huamar.charge.common.common.codec.BCD;
 import com.huamar.charge.common.util.BCCUtil;
 import com.huamar.charge.common.util.HexExtUtil;
 import lombok.Getter;
-import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
@@ -20,8 +21,9 @@ import java.nio.charset.StandardCharsets;
  */
 @SuppressWarnings("unused")
 @Getter
-@Slf4j
 public class DataPacketReader {
+
+    private static final Logger log = LoggerFactory.getLogger(DataPacketReader.class);
 
     private final ByteBuffer buffer;
 

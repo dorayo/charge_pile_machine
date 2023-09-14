@@ -2,9 +2,11 @@ package com.huamar.charge.machine.client.handle;
 
 import com.huamar.charge.common.common.BCDUtils;
 import com.huamar.charge.common.common.StringPool;
+import com.huamar.charge.common.protocol.BasePacket;
 import com.huamar.charge.common.protocol.DataPacket;
 import com.huamar.charge.common.protocol.FailMathPacket;
 import com.huamar.charge.common.util.HexExtUtil;
+import com.huamar.charge.machine.client.protocol.TioPacket;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
@@ -34,14 +36,17 @@ public class MachineHandler extends AbstractHandler implements ClientAioHandler 
     @SneakyThrows
     public void handler(Packet packet, ChannelContext channelContext) {
         try {
-            if(packet instanceof DataPacket){
-                DataPacket dataPacket = (DataPacket) packet;
+            TioPacket tioPacket = (TioPacket) packet;
+            BasePacket basePacket = tioPacket.getBasePacket();
+
+            if(basePacket instanceof DataPacket){
+                DataPacket dataPacket = (DataPacket) basePacket;
                 log.info("dataPacket data:{}", HexExtUtil.encodeHexStrFormat(dataPacket.getMsgBody(), StringPool.SPACE));
                 return;
             }
 
-            if(packet instanceof FailMathPacket){
-                FailMathPacket dataPacket = (FailMathPacket) packet;
+            if(basePacket instanceof FailMathPacket){
+                FailMathPacket dataPacket = (FailMathPacket) basePacket;
                 log.info("FailMathPacket data:{}", HexExtUtil.encodeHexStrFormat(dataPacket.getBody(), StringPool.SPACE));
             }
         }catch (Exception e){
@@ -83,6 +88,6 @@ public class MachineHandler extends AbstractHandler implements ClientAioHandler 
         dataPacket.setMsgBody(bytes);
         dataPacket.setCheckTag((byte) Integer.parseInt("23", 16));
 
-        return dataPacket;
+        return new TioPacket(dataPacket);
     }
 }

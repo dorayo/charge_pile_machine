@@ -1,19 +1,19 @@
 package com.huamar.charge.pile.server.service.handler;
 
+import com.huamar.charge.common.protocol.DataPacket;
+import com.huamar.charge.common.util.HexExtUtil;
+import com.huamar.charge.net.core.SessionChannel;
 import com.huamar.charge.pile.entity.dto.parameter.McBaseParameterDTO;
 import com.huamar.charge.pile.entity.dto.resp.McCommonResp;
 import com.huamar.charge.pile.enums.McAnswerEnum;
 import com.huamar.charge.pile.enums.McParameterEnum;
 import com.huamar.charge.pile.enums.ProtocolCodeEnum;
-import com.huamar.charge.common.protocol.DataPacket;
-import com.huamar.charge.pile.server.service.McAnswerFactory;
-import com.huamar.charge.pile.server.service.McParameterFactory;
+import com.huamar.charge.pile.server.service.factory.McAnswerFactory;
+import com.huamar.charge.pile.server.service.factory.McParameterFactory;
 import com.huamar.charge.pile.server.service.parameter.McParameterExecute;
-import com.huamar.charge.common.util.HexExtUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
-import org.tio.core.ChannelContext;
 
 import java.util.Objects;
 
@@ -26,7 +26,7 @@ import java.util.Objects;
 @Slf4j
 @Service
 @RequiredArgsConstructor
-public class MachineParameterHandler implements MachineMessageHandler<DataPacket> {
+public class MachineParameterHandler implements MachinePacketHandler<DataPacket> {
 
 
     private final McParameterFactory mcParameterFactory;
@@ -51,12 +51,12 @@ public class MachineParameterHandler implements MachineMessageHandler<DataPacket
      * 执行器
      *
      * @param packet         packet
-     * @param channelContext channelContext
+     * @param sessionChannel sessionChannel
      */
     @Override
-    public void handler(DataPacket packet, ChannelContext channelContext) {
+    public void handler(DataPacket packet, SessionChannel sessionChannel) {
         try {
-            log.info("远程参数查询应答，ip={}", channelContext.getClientNode().getIp());
+            log.info("远程参数查询应答，ip={}", sessionChannel.getIp());
             String messageIdCode = HexExtUtil.encodeHexStr(packet.getMsgId());
             McParameterEnum mcParameterEnum = McParameterEnum.getByCode(messageIdCode);
             if(Objects.isNull(mcParameterEnum)){
@@ -76,7 +76,7 @@ public class MachineParameterHandler implements MachineMessageHandler<DataPacket
             //noinspection unchecked
             execute.execute(reader);
         }catch (Exception e){
-            answerFactory.getExecute(McAnswerEnum.COMMON).execute(McCommonResp.fail(packet), channelContext);
+            answerFactory.getExecute(McAnswerEnum.COMMON).execute(McCommonResp.fail(packet), sessionChannel);
         }
     }
 

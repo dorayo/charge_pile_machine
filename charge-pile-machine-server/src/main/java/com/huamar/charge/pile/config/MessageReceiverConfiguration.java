@@ -14,7 +14,9 @@ import org.springframework.boot.context.event.ApplicationReadyEvent;
 import org.springframework.context.ApplicationListener;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
+import org.springframework.core.annotation.Order;
 import org.springframework.lang.NonNull;
+import org.springframework.stereotype.Component;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -26,7 +28,8 @@ import java.util.Map;
  * @author TiAmo(13721682347 @ 163.com)
  **/
 @Slf4j
-@Configuration
+@Order(0)
+@Component
 @RequiredArgsConstructor
 @Import(PileMachineAutoConfiguration.class)
 public class MessageReceiverConfiguration implements DisposableBean, ApplicationListener<ApplicationReadyEvent> {

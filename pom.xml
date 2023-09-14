@@ -41,7 +41,9 @@
 		<swagger.version>2.10.5</swagger.version>
 		<redisson-spring-boot-starter.version>3.18.0</redisson-spring-boot-starter.version>
 		<hutool.version>5.7.22</hutool.version>
+		<fastjson.version>1.2.83</fastjson.version>
 		<guava.version>31.1-jre</guava.version>
+		<netty.version>4.1.97.Final</netty.version>
 	
 	</properties>
 	
@@ -90,6 +92,14 @@
 				<version>${t-io.version}</version>
 			</dependency>
 			
+			<!-- https://mvnrepository.com/artifact/io.netty/netty-all -->
+			<dependency>
+				<groupId>io.netty</groupId>
+				<artifactId>netty-all</artifactId>
+				<version>${netty.version}</version>
+			</dependency>
+
+			
 			<!-- 阿里数据库连接池 -->
 			<dependency>
 				<groupId>com.alibaba</groupId>
@@ -135,6 +145,13 @@
 				<groupId>cn.hutool</groupId>
 				<artifactId>hutool-all</artifactId>
 				<version>${hutool.version}</version>
+			</dependency>
+			
+			<dependency>
+				<groupId>com.alibaba</groupId>
+				<artifactId>fastjson</artifactId>
+				<version>${fastjson.version}</version>
+				<scope>compile</scope>
 			</dependency>
 			
 			<!-- Redisson : 注意跟 SpringBoot 版本的匹配 -->

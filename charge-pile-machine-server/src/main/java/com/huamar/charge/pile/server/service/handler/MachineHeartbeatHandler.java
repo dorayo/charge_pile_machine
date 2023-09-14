@@ -1,5 +1,6 @@
 package com.huamar.charge.pile.server.service.handler;
 
+import com.huamar.charge.net.core.SessionChannel;
 import com.huamar.charge.pile.config.PileMachineProperties;
 import com.huamar.charge.pile.convert.McHeartbeatConvert;
 import com.huamar.charge.pile.entity.dto.fault.McHeartbeatReqDTO;
@@ -8,7 +9,7 @@ import com.huamar.charge.pile.entity.dto.platform.PileHeartbeatDTO;
 import com.huamar.charge.pile.entity.dto.resp.McCommonResp;
 import com.huamar.charge.pile.enums.*;
 import com.huamar.charge.common.protocol.DataPacket;
-import com.huamar.charge.pile.server.service.McAnswerFactory;
+import com.huamar.charge.pile.server.service.factory.McAnswerFactory;
 import com.huamar.charge.pile.server.service.produce.PileMessageProduce;
 import com.huamar.charge.common.util.JSONParser;
 import lombok.RequiredArgsConstructor;
@@ -17,7 +18,6 @@ import org.slf4j.LoggerFactory;
 import org.slf4j.MDC;
 import org.springframework.stereotype.Service;
 import org.springframework.util.Assert;
-import org.tio.core.ChannelContext;
 
 import javax.annotation.PostConstruct;
 import java.time.LocalDateTime;
@@ -30,7 +30,7 @@ import java.time.LocalDateTime;
  */
 @Service
 @RequiredArgsConstructor
-public class MachineHeartbeatHandler implements MachineMessageHandler<DataPacket> {
+public class MachineHeartbeatHandler implements MachinePacketHandler<DataPacket> {
 
     private final Logger log = LoggerFactory.getLogger(LoggerEnum.HEARTBEAT_LOGGER.getCode());
 
@@ -64,21 +64,21 @@ public class MachineHeartbeatHandler implements MachineMessageHandler<DataPacket
      * 执行器
      *
      * @param packet         packet
-     * @param channelContext channelContext
+     * @param sessionChannel sessionChannel
      */
     @Override
-    public void handler(DataPacket packet, ChannelContext channelContext) {
+    public void handler(DataPacket packet, SessionChannel sessionChannel) {
         McHeartbeatReqDTO reqDTO = null;
         try {
-            String ip = channelContext.getClientNode().getIp();
+            String ip = sessionChannel.getIp();
             log.info("设备心跳包，ip={}, idCode:{}, msgNum:{}", ip, new String(packet.getIdCode()), packet.getMsgNumber());
             reqDTO = this.reader(packet);
             reqDTO.setIdCode(new String(packet.getIdCode()));
             log.info("设备心跳包，data:{}", JSONParser.jsonString(reqDTO));
             // 通用应答
-            answerFactory.getExecute(McAnswerEnum.COMMON).execute(McCommonResp.ok(packet), channelContext);
+            answerFactory.getExecute(McAnswerEnum.COMMON).execute(McCommonResp.ok(packet), sessionChannel);
         }catch (Exception e){
-            answerFactory.getExecute(McAnswerEnum.COMMON).execute(McCommonResp.fail(packet), channelContext);
+            answerFactory.getExecute(McAnswerEnum.COMMON).execute(McCommonResp.fail(packet), sessionChannel);
         }
 
         try {
@@ -107,17 +107,17 @@ public class MachineHeartbeatHandler implements MachineMessageHandler<DataPacket
         return McHeartbeatConvert.INSTANCE.convert(packet);
     }
 
-    @PostConstruct
-    public void logTest() {
-        Runnable runnable = new Runnable() {
-            final String idCode = "123456789012345678";
-            @Override
-            public void run() {
-                MDC.put(ConstEnum.ID_CODE.getCode(), idCode);
-                log.info("日志测试-设备心跳包，idCode:{}，ip={}", idCode, "0.0.0.0");
-                MDC.clear();
-            }
-        };
-        new Thread(runnable).start();
-    }
+//    @PostConstruct
+//    public void logTest() {
+//        Runnable runnable = new Runnable() {
+//            final String idCode = "123456789012345678";
+//            @Override
+//            public void run() {
+//                MDC.put(ConstEnum.ID_CODE.getCode(), idCode);
+//                log.info("日志测试-设备心跳包，idCode:{}，ip={}", idCode, "0.0.0.0");
+//                MDC.clear();
+//            }
+//        };
+//        new Thread(runnable).start();
+//    }
 }

@@ -1,8 +1,8 @@
-package com.huamar.charge.pile.server.service;
+package com.huamar.charge.pile.server.service.factory;
 
-import com.huamar.charge.common.common.BaseResp;
-import com.huamar.charge.pile.enums.McAnswerEnum;
-import com.huamar.charge.pile.server.service.answer.McAnswerExecute;
+import com.huamar.charge.pile.entity.dto.McCommonReq;
+import com.huamar.charge.pile.enums.PileCommonResultEnum;
+import com.huamar.charge.pile.server.service.common.McCommonResultExecute;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
@@ -13,15 +13,15 @@ import java.util.EnumMap;
 import java.util.Map;
 
 /**
- * 消息应答执行工厂
+ * 通用应答结果处理执行工厂
  * 2023/07/24
  *
  * @author TiAmo(13721682347@163.com)
  */
 @Component
-public class McAnswerFactory implements InitializingBean, ApplicationContextAware {
+public class McCommonResultFactory implements InitializingBean, ApplicationContextAware {
 
-    private static final Map<McAnswerEnum, McAnswerExecute<BaseResp>> EXECUTE_MAP = new EnumMap<>(McAnswerEnum.class);
+    private static final Map<PileCommonResultEnum, McCommonResultExecute<McCommonReq>> EXECUTE_MAP = new EnumMap<>(PileCommonResultEnum.class);
 
     private ApplicationContext applicationContext;
 
@@ -29,18 +29,18 @@ public class McAnswerFactory implements InitializingBean, ApplicationContextAwar
      * 获取执行策略
      *
      * @param eventEnum eventEnum
-     * @return McAnswerExecute
+     * @return JobTicketFlowEventExec
      */
-    public McAnswerExecute<BaseResp> getExecute(McAnswerEnum eventEnum) {
+    public McCommonResultExecute<McCommonReq> getExecute(PileCommonResultEnum eventEnum) {
         return EXECUTE_MAP.get(eventEnum);
     }
+
 
     @SuppressWarnings("unchecked")
     @Override
     public void afterPropertiesSet() {
-        applicationContext
-                .getBeansOfType(McAnswerExecute.class).values()
-                .forEach(exec -> EXECUTE_MAP.put(exec.getCode(), exec));
+       applicationContext.getBeansOfType(McCommonResultExecute.class)
+               .values().forEach(exec -> EXECUTE_MAP.put(exec.getCode(), exec));
     }
 
 

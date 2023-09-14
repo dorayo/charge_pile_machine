@@ -1,10 +1,9 @@
 package com.huamar.charge.pile.server.service.handler;
 
+import com.huamar.charge.common.protocol.DataPacket;
+import com.huamar.charge.net.core.SessionChannel;
 import com.huamar.charge.pile.entity.dto.BaseReqDTO;
 import com.huamar.charge.pile.enums.ProtocolCodeEnum;
-import com.huamar.charge.common.protocol.DataPacket;
-import org.tio.core.ChannelContext;
-import org.tio.core.intf.Packet;
 
 /**
  * 业务执行工厂
@@ -12,7 +11,7 @@ import org.tio.core.intf.Packet;
  *
  * @author TiAmo(13721682347@163.com)
  */
-public interface MachineMessageHandler<T extends Packet> {
+public interface MachinePacketHandler<T> {
 
 
     /**
@@ -24,9 +23,9 @@ public interface MachineMessageHandler<T extends Packet> {
     /**
      * 执行器
      * @param packet packet
-     * @param channelContext channelContext
+     * @param sessionChannel sessionChannel
      */
-    void handler(T packet, ChannelContext channelContext);
+    void handler(T packet, SessionChannel sessionChannel);
 
     /**
      * 读取参数

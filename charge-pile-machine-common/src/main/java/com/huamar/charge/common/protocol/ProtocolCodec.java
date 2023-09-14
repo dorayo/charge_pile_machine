@@ -1,7 +1,7 @@
 package com.huamar.charge.common.protocol;
 
 import com.huamar.charge.common.exception.ProtocolCodecException;
-import org.tio.core.exception.TioDecodeException;
+import io.netty.buffer.ByteBuf;
 
 import java.nio.ByteBuffer;
 
@@ -25,14 +25,29 @@ public interface ProtocolCodec {
      *
      * @author TiAmo(13721682347 @ 163.com)
      */
-    ByteBuffer encode(BasePacket packet) throws TioDecodeException;
+    ByteBuffer encode(BasePacket packet);
 
     /**
      * 协议解码
      *
      * @author TiAmo(13721682347 @ 163.com)
      */
-    BasePacket decode(ByteBuffer buffer) throws TioDecodeException, ProtocolCodecException;
+    BasePacket decode(ByteBuffer buffer) throws ProtocolCodecException;
 
+
+    /**
+     * 编码
+     *
+     * @param packet packet
+     * @param byteBuf byteBuf
+     */
+    boolean encode(BasePacket packet, ByteBuf byteBuf);
+
+    /**
+     * 协议解码
+     *
+     * @author TiAmo(13721682347 @ 163.com)
+     */
+    BasePacket decode(ByteBuf byteBuf) throws ProtocolCodecException;
 
 }

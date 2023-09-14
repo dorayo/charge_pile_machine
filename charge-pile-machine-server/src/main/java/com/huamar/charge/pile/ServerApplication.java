@@ -2,19 +2,22 @@ package com.huamar.charge.pile;
 
 
 import com.huamar.charge.common.common.StringPool;
-import com.huamar.charge.pile.server.MachineServer;
+import com.huamar.charge.pile.config.ServerApplicationProperties;
+import com.huamar.charge.pile.server.MachineNetServer;
 import de.vandermeer.asciitable.AsciiTable;
 import lombok.SneakyThrows;
-import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.context.event.ApplicationReadyEvent;
-import org.springframework.boot.context.event.ApplicationStartedEvent;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.cloud.client.discovery.EnableDiscoveryClient;
 import org.springframework.cloud.openfeign.EnableFeignClients;
 import org.springframework.context.ApplicationContext;
-import org.springframework.context.event.EventListener;
+import org.springframework.context.ApplicationListener;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.event.ContextClosedEvent;
 import org.springframework.core.annotation.Order;
 import org.springframework.core.env.Environment;
 import org.springframework.web.util.UriComponentsBuilder;
@@ -27,26 +30,39 @@ import java.net.InetAddress;
  *
  * @author TiAmo(13721682347@163.com)
  */
-@EnableConfigurationProperties
 @SpringBootApplication
 @EnableDiscoveryClient
 @EnableFeignClients(basePackages = "com.huamar.charge.pile.api")
-@Slf4j
+@EnableConfigurationProperties(ServerApplicationProperties.class)
 public class ServerApplication {
 
-    private static ApplicationContext applicationContext;
+    private final static Logger log = LoggerFactory.getLogger(ServerApplication.class);
+
 
     public static void main(String[] args) {
         SpringApplication.run(ServerApplication.class, args);
-        print();
     }
 
-    @Order(0)
-    @EventListener(ApplicationReadyEvent.class)
-    public void listen(ApplicationReadyEvent event) throws Exception {
-        applicationContext = event.getApplicationContext();
-        MachineServer machineServer = event.getApplicationContext().getBean(MachineServer.class);
-        machineServer.start();
+
+    @Bean
+    @Order(100)
+    public ApplicationListener<ApplicationReadyEvent> serverStart(){
+        return event -> {
+            //event.getApplicationContext().getBean(MachineTioServer.class).start();
+            MachineNetServer netServer = event.getApplicationContext().getBean(MachineNetServer.class);
+            netServer.start();
+            log.info("Server Net start ...{}", netServer.getClass().getName());
+            print(event.getApplicationContext());
+        };
+    }
+
+    @Bean
+    @Order(100)
+    public ApplicationListener<ContextClosedEvent> stopApplicationListener(){
+        return event -> {
+            event.getApplicationContext().getBean(MachineNetServer.class).close();
+            log.info("MachineNetServer close ...");
+        };
     }
 
 
@@ -54,7 +70,7 @@ public class ServerApplication {
      * 启动打印信息
      */
     @SneakyThrows
-    private static void print(){
+    private static void print(ApplicationContext applicationContext){
         Environment environment = applicationContext.getEnvironment();
         String ip = InetAddress.getLocalHost().getHostAddress();
         String port = environment.getProperty("server.port");

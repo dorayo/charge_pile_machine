@@ -1,6 +1,7 @@
 package com.huamar.charge.pile.server.service.answer;
 
 import com.huamar.charge.common.common.BaseResp;
+import com.huamar.charge.net.core.SessionChannel;
 import com.huamar.charge.pile.enums.McAnswerEnum;
 import com.huamar.charge.common.protocol.DataPacketWriter;
 import org.tio.core.ChannelContext;
@@ -25,10 +26,10 @@ public interface McAnswerExecute<T extends BaseResp> {
     /**
      * 执行方法
      *
-     * @param resp           resp
-     * @param channelContext channelContext
+     * @param resp    resp
+     * @param channel SessionChannel
      */
-    void execute(T resp, ChannelContext channelContext);
+    void execute(T resp, SessionChannel channel);
 
     /**
      * 封装协议数据

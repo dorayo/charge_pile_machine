@@ -1,13 +1,13 @@
-package com.huamar.charge.pile.server.handle;
+package com.huamar.charge.pile.server.protocol;
 
 import com.huamar.charge.common.exception.ProtocolCodecException;
 import com.huamar.charge.common.protocol.BasePacket;
 import com.huamar.charge.common.protocol.DataPacket;
 import com.huamar.charge.common.protocol.ProtocolCodec;
+import io.netty.buffer.ByteBuf;
 import lombok.Getter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.tio.core.exception.TioDecodeException;
 
 import java.nio.ByteBuffer;
 import java.util.Objects;
@@ -29,10 +29,28 @@ public class ProtocolCodecFactory {
      *  不是当前解码器抛出异常 ProtocolCodecException
      * 返回系统
      */
-    public static BasePacket decode(ByteBuffer buffer) throws TioDecodeException {
+    public static BasePacket decode(ByteBuffer buffer) {
         for (ProtocolCodecEnum codec : ProtocolCodecEnum.values()) {
             try {
                 return codec.getProtocolCodec().decode(buffer);
+            }catch (ProtocolCodecException ignored){
+                logger.warn("协议不匹配 codec:{}", codec.getProtocolCodec().getClazz());
+            }
+        }
+        return null;
+    }
+
+    /**
+     * 获取对应的解码器，
+     *  成功解码返回BasePacket
+     *  不可组包返回null
+     *  不是当前解码器抛出异常 ProtocolCodecException
+     * 返回系统
+     */
+    public static BasePacket decode(ByteBuf byteBuf) {
+        for (ProtocolCodecEnum codec : ProtocolCodecEnum.values()) {
+            try {
+                return codec.getProtocolCodec().decode(byteBuf);
             }catch (ProtocolCodecException ignored){
                 logger.warn("协议不匹配 codec:{}", codec.getProtocolCodec().getClazz());
             }
@@ -44,12 +62,28 @@ public class ProtocolCodecFactory {
     /**
      * 编码协议对象
      */
-    public static ByteBuffer encode(BasePacket packet) throws TioDecodeException {
+    public static ByteBuffer encode(BasePacket packet) {
         ProtocolCodec protocolCodec = ProtocolCodecEnum.getCodec(packet.getClass());
         if(Objects.isNull(protocolCodec)){
             return null;
         }
         return protocolCodec.encode(packet);
+    }
+
+
+    /**
+     * 编码协议对象
+     */
+    public static void encode(BasePacket packet, ByteBuf byteBuf) {
+        ProtocolCodec protocolCodec = ProtocolCodecEnum.getCodec(packet.getClass());
+        if(Objects.isNull(protocolCodec)){
+           throw new RuntimeException("protocolCodec is null");
+        }
+
+        boolean encode = protocolCodec.encode(packet, byteBuf);
+        if (logger.isDebugEnabled()){
+            logger.debug("encode status:{}", encode);
+        }
     }
 
 

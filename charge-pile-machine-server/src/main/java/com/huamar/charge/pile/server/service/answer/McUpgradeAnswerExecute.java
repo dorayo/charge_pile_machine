@@ -1,14 +1,14 @@
 package com.huamar.charge.pile.server.service.answer;
 
+import com.huamar.charge.common.protocol.DataPacketWriter;
 import com.huamar.charge.common.protocol.PacketBuilder;
+import com.huamar.charge.net.core.SessionChannel;
 import com.huamar.charge.pile.entity.dto.resp.McUpgradeResp;
 import com.huamar.charge.pile.enums.McAnswerEnum;
 import com.huamar.charge.pile.enums.ProtocolCodeEnum;
-import com.huamar.charge.common.protocol.DataPacketWriter;
-import com.huamar.charge.pile.server.service.MachineContext;
+import com.huamar.charge.pile.server.session.SessionManager;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
-import org.tio.core.ChannelContext;
 
 /**
  * 设备升级应答
@@ -20,10 +20,6 @@ import org.tio.core.ChannelContext;
 @RequiredArgsConstructor
 public class McUpgradeAnswerExecute implements McAnswerExecute<McUpgradeResp> {
 
-    /**
-     * 设备终端上下文
-     */
-    private final MachineContext machineContext;
 
     /**
      * 协议编码
@@ -36,21 +32,15 @@ public class McUpgradeAnswerExecute implements McAnswerExecute<McUpgradeResp> {
     }
 
 
-    /**
-     * 执行方法
-     *
-     * @param resp           resp
-     * @param channelContext channelContext
-     */
     @Override
-    public void execute(McUpgradeResp resp, ChannelContext channelContext) {
+    public void execute(McUpgradeResp resp, SessionChannel channel) {
         DataPacketWriter writer = this.writer(resp);
         PacketBuilder builder = PacketBuilder.builder()
                 .idCode(resp.getIdCode())
                 .messageId(ProtocolCodeEnum.UPGRADE.getCode())
-                .messageNumber(machineContext.getMessageNumber(resp.getIdCode()))
+                .messageNumber(SessionManager.getMessageNumber(resp.getIdCode()))
                 .body(writer);
-        machineContext.answer(builder.build(), channelContext);
+        SessionManager.writePacket(builder.build(), channel);
     }
 
     /**

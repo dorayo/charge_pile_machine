@@ -1,12 +1,12 @@
 package com.huamar.charge.pile.server.service.parameter;
 
 import cn.hutool.core.collection.CollectionUtil;
+import com.huamar.charge.common.protocol.DataPacket;
+import com.huamar.charge.common.protocol.DataPacketWriter;
 import com.huamar.charge.pile.entity.dto.parameter.McParameterDTO;
 import com.huamar.charge.pile.enums.McParameterEnum;
 import com.huamar.charge.pile.enums.ProtocolCodeEnum;
-import com.huamar.charge.common.protocol.DataPacket;
-import com.huamar.charge.common.protocol.DataPacketWriter;
-import com.huamar.charge.pile.server.service.MachineContext;
+import com.huamar.charge.pile.server.session.SessionManager;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
@@ -22,10 +22,6 @@ import org.springframework.stereotype.Component;
 @RequiredArgsConstructor
 public class McParameterSendExecute implements McParameterExecute<McParameterDTO> {
 
-    /**
-     * 设备上下文
-     */
-    private final MachineContext machineContext;
 
     /**
      * 协议编码
@@ -46,7 +42,7 @@ public class McParameterSendExecute implements McParameterExecute<McParameterDTO
     public void execute(McParameterDTO command) {
         DataPacket packet = this.packet(command);
         packet.setMsgId(ProtocolCodeEnum.PARAMETER_SEND.codeByte());
-        boolean sendCommand = machineContext.sendCommand(packet);
+        boolean sendCommand = SessionManager.writePacket(packet);
         log.info("Parameter Send idCode:{} sendCommand:{} ", command.getIdCode(), sendCommand);
     }
 

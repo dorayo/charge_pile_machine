@@ -2,6 +2,7 @@ package com.huamar.charge.machine.client.handle;
 
 
 import com.huamar.charge.common.protocol.BasePacket;
+import com.huamar.charge.machine.client.protocol.TioPacket;
 import lombok.Getter;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
@@ -35,7 +36,8 @@ public abstract class AbstractHandler implements AioHandler {
     @SneakyThrows
     @Override
     public Packet decode(ByteBuffer buffer, int limit, int position, int readableLength, ChannelContext channelContext) {
-        return ProtocolCodecFactory.decode(buffer);
+        BasePacket basePacket = ProtocolCodecFactory.decode(buffer);
+        return new TioPacket(basePacket);
     }
 
     /**
@@ -45,7 +47,8 @@ public abstract class AbstractHandler implements AioHandler {
     @SneakyThrows
     @Override
     public ByteBuffer encode(Packet packet, TioConfig tioConfig, ChannelContext channelContext) {
-        return ProtocolCodecFactory.encode((BasePacket) packet);
+        TioPacket encode = (TioPacket) packet;
+        return ProtocolCodecFactory.encode(encode.getBasePacket());
     }
 
 }

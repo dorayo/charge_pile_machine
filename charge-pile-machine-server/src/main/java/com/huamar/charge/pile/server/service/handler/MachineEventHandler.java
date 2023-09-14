@@ -1,5 +1,6 @@
 package com.huamar.charge.pile.server.service.handler;
 
+import com.huamar.charge.net.core.SessionChannel;
 import com.huamar.charge.pile.convert.McEventConvert;
 import com.huamar.charge.pile.entity.dto.event.PileEventReqDTO;
 import com.huamar.charge.pile.entity.dto.resp.McCommonResp;
@@ -7,14 +8,13 @@ import com.huamar.charge.pile.enums.McAnswerEnum;
 import com.huamar.charge.pile.enums.PileEventEnum;
 import com.huamar.charge.pile.enums.ProtocolCodeEnum;
 import com.huamar.charge.common.protocol.DataPacket;
-import com.huamar.charge.pile.server.service.McAnswerFactory;
-import com.huamar.charge.pile.server.service.PileEventFactory;
+import com.huamar.charge.pile.server.service.factory.McAnswerFactory;
+import com.huamar.charge.pile.server.service.factory.PileEventFactory;
 import com.huamar.charge.pile.server.service.event.PileEventExecute;
 import com.huamar.charge.common.util.HexExtUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
-import org.tio.core.ChannelContext;
 
 import java.util.Objects;
 
@@ -27,7 +27,7 @@ import java.util.Objects;
 @Slf4j
 @Service
 @RequiredArgsConstructor
-public class MachineEventHandler implements MachineMessageHandler<DataPacket> {
+public class MachineEventHandler implements MachinePacketHandler<DataPacket> {
 
 
     private final PileEventFactory eventFactory;
@@ -52,17 +52,17 @@ public class MachineEventHandler implements MachineMessageHandler<DataPacket> {
      * 执行器
      *
      * @param packet         packet
-     * @param channelContext channelContext
+     * @param sessionChannel sessionChannel
      */
     @Override
-    public void handler(DataPacket packet, ChannelContext channelContext) {
+    public void handler(DataPacket packet, SessionChannel sessionChannel) {
         try {
             log.info("设备事件汇报 start ==>");
-            String ip = channelContext.getClientNode().getIp();
+            String ip = sessionChannel.getIp();
             PileEventReqDTO reqDTO = McEventConvert.INSTANCE.convert(packet);
             String eventCode = HexExtUtil.encodeHexStr(reqDTO.getEventType());
             log.info("设备事件汇报，ip={} eventCode:{}", ip, eventCode);
-            answerFactory.getExecute(McAnswerEnum.COMMON).execute(McCommonResp.ok(packet), channelContext);
+            answerFactory.getExecute(McAnswerEnum.COMMON).execute(McCommonResp.ok(packet), sessionChannel);
 
             PileEventEnum eventEnum = PileEventEnum.getByCode(eventCode);
             if(Objects.isNull(eventEnum)){
@@ -76,7 +76,7 @@ public class MachineEventHandler implements MachineMessageHandler<DataPacket> {
             execute.execute(reqDTO);
         }catch (Exception e){
             log.error("event handler error ==> e:{}",e.getMessage(), e);
-            answerFactory.getExecute(McAnswerEnum.COMMON).execute(McCommonResp.fail(packet), channelContext);
+            answerFactory.getExecute(McAnswerEnum.COMMON).execute(McCommonResp.fail(packet), sessionChannel);
         }
     }
 

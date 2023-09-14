@@ -1,4 +1,4 @@
-package com.huamar.charge.pile.server.service;
+package com.huamar.charge.pile.server.service.factory;
 
 import com.huamar.charge.pile.enums.McDataUploadEnum;
 import com.huamar.charge.pile.server.service.upload.McDataUploadExecute;

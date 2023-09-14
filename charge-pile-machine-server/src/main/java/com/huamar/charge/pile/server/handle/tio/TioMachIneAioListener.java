@@ -1,9 +1,7 @@
-package com.huamar.charge.pile.server.listener;
+package com.huamar.charge.pile.server.handle.tio;
 
 import cn.hutool.core.util.IdUtil;
 import lombok.extern.slf4j.Slf4j;
-import org.slf4j.MDC;
-import org.springframework.stereotype.Component;
 import org.tio.core.ChannelContext;
 import org.tio.core.TioConfig;
 import org.tio.core.intf.Packet;
@@ -14,8 +12,7 @@ import org.tio.server.intf.ServerAioListener;
  * @author TiAmo
  */
 @Slf4j
-@Component
-public class MachIneAioListener implements ServerAioListener {
+public class TioMachIneAioListener implements ServerAioListener {
 
     /**
      * 建链后触发本方法，注：建链不一定成功，需要关注参数isConnected

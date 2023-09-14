@@ -1,8 +1,6 @@
 package com.huamar.charge.pile.config;
 
-import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
-import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 
 /**
@@ -13,7 +11,6 @@ import org.springframework.context.annotation.Configuration;
  */
 @Configuration
 @EnableConfigurationProperties({PileMachineProperties.class})
-@ComponentScan(basePackageClasses = PileMachineAutoConfiguration.class)
 public class PileMachineAutoConfiguration {
 
 }

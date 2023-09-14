@@ -1,7 +1,8 @@
-package com.huamar.charge.pile.server.service;
+package com.huamar.charge.pile.server.service.factory;
 
-import com.huamar.charge.pile.enums.PileEventEnum;
-import com.huamar.charge.pile.server.service.event.PileEventExecute;
+import com.huamar.charge.pile.entity.dto.parameter.McBaseParameterDTO;
+import com.huamar.charge.pile.enums.McParameterEnum;
+import com.huamar.charge.pile.server.service.parameter.McParameterExecute;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
@@ -12,15 +13,15 @@ import java.util.EnumMap;
 import java.util.Map;
 
 /**
- * 事件汇报业务执行工厂
+ * 远程参数业务执行工厂
  * 2023/07/24
  *
  * @author TiAmo(13721682347@163.com)
  */
 @Component
-public class PileEventFactory implements InitializingBean, ApplicationContextAware {
+public class McParameterFactory implements InitializingBean, ApplicationContextAware {
 
-    private static final Map<PileEventEnum, PileEventExecute> EXECUTE_MAP = new EnumMap<>(PileEventEnum.class);
+    private static final Map<McParameterEnum, McParameterExecute<McBaseParameterDTO>> EXECUTE_MAP = new EnumMap<>(McParameterEnum.class);
 
     private ApplicationContext applicationContext;
 
@@ -30,15 +31,16 @@ public class PileEventFactory implements InitializingBean, ApplicationContextAwa
      * @param eventEnum eventEnum
      * @return JobTicketFlowEventExec
      */
-    public PileEventExecute getExecute(PileEventEnum eventEnum) {
+    public McParameterExecute<McBaseParameterDTO> getExecute(McParameterEnum eventEnum) {
         return EXECUTE_MAP.get(eventEnum);
     }
 
+
+    @SuppressWarnings({"rawtypes", "unchecked"})
     @Override
     public void afterPropertiesSet() {
-        applicationContext
-                .getBeansOfType(PileEventExecute.class).values()
-                .forEach(exec -> EXECUTE_MAP.put(exec.getCode(), exec));
+        Map<String, McParameterExecute> beans = applicationContext.getBeansOfType(McParameterExecute.class);
+        beans.values().forEach(exec -> EXECUTE_MAP.put(exec.getCode(), exec));
     }
 
 

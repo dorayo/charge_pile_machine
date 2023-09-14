@@ -2,6 +2,8 @@ package com.huamar.charge.common.protocol;
 
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
@@ -14,8 +16,9 @@ import java.nio.charset.StandardCharsets;
  *
  * @author TiAmo(13721682347@163.com)
  */
-@Slf4j
 public class DataPacketWriter {
+
+	private static final Logger log = LoggerFactory.getLogger(DataPacketReader.class);
 
 	public final Charset charset = StandardCharsets.UTF_8;
 

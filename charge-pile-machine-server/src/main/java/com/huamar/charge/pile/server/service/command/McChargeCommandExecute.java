@@ -1,12 +1,12 @@
 package com.huamar.charge.pile.server.service.command;
 
 import cn.hutool.core.convert.Convert;
+import com.huamar.charge.common.protocol.DataPacket;
+import com.huamar.charge.common.protocol.DataPacketWriter;
 import com.huamar.charge.pile.entity.dto.command.McChargeCommandDTO;
 import com.huamar.charge.pile.entity.dto.command.McCommandDTO;
 import com.huamar.charge.pile.enums.McCommandEnum;
-import com.huamar.charge.common.protocol.DataPacket;
-import com.huamar.charge.common.protocol.DataPacketWriter;
-import com.huamar.charge.pile.server.service.MachineContext;
+import com.huamar.charge.pile.server.session.SessionManager;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
@@ -22,10 +22,6 @@ import org.springframework.stereotype.Component;
 @RequiredArgsConstructor
 public class McChargeCommandExecute implements McCommandExecute<McChargeCommandDTO> {
 
-    /**
-     * 设备上下文
-     */
-    private final MachineContext machineContext;
 
     /**
      * 协议编码
@@ -45,11 +41,11 @@ public class McChargeCommandExecute implements McCommandExecute<McChargeCommandD
      */
     @Override
     public void execute(McChargeCommandDTO command) {
-        Short messageNumber = machineContext.getMessageNumber(command.getIdCode());
+        Short messageNumber = SessionManager.getMessageNumber(command.getIdCode());
         DataPacket packet = this.packet(command);
         packet.setMsgNumber(messageNumber);
 
-        boolean sendCommand = machineContext.sendCommand(packet);
+        boolean sendCommand = SessionManager.writePacket(packet);
         command.headCommandState(sendCommand);
         command.headMessageNum(messageNumber);
         log.info("ChargeCommand idCode:{} sendCommand:{} ", command.getIdCode(), sendCommand);

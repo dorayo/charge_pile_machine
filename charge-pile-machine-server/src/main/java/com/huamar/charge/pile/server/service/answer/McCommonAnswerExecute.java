@@ -1,14 +1,14 @@
 package com.huamar.charge.pile.server.service.answer;
 
+import com.huamar.charge.common.protocol.DataPacketWriter;
 import com.huamar.charge.common.protocol.PacketBuilder;
+import com.huamar.charge.net.core.SessionChannel;
 import com.huamar.charge.pile.entity.dto.resp.McCommonResp;
 import com.huamar.charge.pile.enums.McAnswerEnum;
 import com.huamar.charge.pile.enums.ProtocolCodeEnum;
-import com.huamar.charge.common.protocol.DataPacketWriter;
-import com.huamar.charge.pile.server.service.MachineContext;
+import com.huamar.charge.pile.server.session.SessionManager;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
-import org.tio.core.ChannelContext;
 
 /**
  * 设备应答接口
@@ -19,11 +19,6 @@ import org.tio.core.ChannelContext;
 @Service
 @RequiredArgsConstructor
 public class McCommonAnswerExecute implements McAnswerExecute<McCommonResp> {
-
-    /**
-     * 设备终端上下文
-     */
-    private final MachineContext machineContext;
 
     /**
      * 协议编码
@@ -43,14 +38,14 @@ public class McCommonAnswerExecute implements McAnswerExecute<McCommonResp> {
      * @param channelContext channelContext
      */
     @Override
-    public void execute(McCommonResp resp, ChannelContext channelContext) {
+    public void execute(McCommonResp resp, SessionChannel channelContext) {
         DataPacketWriter writer = this.writer(resp);
         PacketBuilder builder = PacketBuilder.builder();
         builder.body(writer)
                 .idCode(resp.getIdCode())
                 .messageId(ProtocolCodeEnum.COMMON_ACK.getCode())
                 .messageNumber(resp.getMsgNumber());
-        machineContext.answer(builder.build(), channelContext);
+        SessionManager.writePacket(builder.build(), channelContext);
     }
 
     /**

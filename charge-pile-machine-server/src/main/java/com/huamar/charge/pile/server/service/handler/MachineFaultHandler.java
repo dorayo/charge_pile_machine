@@ -2,18 +2,18 @@ package com.huamar.charge.pile.server.service.handler;
 
 import com.huamar.charge.common.common.StringPool;
 import com.huamar.charge.common.util.JSONParser;
+import com.huamar.charge.net.core.SessionChannel;
 import com.huamar.charge.pile.convert.McFaultConvert;
 import com.huamar.charge.pile.entity.dto.fault.McFaultPutReqDTO;
 import com.huamar.charge.pile.entity.dto.resp.McCommonResp;
 import com.huamar.charge.pile.enums.McAnswerEnum;
 import com.huamar.charge.pile.enums.ProtocolCodeEnum;
 import com.huamar.charge.common.protocol.DataPacket;
-import com.huamar.charge.pile.server.service.McAnswerFactory;
+import com.huamar.charge.pile.server.service.factory.McAnswerFactory;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.slf4j.helpers.MessageFormatter;
 import org.springframework.stereotype.Service;
-import org.tio.core.ChannelContext;
 
 import java.util.StringJoiner;
 
@@ -26,7 +26,7 @@ import java.util.StringJoiner;
 @Slf4j
 @Service
 @RequiredArgsConstructor
-public class MachineFaultHandler implements MachineMessageHandler<DataPacket> {
+public class MachineFaultHandler implements MachinePacketHandler<DataPacket> {
 
     /**
      * 设备终端上下文
@@ -48,21 +48,21 @@ public class MachineFaultHandler implements MachineMessageHandler<DataPacket> {
      * 执行器
      *
      * @param packet         packet
-     * @param channelContext channelContext
+     * @param sessionChannel sessionChannel
      */
     @Override
-    public void handler(DataPacket packet, ChannelContext channelContext) {
+    public void handler(DataPacket packet, SessionChannel sessionChannel) {
         try {
 
-            String ip = channelContext.getClientNode().getIp();
+            String ip = sessionChannel.getIp();
             StringJoiner logText = new StringJoiner(StringPool.COMMA, StringPool.EMPTY, StringPool.EMPTY);
             logText.add(MessageFormatter.format("设备故障上报，ip={}", ip).getMessage());
             McFaultPutReqDTO reqDTO = this.reader(packet);
             printInfo(logText, reqDTO);
 
-            answerFactory.getExecute(McAnswerEnum.COMMON).execute(McCommonResp.ok(packet), channelContext);
+            answerFactory.getExecute(McAnswerEnum.COMMON).execute(McCommonResp.ok(packet), sessionChannel);
         }catch (Exception e){
-            answerFactory.getExecute(McAnswerEnum.COMMON).execute(McCommonResp.fail(packet), channelContext);
+            answerFactory.getExecute(McAnswerEnum.COMMON).execute(McCommonResp.fail(packet), sessionChannel);
         }
     }
 

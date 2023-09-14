@@ -1,4 +1,4 @@
-package com.huamar.charge.pile.server.handle;
+package com.huamar.charge.pile.server.protocol;
 
 import cn.hutool.core.util.HexUtil;
 import com.huamar.charge.common.common.StringPool;
@@ -7,6 +7,7 @@ import com.huamar.charge.common.util.BCCUtil;
 import com.huamar.charge.common.util.HexExtUtil;
 import com.huamar.charge.pile.enums.ConstEnum;
 import com.huamar.charge.pile.enums.LoggerEnum;
+import io.netty.buffer.ByteBuf;
 import lombok.SneakyThrows;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -16,8 +17,6 @@ import org.tio.core.exception.TioDecodeException;
 
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
-import java.nio.charset.Charset;
-import java.nio.charset.StandardCharsets;
 import java.util.Objects;
 import java.util.StringJoiner;
 
@@ -42,11 +41,6 @@ public class PacketProtocolCodec implements ProtocolCodec {
     protected static final int BODY_CHECK_LENGTH = 27;
 
     /**
-     * 编码格式
-     */
-    protected Charset charSet = StandardCharsets.UTF_8;
-
-    /**
      * @return DataPacket
      */
     @Override
@@ -62,34 +56,17 @@ public class PacketProtocolCodec implements ProtocolCodec {
      */
     @Override
     public ByteBuffer encode(BasePacket packet) {
-        DataPacket dataPacket;
         if (!Objects.equals(packet.getClass(), getClazz())) {
             return null;
         }
-        dataPacket = (DataPacket) packet;
-        DataPacketWriter writer = new DataPacketWriter();
-        writer.write(dataPacket.getTag());
-        writer.write(dataPacket.getMsgId());
-        byte msgBodyAttr = dataPacket.getMsgBodyAttr();
-        writer.write(msgBodyAttr);
-        writer.write(dataPacket.getMsgBodyLen());
-        writer.write(dataPacket.getMsgNumber());
-        writer.write(dataPacket.getIdCode());
-        writer.write(dataPacket.getMsgBody());
-
-        //校验码
-        byte[] byteArray = writer.toByteArray();
-        String checkTag = BCCUtil.bcc(byteArray, 1, byteArray.length);
-        writer.write(HexExtUtil.decodeHex(checkTag)[0]);
-        writer.write(dataPacket.getTagEnd());
-
-        // 转义
-        byte[] bytes = this.transferEncode(writer.toByteArray());
+        DataPacket dataPacket = (DataPacket) packet;
+        byte[] bytes = this.encodeToBytes(dataPacket);
         ByteBuffer buffer = ByteBuffer.allocate(bytes.length);
         buffer.put(bytes);
         buffer.flip();
         return buffer;
     }
+
 
     /**
      * 协议解码
@@ -97,6 +74,7 @@ public class PacketProtocolCodec implements ProtocolCodec {
      * @param buffer buffer
      * @author TiAmo(13721682347 @ 163.com)
      */
+    @SuppressWarnings("DuplicatedCode")
     @SneakyThrows
     @Override
     public BasePacket decode(ByteBuffer buffer) {
@@ -164,6 +142,120 @@ public class PacketProtocolCodec implements ProtocolCodec {
         }
     }
 
+    /**
+     * 编码
+     *
+     * @param packet  packet
+     * @param byteBuf byteBuf
+     */
+    @Override
+    public boolean encode(BasePacket packet, ByteBuf byteBuf) {
+        if (!Objects.equals(packet.getClass(), getClazz())) {
+            return false;
+        }
+        DataPacket dataPacket = (DataPacket) packet;
+        byte[] bytes = this.encodeToBytes(dataPacket);
+        byteBuf.writeBytes(bytes);
+        return true;
+    }
+
+    /**
+     * 协议解码
+     *
+     * @param byteBuf byteBuf
+     * @author TiAmo(13721682347 @ 163.com)
+     */
+    @SuppressWarnings("DuplicatedCode")
+    @Override
+    public BasePacket decode(ByteBuf byteBuf) {
+        try {
+            // 收到的数据组不了业务包，则返回null以告诉框架数据不够
+            if (byteBuf.readableBytes() < HEADER_LENGTH) {
+                return null;
+            }
+
+            ByteBuffer failBuffer = ByteBuffer.allocate(byteBuf.capacity());
+            ByteBuffer packetBuffer = ByteBuffer.allocate(byteBuf.capacity());
+            this.unpack(byteBuf, failBuffer, packetBuffer);
+
+            // 异常解析数据
+            if (failBuffer.hasRemaining()) {
+                byte[] bytes = new byte[failBuffer.remaining()];
+                failBuffer.get(bytes);
+                log.warn("fail packet:{}", HexExtUtil.encodeHexStrFormat(bytes, StringPool.SPACE));
+                return new FailMathPacket(bytes);
+            }
+
+            byte[] bytes = new byte[packetBuffer.remaining()];
+            packetBuffer.get(bytes);
+            bytes = this.transferDecode(bytes);
+
+            // 新包
+            DataPacketReader reader = new DataPacketReader(bytes);
+            DataPacket packet = new DataPacket();
+            packet.setTag(reader.readByte());
+            packet.setMsgId(reader.readByte());
+            packet.setMsgBodyAttr(reader.readByte());
+            packet.setMsgBodyLen(reader.readShort());
+
+            // 不能小于0
+            if (packet.getMsgBodyLen() < (short) 0) {
+                packet.setMsgBodyLen((short) 0);
+            }
+
+            // 消息包中数据是否完整
+            if (bytes.length < packet.getMsgBodyLen() + BODY_CHECK_LENGTH) {
+                log.info("数据包长度异常：msgBodyLength:{}, bytes.length:{}, 数据头长度:{} ", packet.getMsgBodyLen(), bytes.length, BODY_CHECK_LENGTH);
+                return null;
+            }
+
+            // 数据包完整
+            Boolean readPacket = reader.readPacket(packet, bytes);
+            if (!readPacket) {
+                log.warn("fail packet:{}", HexExtUtil.encodeHexStrFormat(bytes, StringPool.SPACE));
+                return new FailMathPacket(bytes);
+            }
+
+            String messageId = HexExtUtil.encodeHexStr(packet.getMsgId());
+            MDC.put(ConstEnum.ID_CODE.getCode(), new String(packet.getIdCode()));
+            StringJoiner joiner = new StringJoiner(StringPool.COMMA, StringPool.EMPTY, StringPool.EMPTY);
+            joiner.add(MessageFormatter.format("终端号:{} msgId:{}", new String(packet.getIdCode()), messageId).getMessage());
+            joiner.add(MessageFormatter.format("hexData:{}", HexExtUtil.encodeHexStrFormat(bytes, StringPool.SPACE)).getMessage());
+            log.info(joiner.toString());
+            return packet;
+        } catch (Exception e) {
+            log.error("fail TioDecodeException:{}", e.getMessage(), e);
+            throw new RuntimeException(e.getMessage());
+        } finally {
+            MDC.clear();
+        }
+    }
+
+    /**
+     * 编码字节数组
+     *
+     * @param packet packet
+     * @return byte[]
+     */
+    private byte[] encodeToBytes(DataPacket packet){
+        DataPacketWriter writer = new DataPacketWriter();
+        writer.write(packet.getTag());
+        writer.write(packet.getMsgId());
+        byte msgBodyAttr = packet.getMsgBodyAttr();
+        writer.write(msgBodyAttr);
+        writer.write(packet.getMsgBodyLen());
+        writer.write(packet.getMsgNumber());
+        writer.write(packet.getIdCode());
+        writer.write(packet.getMsgBody());
+
+        //校验码
+        byte[] byteArray = writer.toByteArray();
+        String checkTag = BCCUtil.bcc(byteArray, 1, byteArray.length);
+        writer.write(HexExtUtil.decodeHex(checkTag)[0]);
+        writer.write(packet.getTagEnd());
+        // 转义
+        return this.transferEncode(writer.toByteArray());
+    }
 
     /**
      * 转义编码
@@ -329,4 +421,55 @@ public class PacketProtocolCodec implements ProtocolCodec {
         }
     }
 
+    /**
+     * 粘包处理
+     *
+     * @param buffer buffer
+     */
+    private void unpack(ByteBuf buffer, ByteBuffer failBuffer, ByteBuffer packetBuffer) {
+        while (true) {
+            buffer.markReaderIndex();
+            byte data = buffer.readByte();
+            if (data != DataPacket.TAG) {
+                failBuffer.put(data);
+                continue;
+            }
+
+            // 去除粘包尾巴 tag 35
+            byte next = buffer.readByte();
+            if (next == DataPacket.TAG) {
+                buffer.resetReaderIndex();
+                failBuffer.put(buffer.readByte());
+            }
+            break;
+        }
+
+        // 异常解析数据
+        failBuffer.flip();
+        if (failBuffer.hasRemaining()) {
+            return;
+        }
+
+        buffer.resetReaderIndex();
+
+        byte make = buffer.readByte();
+        packetBuffer.put(make);
+        while (true){
+            byte next = buffer.readByte();
+            packetBuffer.put(next);
+            if(next == DataPacket.TAG){
+                break;
+            }
+        }
+
+        // 不可封包数据
+        packetBuffer.flip();
+        if(packetBuffer.remaining() < HEADER_LENGTH){
+            failBuffer.clear();
+            byte[] failBytes = new byte[packetBuffer.remaining()];
+            packetBuffer.get(failBytes);
+            failBuffer.put(failBytes);
+            failBuffer.flip();
+        }
+    }
 }

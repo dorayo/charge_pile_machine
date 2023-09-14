@@ -2,11 +2,13 @@ package com.huamar.charge.machine.client.handle;
 
 import cn.hutool.core.util.HexUtil;
 import com.huamar.charge.common.common.StringPool;
+import com.huamar.charge.common.exception.ProtocolCodecException;
 import com.huamar.charge.common.protocol.*;
 import com.huamar.charge.common.util.BCCUtil;
 import com.huamar.charge.common.util.HexExtUtil;
 import com.huamar.charge.machine.client.enums.ConstEnum;
 import com.huamar.charge.machine.client.enums.LoggerEnum;
+import io.netty.buffer.ByteBuf;
 import lombok.SneakyThrows;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -27,7 +29,7 @@ import java.util.StringJoiner;
  *
  * @author TiAmo(13721682347 @ 163.com)
  */
-public class PacketProtocolCodec implements ProtocolCodec {
+public class ClientProtocolCodec implements ProtocolCodec {
 
     private final Logger log = LoggerFactory.getLogger(LoggerEnum.MACHINE_PACKET_LOGGER.getCode());
 
@@ -159,6 +161,28 @@ public class PacketProtocolCodec implements ProtocolCodec {
         } finally {
             MDC.clear();
         }
+    }
+
+    /**
+     * 编码
+     *
+     * @param packet  packet
+     * @param byteBuf byteBuf
+     */
+    @Override
+    public boolean encode(BasePacket packet, ByteBuf byteBuf) {
+        return false;
+    }
+
+    /**
+     * 协议解码
+     *
+     * @param byteBuf
+     * @author TiAmo(13721682347 @ 163.com)
+     */
+    @Override
+    public BasePacket decode(ByteBuf byteBuf) throws ProtocolCodecException {
+        return null;
     }
 
 

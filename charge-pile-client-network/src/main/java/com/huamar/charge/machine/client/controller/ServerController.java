@@ -3,7 +3,8 @@ package com.huamar.charge.machine.client.controller;
 import cn.hutool.core.convert.Convert;
 import com.huamar.charge.common.protocol.*;
 import com.huamar.charge.common.util.HexExtUtil;
-import com.huamar.charge.machine.client.handle.PacketProtocolCodec;
+import com.huamar.charge.machine.client.handle.ClientProtocolCodec;
+import com.huamar.charge.machine.client.protocol.TioPacket;
 import com.huamar.charge.machine.client.starter.MachineClient;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
@@ -37,14 +38,13 @@ public class ServerController {
 
     private final MachineClient machineClient;
 
-    private final AtomicInteger messageNumber = new AtomicInteger(0);
 
     @ApiOperation(value="数据汇报-充电桩实时状态")
     @SneakyThrows
     @PostMapping("/sendPileOnlineStatus")
     public Object sendPileOnlineStatus(@RequestParam String id, @RequestParam String body) {
         ClientChannelContext channelContext = machineClient.getClientChannelContext();
-        PacketProtocolCodec protocolCodec = new PacketProtocolCodec();
+        ClientProtocolCodec protocolCodec = new ClientProtocolCodec();
 
         // 转码翻译数据包
         byte[] decodeHex = HexExtUtil.decodeHex(StringUtils.deleteWhitespace(body));
@@ -56,14 +56,13 @@ public class ServerController {
         DataPacketWriter writer = new DataPacketWriter();
         writer.write(decode.getMsgBody());
         DataPacket packet = PacketBuilder.builder()
-                .messageNumber(getMessageNumber())
+                .messageNumber(machineClient.getMessageNumber())
                 .messageId("34")
                 .idCode(id)
                 .body(writer)
                 .build();
 
-
-        Tio.send(channelContext, packet);
+        Tio.send(channelContext, new TioPacket(packet));
         return "ok";
     }
 
@@ -73,7 +72,7 @@ public class ServerController {
     @PostMapping("/sendCommand")
     public Object sendCommand(@RequestParam String body) {
         ClientChannelContext channelContext = machineClient.getClientChannelContext();
-        PacketProtocolCodec protocolCodec = new PacketProtocolCodec();
+        ClientProtocolCodec protocolCodec = new ClientProtocolCodec();
 
         // 转码翻译数据包
         byte[] decodeHex = HexExtUtil.decodeHex(StringUtils.deleteWhitespace(body));
@@ -88,33 +87,17 @@ public class ServerController {
         Boolean aBoolean = reader.readPacket(packet, bytes);
         Assert.isTrue(aBoolean, "readPacket error");
 
-        Tio.send(channelContext, packet);
+        Tio.send(channelContext, new TioPacket(packet));
         return "ok";
     }
 
 
-    /**
-     * 获取消息流水号
-     *
-     * @return Short
-     */
-    private Short getMessageNumber() {
-        int andIncrement = messageNumber.getAndIncrement();
-        if (Objects.equals(andIncrement, 65535)) {
-            messageNumber.set(0);
-            return Convert.toShort(messageNumber.getAndIncrement());
-        }
-        return Convert.toShort(andIncrement);
-    }
-
     public static void main(String[] args) {
         String body = "23 38 01 25 00 0E 05 34 37 31 30 30 30 32 32 30 37 31 34 33 30 32 30 30 35 01 00 00 03 00 4D 6F 64 75 6C 65 20 31 20 6F 66 66 6C 69 6E 65 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 7B 23";
-        PacketProtocolCodec protocolCodec = new PacketProtocolCodec();
+        ClientProtocolCodec protocolCodec = new ClientProtocolCodec();
         byte[] decodeHex = HexExtUtil.decodeHex(StringUtils.deleteWhitespace(body));
         byte[] bytes = protocolCodec.transferEncode(decodeHex);
         DataPacketReader reader = new DataPacketReader(bytes);
-
-
     }
 
 }

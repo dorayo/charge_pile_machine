@@ -1,12 +1,12 @@
 package com.huamar.charge.pile.server.service.parameter;
 
 import com.huamar.charge.common.common.BCDUtils;
+import com.huamar.charge.common.protocol.DataPacket;
+import com.huamar.charge.common.protocol.DataPacketWriter;
 import com.huamar.charge.pile.entity.dto.parameter.McParameterReadDTO;
 import com.huamar.charge.pile.enums.McParameterEnum;
 import com.huamar.charge.pile.enums.ProtocolCodeEnum;
-import com.huamar.charge.common.protocol.DataPacket;
-import com.huamar.charge.common.protocol.DataPacketWriter;
-import com.huamar.charge.pile.server.service.MachineContext;
+import com.huamar.charge.pile.server.session.SessionManager;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
@@ -22,10 +22,7 @@ import org.springframework.stereotype.Component;
 @RequiredArgsConstructor
 public class McParameterReadSendExecute implements McParameterExecute<McParameterReadDTO> {
 
-    /**
-     * 设备上下文
-     */
-    private final MachineContext machineContext;
+
 
     /**
      * 协议编码
@@ -46,7 +43,7 @@ public class McParameterReadSendExecute implements McParameterExecute<McParamete
     public void execute(McParameterReadDTO command) {
         DataPacket packet = this.packet(command);
         packet.setMsgId(ProtocolCodeEnum.PARAMETER_READ_SEND.codeByte());
-        boolean sendCommand = machineContext.sendCommand(packet);
+        boolean sendCommand = SessionManager.writePacket(packet);
         log.info("Parameter Read idCode:{} sendCommand:{} ", command.getIdCode(), sendCommand);
     }
 

@@ -1,5 +1,6 @@
 package com.huamar.charge.pile.server.service.handler;
 
+import com.huamar.charge.net.core.SessionChannel;
 import com.huamar.charge.pile.convert.MachineDataUploadConvert;
 import com.huamar.charge.pile.entity.dto.MachineDataUpItem;
 import com.huamar.charge.pile.entity.dto.MachineDataUploadReqDTO;
@@ -8,8 +9,8 @@ import com.huamar.charge.pile.enums.McAnswerEnum;
 import com.huamar.charge.pile.enums.McDataUploadEnum;
 import com.huamar.charge.pile.enums.ProtocolCodeEnum;
 import com.huamar.charge.common.protocol.DataPacket;
-import com.huamar.charge.pile.server.service.McAnswerFactory;
-import com.huamar.charge.pile.server.service.McDataUploadFactory;
+import com.huamar.charge.pile.server.service.factory.McAnswerFactory;
+import com.huamar.charge.pile.server.service.factory.McDataUploadFactory;
 import com.huamar.charge.pile.server.service.upload.McDataUploadExecute;
 import com.huamar.charge.common.util.HexExtUtil;
 import lombok.RequiredArgsConstructor;
@@ -17,7 +18,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
-import org.tio.core.ChannelContext;
 
 import java.util.*;
 
@@ -30,7 +30,7 @@ import java.util.*;
 @Slf4j
 @Service
 @RequiredArgsConstructor
-public class MachineDataUploadHandler implements MachineMessageHandler<DataPacket> {
+public class MachineDataUploadHandler implements MachinePacketHandler<DataPacket> {
 
 
     private final McDataUploadFactory dataUploadFactory;
@@ -44,13 +44,14 @@ public class MachineDataUploadHandler implements MachineMessageHandler<DataPacke
      * 执行器
      *
      * @param packet         packet
-     * @param channelContext channelContext
+     * @param sessionChannel sessionChannel
      */
     @Override
-    public void handler(DataPacket packet, ChannelContext channelContext) {
+    public void handler(DataPacket packet, SessionChannel sessionChannel) {
+        String channelIp = sessionChannel.getIp();
         MachineDataUploadReqDTO dataUploadReqDTO = MachineDataUploadConvert.INSTANCE.convert(packet);
-        log.info("终端数据汇报，ip={},idCode:{},msgNum:{}", new String(packet.getIdCode()), channelContext.getClientNode().getIp(), packet.getMsgNumber());
-        answerFactory.getExecute(McAnswerEnum.COMMON).execute(McCommonResp.ok(packet), channelContext);
+        log.info("终端数据汇报，ip={},idCode:{},msgNum:{}", new String(packet.getIdCode()), channelIp, packet.getMsgNumber());
+        answerFactory.getExecute(McAnswerEnum.COMMON).execute(McCommonResp.ok(packet), sessionChannel);
 
 
         List<MachineDataUpItem> unitList = dataUploadReqDTO.getDataUnitList();

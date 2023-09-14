@@ -32,4 +32,14 @@ public class FailMathPacket extends BasePacket {
 	public FailMathPacket(byte[] body) {
 		this.body = body;
 	}
+
+	/**
+	 * 获取
+	 *
+	 * @return byte[]
+	 */
+	@Override
+	byte[] getBytes() {
+		return new byte[0];
+	}
 }

@@ -2,6 +2,7 @@ package com.huamar.charge.pile.server.service.handler;
 
 import cn.hutool.crypto.digest.HMac;
 import cn.hutool.crypto.digest.HmacAlgorithm;
+import com.huamar.charge.net.core.SessionChannel;
 import com.huamar.charge.pile.api.dto.PileDTO;
 import com.huamar.charge.common.common.BCDUtils;
 import com.huamar.charge.common.common.BaseResp;
@@ -13,8 +14,8 @@ import com.huamar.charge.pile.entity.dto.resp.McAuthResp;
 import com.huamar.charge.pile.enums.*;
 import com.huamar.charge.common.protocol.DataPacket;
 import com.huamar.charge.common.protocol.FixString;
-import com.huamar.charge.pile.server.service.McAnswerFactory;
-import com.huamar.charge.pile.server.service.McCommandFactory;
+import com.huamar.charge.pile.server.service.factory.McAnswerFactory;
+import com.huamar.charge.pile.server.service.factory.McCommandFactory;
 import com.huamar.charge.pile.server.service.answer.McAnswerExecute;
 import com.huamar.charge.pile.server.service.machine.MachineService;
 import com.huamar.charge.pile.server.service.produce.PileMessageProduce;
@@ -23,8 +24,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
-import org.tio.core.ChannelContext;
-import org.tio.core.Node;
 
 import java.util.Objects;
 
@@ -37,7 +36,7 @@ import java.util.Objects;
 @Slf4j
 @Service
 @RequiredArgsConstructor
-public class MachineAuthenticationHandler implements MachineMessageHandler<DataPacket> {
+public class MachineAuthenticationHandler implements MachinePacketHandler<DataPacket> {
 
 
     /**
@@ -74,13 +73,12 @@ public class MachineAuthenticationHandler implements MachineMessageHandler<DataP
      * 执行器
      *
      * @param packet         packet
-     * @param channelContext channelContext
+     * @param sessionChannel sessionChannel
      */
     @Override
-    public void handler(DataPacket packet, ChannelContext channelContext) {
+    public void handler(DataPacket packet, SessionChannel sessionChannel) {
         MachineAuthenticationReqDTO reqDTO = this.reader(packet);
-        Node clientNode = channelContext.getClientNode();
-        log.info("终端鉴权，loginNumber={} time={} ip={}", reqDTO.getLoginNumber(), reqDTO.getTerminalTime(), clientNode.getIp());
+        log.info("终端鉴权，loginNumber={} time={} ip={}", reqDTO.getLoginNumber(), reqDTO.getTerminalTime(), sessionChannel.getIp());
         McAuthResp authResp = new McAuthResp();
         authResp.setTime(BCDUtils.bcdTime());
         authResp.setEncryptionType((byte) 0);
@@ -92,7 +90,7 @@ public class MachineAuthenticationHandler implements MachineMessageHandler<DataP
         PileDTO pile = machineService.getPile(reqDTO.getIdCode());
         if (Objects.isNull(pile)) {
             authResp.setStatus(MachineAuthStatus.TERMINAL_NOT_REGISTER.getCode());
-            answerExecute.execute(authResp, channelContext);
+            answerExecute.execute(authResp, sessionChannel);
             return;
         }
 
@@ -108,7 +106,7 @@ public class MachineAuthenticationHandler implements MachineMessageHandler<DataP
         // mac已登录成功过
         if (!StringUtils.equalsAnyIgnoreCase(pile.getMacAddress(), reqDTO.getMacAddress().toString())) {
             authResp.setStatus(MachineAuthStatus.TERMINAL_INFO_NOT_FOUND.getCode());
-            answerExecute.execute(authResp, channelContext);
+            answerExecute.execute(authResp, sessionChannel);
             return;
         }
 
@@ -119,7 +117,7 @@ public class MachineAuthenticationHandler implements MachineMessageHandler<DataP
         // 私有加密逻辑
         this.encryptionSecretKey(reqDTO, authResp);
         authResp.setStatus(MachineAuthStatus.SUCCESS.getCode());
-        answerExecute.execute(authResp, channelContext);
+        answerExecute.execute(authResp, sessionChannel);
 
         // 二维码下发
         this.sendQrCode(authResp);
@@ -128,7 +126,6 @@ public class MachineAuthenticationHandler implements MachineMessageHandler<DataP
 
         //电价更新
         pileMessageProduce.send(pileMessageProduce.getPileMachineProperties().getPileMessageQueue(), new MessageData<>(MessageCodeEnum.ELECTRICITY_PRICE, update));
-
 
     }
 

@@ -1,12 +1,12 @@
 package com.huamar.charge.pile.server.service.command;
 
 import cn.hutool.core.convert.Convert;
+import com.huamar.charge.common.protocol.DataPacket;
+import com.huamar.charge.common.protocol.DataPacketWriter;
 import com.huamar.charge.pile.entity.dto.command.McCommandDTO;
 import com.huamar.charge.pile.entity.dto.command.McQrCodeCommandDTO;
 import com.huamar.charge.pile.enums.McCommandEnum;
-import com.huamar.charge.common.protocol.DataPacket;
-import com.huamar.charge.common.protocol.DataPacketWriter;
-import com.huamar.charge.pile.server.service.MachineContext;
+import com.huamar.charge.pile.server.session.SessionManager;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
@@ -21,11 +21,6 @@ import org.springframework.stereotype.Component;
 @Component
 @RequiredArgsConstructor
 public class McQrCodeCommandExecute implements McCommandExecute<McQrCodeCommandDTO> {
-
-    /**
-     * 设备上下文
-     */
-    private final MachineContext machineContext;
 
     /**
      * 协议编码
@@ -46,7 +41,7 @@ public class McQrCodeCommandExecute implements McCommandExecute<McQrCodeCommandD
     @Override
     public void execute(McQrCodeCommandDTO command) {
         DataPacket packet = this.packet(command);
-        boolean sendCommand = machineContext.sendCommand(packet);
+        boolean sendCommand = SessionManager.writePacket(packet);
         log.info("QrCodeCommand idCode:{} sendCommand:{} ", command.getIdCode(), sendCommand);
     }
 

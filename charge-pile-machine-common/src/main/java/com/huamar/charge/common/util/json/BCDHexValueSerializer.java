@@ -1,5 +1,6 @@
 package com.huamar.charge.common.util.json;
 
+
 import com.alibaba.fastjson.serializer.JSONSerializer;
 import com.alibaba.fastjson.serializer.ObjectSerializer;
 import com.huamar.charge.common.common.codec.BCD;

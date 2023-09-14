@@ -1,5 +1,6 @@
 package com.huamar.charge.machine.client.starter;
 
+import cn.hutool.core.convert.Convert;
 import com.huamar.charge.machine.client.handle.MachineHandler;
 import lombok.Data;
 import org.springframework.beans.BeansException;
@@ -16,6 +17,9 @@ import org.tio.client.intf.ClientAioHandler;
 import org.tio.client.intf.ClientAioListener;
 import org.tio.core.Node;
 
+import java.util.Objects;
+import java.util.concurrent.atomic.AtomicInteger;
+
 /**
  * 客户端启动类
  *
@@ -26,6 +30,8 @@ import org.tio.core.Node;
 public class MachineClient implements InitializingBean, ApplicationContextAware {
 
     private ApplicationContext applicationContext;
+
+    private final AtomicInteger messageNumber = new AtomicInteger(0);
 
     /**
      * 构建服务器节点
@@ -82,11 +88,25 @@ public class MachineClient implements InitializingBean, ApplicationContextAware 
         clientTioConfig.setName("T-io Client");
 
         // 心跳超时时间
-        clientTioConfig.setHeartbeatTimeout(30 * 1000);
+        clientTioConfig.setHeartbeatTimeout(5 * 1000);
     }
 
     @Override
     public void setApplicationContext(@NonNull ApplicationContext applicationContext) throws BeansException {
         this.applicationContext = applicationContext;
+    }
+
+    /**
+     * 获取消息流水号
+     *
+     * @return Short
+     */
+    public Short getMessageNumber() {
+        int andIncrement = messageNumber.getAndIncrement();
+        if (Objects.equals(andIncrement, 65535)) {
+            messageNumber.set(0);
+            return Convert.toShort(messageNumber.getAndIncrement());
+        }
+        return Convert.toShort(andIncrement);
     }
 }

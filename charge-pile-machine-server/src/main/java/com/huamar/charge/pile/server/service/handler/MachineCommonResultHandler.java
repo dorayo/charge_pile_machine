@@ -1,19 +1,19 @@
 package com.huamar.charge.pile.server.service.handler;
 
 import com.huamar.charge.common.protocol.DataPacket;
+import com.huamar.charge.net.core.SessionChannel;
 import com.huamar.charge.pile.convert.McCommonConvert;
 import com.huamar.charge.pile.entity.dto.McCommonReq;
 import com.huamar.charge.pile.entity.dto.command.MessageCommonRespDTO;
 import com.huamar.charge.pile.enums.PileCommonResultEnum;
 import com.huamar.charge.pile.enums.ProtocolCodeEnum;
-import com.huamar.charge.pile.server.service.McCommonResultFactory;
+import com.huamar.charge.pile.server.service.factory.McCommonResultFactory;
 import com.huamar.charge.pile.server.service.command.MessageCommandRespService;
 import com.huamar.charge.pile.server.service.common.McCommonResultExecute;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
-import org.tio.core.ChannelContext;
 
 import java.util.Objects;
 
@@ -26,7 +26,7 @@ import java.util.Objects;
 @Slf4j
 @Service
 @RequiredArgsConstructor
-public class MachineCommonResultHandler implements MachineMessageHandler<DataPacket> {
+public class MachineCommonResultHandler implements MachinePacketHandler<DataPacket> {
 
     /**
      * 通用应答处理工厂
@@ -52,14 +52,14 @@ public class MachineCommonResultHandler implements MachineMessageHandler<DataPac
      * 执行器
      *
      * @param packet         packet
-     * @param channelContext channelContext
+     * @param sessionChannel sessionChannel
      */
     @Override
-    public void handler(DataPacket packet, ChannelContext channelContext) {
+    public void handler(DataPacket packet, SessionChannel sessionChannel) {
         McCommonReq commonReq = null;
         String resCode = null;
         try {
-            String ip = channelContext.getClientNode().getIp();
+            String ip = sessionChannel.getIp();
             commonReq = this.reader(packet);
             resCode = String.format("%04X", commonReq.getMsgResult());
             log.info("通用应答处理，ip={}, idCode:{}, resCode:{}", ip, commonReq.getIdCode(), resCode);

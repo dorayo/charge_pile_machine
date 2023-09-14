@@ -60,11 +60,3 @@ spring:
         max-wait: 10s
         max-idle: 20
         min-idle: 2
-
-
-
-pile:
-  machine:
-    enable-consume: false
-    pile-control-queue: "pile.machine.control.queue"
-    pile-message-queue: "pile.machine.message.queue"
