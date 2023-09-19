@@ -41,7 +41,12 @@ public class MachineHandler extends AbstractHandler implements ClientAioHandler 
 
             if(basePacket instanceof DataPacket){
                 DataPacket dataPacket = (DataPacket) basePacket;
-                log.info("dataPacket data:{}", HexExtUtil.encodeHexStrFormat(dataPacket.getMsgBody(), StringPool.SPACE));
+                String code = HexExtUtil.encodeHexStr(dataPacket.getMsgId());
+                if(code.equals("30")){
+                    return;
+                }
+
+                log.info("dataPacket messageId:{} data:{}", HexExtUtil.encodeHexStr(dataPacket.getMsgId()), HexExtUtil.encodeHexStrFormat(dataPacket.getMsgBody(), StringPool.SPACE));
                 return;
             }
 

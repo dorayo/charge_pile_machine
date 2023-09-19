@@ -102,7 +102,7 @@ public class MachineClient implements InitializingBean, ApplicationContextAware 
      * @return Short
      */
     public Short getMessageNumber() {
-        int andIncrement = messageNumber.getAndIncrement();
+        int andIncrement = messageNumber.incrementAndGet();
         if (Objects.equals(andIncrement, 65535)) {
             messageNumber.set(0);
             return Convert.toShort(messageNumber.getAndIncrement());

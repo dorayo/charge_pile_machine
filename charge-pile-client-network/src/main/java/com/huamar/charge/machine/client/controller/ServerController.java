@@ -93,7 +93,7 @@ public class ServerController {
 
 
     public static void main(String[] args) {
-        String body = "23 38 01 25 00 0E 05 34 37 31 30 30 30 32 32 30 37 31 34 33 30 32 30 30 35 01 00 00 03 00 4D 6F 64 75 6C 65 20 31 20 6F 66 66 6C 69 6E 65 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 7B 23";
+        String body = "23 31 00 0A 00 01 00 31 32 33 34 35 36 37 38 39 30 31 32 33 34 35 36 37 38 23 09 14 19 08 23 22 22 23 03 3E 23";
         ClientProtocolCodec protocolCodec = new ClientProtocolCodec();
         byte[] decodeHex = HexExtUtil.decodeHex(StringUtils.deleteWhitespace(body));
         byte[] bytes = protocolCodec.transferEncode(decodeHex);

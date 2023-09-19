@@ -52,7 +52,7 @@ public class ClientAioListener implements org.tio.client.intf.ClientAioListener 
      */
     @Override
     public void onAfterReceivedBytes(ChannelContext channelContext, int receivedBytes) throws Exception {
-        log.info("收到服务端传过来的数据，本次接收了多少字节：" + receivedBytes);
+        //log.info("收到服务端传过来的数据，本次接收了多少字节：" + receivedBytes);
     }
 
     /**
