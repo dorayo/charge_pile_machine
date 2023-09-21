@@ -56,7 +56,7 @@ public class PileHandshakeEventExecute implements PileEventExecute {
 
         MessageData<PileHandshakeEventPushDTO> messageData = new MessageData<>(eventPushDTO);
         messageData.setBusinessCode(MessageCodeEnum.EVENT_CONFIG_EVENT.getCode());
-        messageProduce.send(messageProduce.getPileMachineProperties().getPileMessageQueue(), messageData);
+        messageProduce.send(messageData);
 
     }
 

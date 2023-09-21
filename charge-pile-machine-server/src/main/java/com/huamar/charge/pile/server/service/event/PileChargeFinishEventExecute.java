@@ -56,7 +56,7 @@ public class PileChargeFinishEventExecute implements PileEventExecute {
         MessageData<PileChargeFinishEventPushDTO> messageData = new MessageData<>(eventPushDTO);
         messageData.setBusinessCode(MessageCodeEnum.EVENT_CHARGE_FINISH.getCode());
         messageData.setBusinessId(reqDTO.getIdCode());
-        messageProduce.send(messageProduce.getPileMachineProperties().getPileMessageQueue(), messageData);
+        messageProduce.send(messageData);
     }
 
     /**

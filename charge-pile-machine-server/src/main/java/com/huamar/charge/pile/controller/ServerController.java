@@ -9,12 +9,12 @@ import com.huamar.charge.pile.entity.dto.mq.MessageData;
 import com.huamar.charge.pile.entity.dto.parameter.McBaseParameterDTO;
 import com.huamar.charge.pile.entity.dto.parameter.McParamItemDTO;
 import com.huamar.charge.pile.entity.dto.parameter.McParameterDTO;
-import com.huamar.charge.pile.entity.dto.parameter.McParameterReadDTO;
+import com.huamar.charge.pile.entity.dto.parameter.PileParameterReadDTO;
 import com.huamar.charge.pile.entity.dto.platform.PileChargeControlDTO;
 import com.huamar.charge.pile.enums.McParameterEnum;
 import com.huamar.charge.pile.enums.MessageCodeEnum;
 import com.huamar.charge.pile.server.service.factory.McParameterFactory;
-import com.huamar.charge.pile.server.service.parameter.McParameterExecute;
+import com.huamar.charge.pile.server.service.parameter.PileParameterExecute;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
@@ -65,10 +65,10 @@ public class ServerController {
 
     @PostMapping("/sendReadParameter")
     public Object sendReadParameter(@RequestParam("idCode") String idCode) {
-        McParameterReadDTO parameterReadDTO = new McParameterReadDTO();
+        PileParameterReadDTO parameterReadDTO = new PileParameterReadDTO();
         parameterReadDTO.setTime(BCDUtils.bcdTime());
         parameterReadDTO.setIdCode(idCode);
-        McParameterExecute<McBaseParameterDTO> execute = parameterFactory.getExecute(McParameterEnum.READ);
+        PileParameterExecute<McBaseParameterDTO> execute = parameterFactory.getExecute(McParameterEnum.READ);
         execute.execute(parameterReadDTO);
         return "success";
     }
@@ -86,7 +86,7 @@ public class ServerController {
         parameterDTO.setDataList(data);
         parameterDTO.setParamNumber((byte) data.size());
 
-        McParameterExecute<McBaseParameterDTO> execute = parameterFactory.getExecute(McParameterEnum.SEND);
+        PileParameterExecute<McBaseParameterDTO> execute = parameterFactory.getExecute(McParameterEnum.SEND);
         execute.execute(parameterDTO);
         return "success";
     }

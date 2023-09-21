@@ -23,6 +23,11 @@ public enum MessageCodeEnum {
     ELECTRICITY_PRICE("PILE_ELECTRICITY_PRICE_SEND", "电价下发"),
 
     PILE_PARAMETER_UPDATE("PILE_PARAMETER_UPDATE", "设备远程参数下发"),
+
+    PILE_PARAMETER_READ("PILE_PARAMETER_READ", "设备远程参数读取下发"),
+
+    PILE_PARAMETER_READ_SEND("PILE_PARAMETER_READ_SEND", "设备远程参数读取"),
+
     // <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< 远程控制 <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
 
 
@@ -52,14 +57,20 @@ public enum MessageCodeEnum {
 
     PILE_HEART_BEAT("PILE_HEART_BEAT", "设备心跳"),
 
-    PILE_UPDATE("PILE_UPDATE", "设备更新"),
-
     PILE_ONLINE("PILE_ONLINE", "充电桩实时状态"),
 
     PILE_CHARGE_STAGE("PILE_CHARGE_STAGE", "数据汇报-充电桩电阶信息"),
 
     // <<<<<<<<<<<<<<<<<<<<<<<< 数据汇报 <<<<<<<<<<<<<<<<<<<<<<<<
 
+
+    // >>>>>>>>>>>>>>>>>>>>>>> 业务端 >>>>>>>>>>>>>>>>>>>>>>>
+
+    PILE_UPDATE("PILE_UPDATE", "设备更新"),
+
+    PILE_AUTH("PILE_AUTH", "设备认证"),
+
+    // <<<<<<<<<<<<<<<<<<<<<<<< 业务端 <<<<<<<<<<<<<<<<<<<<<<<<
 
     WARNING("WARNING", "压制警告");
 

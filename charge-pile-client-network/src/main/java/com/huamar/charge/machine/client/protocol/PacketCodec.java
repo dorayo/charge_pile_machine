@@ -1,12 +1,13 @@
-package com.huamar.charge.pile.server.protocol;
+package com.huamar.charge.machine.client.protocol;
 
 import cn.hutool.core.util.HexUtil;
 import com.huamar.charge.common.common.StringPool;
+import com.huamar.charge.common.exception.ProtocolCodecException;
 import com.huamar.charge.common.protocol.*;
 import com.huamar.charge.common.util.BCCUtil;
 import com.huamar.charge.common.util.HexExtUtil;
-import com.huamar.charge.pile.enums.ConstEnum;
-import com.huamar.charge.pile.enums.LoggerEnum;
+import com.huamar.charge.machine.client.enums.ConstEnum;
+import com.huamar.charge.machine.client.enums.LoggerEnum;
 import io.netty.buffer.ByteBuf;
 import lombok.SneakyThrows;
 import org.slf4j.Logger;
@@ -26,7 +27,7 @@ import java.util.StringJoiner;
  *
  * @author TiAmo(13721682347 @ 163.com)
  */
-public class PacketProtocolCodec implements ProtocolCodec {
+public class PacketCodec {
 
     private final Logger log = LoggerFactory.getLogger(LoggerEnum.MACHINE_PACKET_LOGGER.getCode());
 
@@ -48,7 +49,6 @@ public class PacketProtocolCodec implements ProtocolCodec {
     /**
      * @return DataPacket
      */
-    @Override
     public Class<DataPacket> getClazz() {
         return DataPacket.class;
     }
@@ -59,7 +59,6 @@ public class PacketProtocolCodec implements ProtocolCodec {
      * @param packet packet
      * @author TiAmo(13721682347 @ 163.com)
      */
-    @Override
     public ByteBuffer encode(BasePacket packet) {
         if (!Objects.equals(packet.getClass(), getClazz())) {
             return null;
@@ -81,8 +80,7 @@ public class PacketProtocolCodec implements ProtocolCodec {
      */
     @SuppressWarnings("DuplicatedCode")
     @SneakyThrows
-    @Override
-    public BasePacket decode(ByteBuffer buffer) {
+    public BasePacket decode(ByteBuffer buffer)  throws ProtocolCodecException {
         try {
             buffer.order(ByteOrder.LITTLE_ENDIAN);
             // 收到的数据组不了业务包，则返回null以告诉框架数据不够
@@ -133,7 +131,7 @@ public class PacketProtocolCodec implements ProtocolCodec {
 
 
             // 数据包完整
-            Boolean readPacket = reader.bccCheck(bytes, packet.getCheckTag(), 1 , 24 + packet.getMsgBodyLen() - 1);
+            Boolean readPacket = reader.bccCheck(bytes, packet.getCheckTag(), 1 , 24 + packet.getMsgBodyLen());
             if (!readPacket) {
                 return new FailMathPacket(bytes);
             }
@@ -159,7 +157,6 @@ public class PacketProtocolCodec implements ProtocolCodec {
      * @param packet  packet
      * @param byteBuf byteBuf
      */
-    @Override
     public boolean encode(BasePacket packet, ByteBuf byteBuf) {
         if (!Objects.equals(packet.getClass(), getClazz())) {
             return false;
@@ -177,7 +174,6 @@ public class PacketProtocolCodec implements ProtocolCodec {
      * @author TiAmo(13721682347 @ 163.com)
      */
     @SuppressWarnings("DuplicatedCode")
-    @Override
     public BasePacket decode(ByteBuf byteBuf) {
         try {
             byteBuf.markReaderIndex();
@@ -199,6 +195,7 @@ public class PacketProtocolCodec implements ProtocolCodec {
             if (failBuffer.hasRemaining()) {
                 byte[] bytes = new byte[failBuffer.remaining()];
                 failBuffer.get(bytes);
+                log.warn("fail packet:{}", HexExtUtil.encodeHexStrFormat(bytes, StringPool.SPACE));
                 return new FailMathPacket(bytes);
             }
 
@@ -278,7 +275,7 @@ public class PacketProtocolCodec implements ProtocolCodec {
 
         // bcc
         byte[] byteArray = writer.toByteArray();
-        byte bcc = BCCUtil.calculateBCC(byteArray, 1, (24 + packet.getMsgBodyLen()));
+        byte bcc = BCCUtil.calculateBCC(byteArray, 1, (packet.getMsgBodyLen() + 24));
         writer.write(bcc);
         writer.write(packet.getTagEnd());
         // 转义
@@ -336,7 +333,6 @@ public class PacketProtocolCodec implements ProtocolCodec {
     /**
      * 转义Buffer
      *
-     * @param hexBytes hexBytes
      * @author TiAmo(13721682347 @ 163.com)
      */
     private ByteBuffer getTransferEncodeBuffer(byte[] hexBytes) {
@@ -344,45 +340,33 @@ public class PacketProtocolCodec implements ProtocolCodec {
         ByteBuffer buffer = ByteBuffer.allocate(hexBytes.length * 2).order(byteOrder);
         // 过滤头尾的标识码
         buffer.put(tag);
-
-        int start = 1;
-        int end = hexBytes.length - 1;
-        for (int i = start; i < end; i++) {
+        for (int i = 1; i < hexBytes.length - 1; i++) {
             byte hex = hexBytes[i];
-            // 22 转义为 22 01
+            // 22 转义为22 01
             if (hex == 0x22) {
                 buffer.put((byte) 0x22);
                 buffer.put((byte) 0x01);
                 continue;
             }
 
-            // 23 转义为 22 02
+            // 23 转义为22 02
             if (hex == 0x23) {
                 buffer.put((byte) 0x22);
                 buffer.put((byte) 0x02);
                 continue;
             }
-
             buffer.put(hex);
         }
         buffer.put(tag);
         return buffer;
     }
 
-    /**
-     * 转义解码
-     *
-     * @param hexBytes hexBytes
-     * @return ByteBuffer
-     */
     private ByteBuffer transferDecodeBuffer(byte[] hexBytes) {
         ByteBuffer buffer = ByteBuffer.allocate(hexBytes.length).order(byteOrder);
-        buffer.put(DataPacket.TAG);
         boolean mark = false;
-        int start = 1;
-        int end = hexBytes.length - 1;
+        buffer.put(DataPacket.TAG);
         // 过滤头尾的标识码
-        for (int i = start; i < end; i++) {
+        for (int i = 1; i < hexBytes.length - 1; i++) {
             byte hex = hexBytes[i];
             if (mark) {
 

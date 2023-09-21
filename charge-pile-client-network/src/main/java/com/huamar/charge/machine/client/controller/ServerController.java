@@ -1,27 +1,26 @@
 package com.huamar.charge.machine.client.controller;
 
-import cn.hutool.core.convert.Convert;
-import com.huamar.charge.common.protocol.*;
+import com.huamar.charge.common.protocol.DataPacket;
+import com.huamar.charge.common.protocol.DataPacketReader;
+import com.huamar.charge.common.protocol.DataPacketWriter;
+import com.huamar.charge.common.protocol.PacketBuilder;
 import com.huamar.charge.common.util.HexExtUtil;
-import com.huamar.charge.machine.client.handle.ClientProtocolCodec;
+import com.huamar.charge.machine.client.protocol.PacketCodec;
 import com.huamar.charge.machine.client.protocol.TioPacket;
-import com.huamar.charge.machine.client.starter.MachineClient;
+import com.huamar.charge.machine.client.MachineClient;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
-import org.springframework.util.Assert;
+import org.springframework.core.task.TaskExecutor;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.tio.client.ClientChannelContext;
 import org.tio.core.Tio;
-
-import java.util.Objects;
-import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * 命令测试
@@ -38,23 +37,29 @@ public class ServerController {
 
     private final MachineClient machineClient;
 
+    private final TaskExecutor taskExecutor;
+
 
     @ApiOperation(value="数据汇报-充电桩实时状态")
     @SneakyThrows
-    @PostMapping("/sendPileOnlineStatus")
-    public Object sendPileOnlineStatus(@RequestParam String id, @RequestParam String body) {
+    @PostMapping("/sendPacket")
+    public Object sendPileOnlineStatus(
+            @RequestParam String id,
+            @RequestParam String body
+    ) {
         ClientChannelContext channelContext = machineClient.getClientChannelContext();
-        ClientProtocolCodec protocolCodec = new ClientProtocolCodec();
+        PacketCodec protocolCodec = new PacketCodec();
 
         // 转码翻译数据包
         byte[] decodeHex = HexExtUtil.decodeHex(StringUtils.deleteWhitespace(body));
         byte[] bytes = protocolCodec.transferEncode(decodeHex);
         DataPacketReader reader = new DataPacketReader(bytes);
-        DataPacket decode = (DataPacket) protocolCodec.decode(reader.getBuffer());
+        DataPacket dataPacket = (DataPacket) protocolCodec.decode(reader.getBuffer());
 
         // 写入数据包
         DataPacketWriter writer = new DataPacketWriter();
-        writer.write(decode.getMsgBody());
+        writer.write(dataPacket.getMsgBody());
+
         DataPacket packet = PacketBuilder.builder()
                 .messageNumber(machineClient.getMessageNumber())
                 .messageId("34")
@@ -64,40 +69,6 @@ public class ServerController {
 
         Tio.send(channelContext, new TioPacket(packet));
         return "ok";
-    }
-
-
-    @ApiOperation(value="sendCommand")
-    @SneakyThrows
-    @PostMapping("/sendCommand")
-    public Object sendCommand(@RequestParam String body) {
-        ClientChannelContext channelContext = machineClient.getClientChannelContext();
-        ClientProtocolCodec protocolCodec = new ClientProtocolCodec();
-
-        // 转码翻译数据包
-        byte[] decodeHex = HexExtUtil.decodeHex(StringUtils.deleteWhitespace(body));
-        byte[] bytes = protocolCodec.transferEncode(decodeHex);
-        DataPacketReader reader = new DataPacketReader(bytes);
-
-        DataPacket packet = new DataPacket();
-        packet.setTag(reader.readByte());
-        packet.setMsgId(reader.readByte());
-        packet.setMsgBodyAttr(reader.readByte());
-        packet.setMsgBodyLen(reader.readShort());
-        Boolean aBoolean = reader.readPacket(packet, bytes);
-        Assert.isTrue(aBoolean, "readPacket error");
-
-        Tio.send(channelContext, new TioPacket(packet));
-        return "ok";
-    }
-
-
-    public static void main(String[] args) {
-        String body = "23 31 00 0A 00 01 00 31 32 33 34 35 36 37 38 39 30 31 32 33 34 35 36 37 38 23 09 14 19 08 23 22 22 23 03 3E 23";
-        ClientProtocolCodec protocolCodec = new ClientProtocolCodec();
-        byte[] decodeHex = HexExtUtil.decodeHex(StringUtils.deleteWhitespace(body));
-        byte[] bytes = protocolCodec.transferEncode(decodeHex);
-        DataPacketReader reader = new DataPacketReader(bytes);
     }
 
 }

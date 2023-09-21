@@ -17,7 +17,7 @@ import java.nio.charset.StandardCharsets;
  * DataPacketWriter
  * 2023/07/24
  *
- * @author TiAmo(13721682347@163.com)
+ * @author TiAmo(13721682347 @ 163.com)
  */
 @SuppressWarnings("unused")
 @Getter
@@ -26,6 +26,8 @@ public class DataPacketReader {
     private static final Logger log = LoggerFactory.getLogger(DataPacketReader.class);
 
     private final ByteBuffer buffer;
+
+    private final ByteOrder byteOrder = ByteOrder.LITTLE_ENDIAN;
 
     /**
      * 消息头的长度
@@ -37,19 +39,13 @@ public class DataPacketReader {
     public final Charset GBK = Charset.forName("GBK");
 
     public DataPacketReader(byte[] bytes) {
-        buffer = ByteBuffer.allocate(bytes.length);
-        buffer.order(ByteOrder.LITTLE_ENDIAN);
+        buffer = ByteBuffer.allocate(bytes.length).order(byteOrder);
         buffer.put(bytes);
         buffer.flip();
     }
 
     public byte readByte() {
-        try {
-            return buffer.get();
-        } catch (Exception e) {
-            log.error("readByte", e);
-        }
-        return 0;
+        return buffer.get();
     }
 
     public short readShort() {
@@ -57,12 +53,7 @@ public class DataPacketReader {
     }
 
     public int readInt() {
-        try {
-            return buffer.getInt();
-        } catch (Exception e) {
-            log.error("readInt error", e);
-        }
-        return 0;
+        return buffer.getInt();
     }
 
     public byte[] readBytes(int len) {
@@ -73,6 +64,7 @@ public class DataPacketReader {
 
     /**
      * 读取剩余的字节
+     *
      * @return byte[]
      */
     public byte[] readRemainBytes() {
@@ -83,6 +75,7 @@ public class DataPacketReader {
 
     /**
      * 读取定长字符串
+     *
      * @param len len
      * @return String
      */
@@ -91,7 +84,7 @@ public class DataPacketReader {
     }
 
     /**
-     * @return  BCD
+     * @return BCD
      */
     @SuppressWarnings("AlibabaLowerCamelCaseVariableNaming")
     public BCD readBCD() {
@@ -132,28 +125,30 @@ public class DataPacketReader {
         buffer.flip();
     }
 
+
     /**
-     * 校验数据完整性
+     * bcc 校验码校验
+     * 数据校验 采用 BCC（异或校验）法，
+     * 校验消息头的第一个字节开始，同后一个字节异或，直到校验码前一个字节为止，校验码占用一个字节
+     * <p>
      *
-     * @param packet packet
-     * @param bytes  bytes
+     * @param bytes bytes
+     * @param check check
+     * @param start start
+     * @param end   end
      * @return Boolean
      */
-    public Boolean readPacket(DataPacket packet, byte[] bytes) {
-        packet.setMsgNumber(this.readShort());
-        packet.setIdCode(this.readBytes(18));
-        short bodyLen = packet.getMsgBodyLen();
-        packet.setMsgBody(this.readBytes(bodyLen));
-        packet.setCheckTag(this.readByte());
-        packet.setTagEnd(this.readByte());
-        // 数据校验 采用 BCC（异或校验）法，校验消息头的第一个字节开始，同后一字节异或，直到校验码前一字节为止，校验码占用一个字节
-        String bcc = BCCUtil.bcc(bytes, 1, packet.getMsgBodyLen() + 24 + 1);
-        String checkTagHex = HexExtUtil.encodeHexStr(packet.getCheckTag());
-        this.reset();
-        if (!StringUtils.equalsAnyIgnoreCase(bcc, checkTagHex)) {
-            log.debug("BCC校验不通过 源串BCC={} 计算BCC={}", checkTagHex, bcc);
-            return false;
+    public Boolean bccCheck(byte[] bytes, byte check, int start, int end) {
+        byte bccByte = BCCUtil.calculateBCC(bytes, start, end);
+        String bcc = HexExtUtil.encodeHexStr(bccByte);
+        String checkTagHex = HexExtUtil.encodeHexStr(check);
+        if (StringUtils.equalsAnyIgnoreCase(bcc, checkTagHex)) {
+            return true;
         }
-        return true;
+        if(log.isDebugEnabled()){
+            log.debug("BCC校验不通过 源串BCC={} 计算BCC={}", checkTagHex, bcc);
+        }
+        return false;
+
     }
 }

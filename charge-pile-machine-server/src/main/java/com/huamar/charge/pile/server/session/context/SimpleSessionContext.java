@@ -5,9 +5,8 @@ import com.huamar.charge.net.core.SessionChannel;
 import com.huamar.charge.pile.server.session.MachineSessionContext;
 import com.huamar.charge.pile.server.session.SessionManager;
 import com.huamar.charge.pile.server.session.SimpleSessionChannel;
+import io.netty.channel.ChannelHandlerContext;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
-import org.springframework.stereotype.Component;
 
 /**
  * 默认的上下文管理 基于 netty
@@ -46,9 +45,9 @@ public class SimpleSessionContext implements MachineSessionContext {
     @Override
     public boolean writePacket(DataPacket packet) {
         try {
-            SessionChannel sessionChannel = SessionManager.get(new String(packet.getIdCode()));
-            SimpleSessionChannel channel = (SimpleSessionChannel) sessionChannel.channel();
-            channel.channel().writeAndFlush(packet).sync();
+            SimpleSessionChannel sessionChannel = (SimpleSessionChannel) SessionManager.get(new String(packet.getIdCode()));
+            ChannelHandlerContext channelHandlerContext = sessionChannel.channel();
+            channelHandlerContext.writeAndFlush(packet).sync();
         } catch (InterruptedException e) {
             log.error("writePacket error");
             return false;

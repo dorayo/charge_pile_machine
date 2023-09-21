@@ -63,7 +63,7 @@ public class PileElectricityPriceExecute implements PileMessageExecute {
             }
         });
         commandDTO.setGunSort((byte) 0);
-        commandDTO.setIdCode(body.getBusinessId());
+        commandDTO.setIdCode(pileElectricityPriceDTO.getIdCode());
         commandDTO.setTimeStage(new NumberFixStr(StringUtils.join(timePriceBucket).getBytes()));
         mcCommandFactory.getExecute(McCommandEnum.ELECTRICITY_PRICE).execute(commandDTO);
     }

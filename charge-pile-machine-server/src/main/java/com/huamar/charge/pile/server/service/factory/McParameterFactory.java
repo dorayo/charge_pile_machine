@@ -2,7 +2,7 @@ package com.huamar.charge.pile.server.service.factory;
 
 import com.huamar.charge.pile.entity.dto.parameter.McBaseParameterDTO;
 import com.huamar.charge.pile.enums.McParameterEnum;
-import com.huamar.charge.pile.server.service.parameter.McParameterExecute;
+import com.huamar.charge.pile.server.service.parameter.PileParameterExecute;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
@@ -21,7 +21,7 @@ import java.util.Map;
 @Component
 public class McParameterFactory implements InitializingBean, ApplicationContextAware {
 
-    private static final Map<McParameterEnum, McParameterExecute<McBaseParameterDTO>> EXECUTE_MAP = new EnumMap<>(McParameterEnum.class);
+    private static final Map<McParameterEnum, PileParameterExecute<McBaseParameterDTO>> EXECUTE_MAP = new EnumMap<>(McParameterEnum.class);
 
     private ApplicationContext applicationContext;
 
@@ -31,7 +31,7 @@ public class McParameterFactory implements InitializingBean, ApplicationContextA
      * @param eventEnum eventEnum
      * @return JobTicketFlowEventExec
      */
-    public McParameterExecute<McBaseParameterDTO> getExecute(McParameterEnum eventEnum) {
+    public PileParameterExecute<McBaseParameterDTO> getExecute(McParameterEnum eventEnum) {
         return EXECUTE_MAP.get(eventEnum);
     }
 
@@ -39,7 +39,7 @@ public class McParameterFactory implements InitializingBean, ApplicationContextA
     @SuppressWarnings({"rawtypes", "unchecked"})
     @Override
     public void afterPropertiesSet() {
-        Map<String, McParameterExecute> beans = applicationContext.getBeansOfType(McParameterExecute.class);
+        Map<String, PileParameterExecute> beans = applicationContext.getBeansOfType(PileParameterExecute.class);
         beans.values().forEach(exec -> EXECUTE_MAP.put(exec.getCode(), exec));
     }
 

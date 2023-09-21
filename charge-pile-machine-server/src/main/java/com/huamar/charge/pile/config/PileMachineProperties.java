@@ -3,6 +3,9 @@ package com.huamar.charge.pile.config;
 import lombok.Data;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 
+import java.util.List;
+import java.util.Map;
+
 /**
  * 设配端配置文件
  * 2023/08/01
@@ -20,10 +23,16 @@ public class PileMachineProperties {
      */
     private String pileControlQueue;
 
+
     /**
-     * 设备端推送消息队列名字
+     * 设备端发送交换机
      */
-    private String pileMessageQueue;
+    private String messageExchange;
+
+    /**
+     * 扇形交换机队列绑定 key 交换机 value 队里集合
+     */
+    private List<String> fanoutExchangeQueues;
 
     /**
      * 消费队列线程开关

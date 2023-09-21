@@ -57,7 +57,6 @@ public class MachineEventHandler implements MachinePacketHandler<DataPacket> {
     @Override
     public void handler(DataPacket packet, SessionChannel sessionChannel) {
         try {
-            log.info("设备事件汇报 start ==>");
             String ip = sessionChannel.getIp();
             PileEventReqDTO reqDTO = McEventConvert.INSTANCE.convert(packet);
             String eventCode = HexExtUtil.encodeHexStr(reqDTO.getEventType());

@@ -36,17 +36,45 @@ public interface SessionChannel {
      */
     String getIp();
 
+
+    /**
+     * getAttributeKeys
+     *
+     * @return Collection<Object>
+     */
     Collection<Object> getAttributeKeys();
 
-    Object getAttribute(Object var1);
+    /**
+     * getAttribute
+     *
+     * @param key key
+     * @return Object
+     */
+    Object getAttribute(Object key);
 
-    void setAttribute(Object var1, Object var2);
+    /**
+     * setAttribute
+     *
+     * @param key key
+     * @param value value
+     */
+    void setAttribute(Object key, Object value);
 
-    Object removeAttribute(Object var1);
+    /**
+     *
+     * @param key key
+     * @return Object
+     */
+    Object removeAttribute(Object key);
 
     /**
      * 获取通道
      * @return Object
      */
     Object channel();
+
+    /**
+     * 关闭连接
+     */
+    void close();
 }

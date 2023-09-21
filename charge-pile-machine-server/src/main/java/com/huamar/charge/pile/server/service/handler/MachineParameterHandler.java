@@ -10,7 +10,7 @@ import com.huamar.charge.pile.enums.McParameterEnum;
 import com.huamar.charge.pile.enums.ProtocolCodeEnum;
 import com.huamar.charge.pile.server.service.factory.McAnswerFactory;
 import com.huamar.charge.pile.server.service.factory.McParameterFactory;
-import com.huamar.charge.pile.server.service.parameter.McParameterExecute;
+import com.huamar.charge.pile.server.service.parameter.PileParameterExecute;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -64,7 +64,7 @@ public class MachineParameterHandler implements MachinePacketHandler<DataPacket>
             }
 
             @SuppressWarnings("rawtypes")
-            McParameterExecute execute = mcParameterFactory.getExecute(mcParameterEnum);
+            PileParameterExecute execute = mcParameterFactory.getExecute(mcParameterEnum);
             if(Objects.isNull(execute)){
                 log.error("factory get null eventEnum:{}", mcParameterEnum);
             }

@@ -1,7 +1,6 @@
 package com.huamar.charge.common.protocol;
 
 import lombok.Getter;
-import lombok.extern.slf4j.Slf4j;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -22,19 +21,20 @@ public class DataPacketWriter {
 
 	public final Charset charset = StandardCharsets.UTF_8;
 
+	private final ByteOrder byteOrder = ByteOrder.LITTLE_ENDIAN;
+
 	public final Charset GBK = Charset.forName("GBK");
 
 	@Getter
 	private final ByteBuffer buffer;
 
 	public DataPacketWriter(int size) {
-		buffer = ByteBuffer.allocate(size);
+		buffer = ByteBuffer.allocate(size).order(byteOrder);
 		buffer.order(ByteOrder.LITTLE_ENDIAN);
 	}
 
 	public DataPacketWriter() {
-		buffer = ByteBuffer.allocate(2048);
-		buffer.order(ByteOrder.LITTLE_ENDIAN);
+		buffer = ByteBuffer.allocate(2048).order(byteOrder);
 	}
 
 	public void write(byte data) {

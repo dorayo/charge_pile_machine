@@ -8,25 +8,29 @@ package com.huamar.charge.common.util;
  */
 public class BCCUtil {
 
+
+
 	/**
-	 * 获取BCC校验码
+	 * bcc 校验, 包含起始位置与结束位置
+	 *
 	 * @param data data
-	 * @return String
+	 * @param startIndex startIndex
+	 * @param endIndex endIndex
+	 * @return byte
 	 */
-	public static String bcc(byte[] data, int start, int end) {
-		String ret = "";
-		byte[] bcc = new byte[1];
-		for (int i = start; i < data.length; i++) {
-			if (end == i) {
-				break;
-			}
-			bcc[0] = (byte) (bcc[0] ^ data[i]);
+	public static byte calculateBCC(byte[] data, int startIndex, int endIndex) {
+		if (startIndex < 0 || endIndex >= data.length || startIndex > endIndex) {
+			throw new IllegalArgumentException("无效的开始和结束位置");
 		}
-		String hex = Integer.toHexString(bcc[0] & 0xFF);
-		if (hex.length() == 1) {
-			hex = '0' + hex;
+
+		byte bcc = 0;
+
+		for (int i = startIndex; i <= endIndex; i++) {
+			bcc ^= data[i];
 		}
-		ret += hex.toUpperCase();
-		return ret;
+
+		return bcc;
 	}
+
+
 }

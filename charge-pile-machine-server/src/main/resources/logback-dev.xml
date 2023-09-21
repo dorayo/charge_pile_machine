@@ -24,7 +24,7 @@
 			  value="${CONSOLE_LOG_CHARSET:-${file.encoding:-UTF-8}}"/>
 	
 	<property name="FILE_LOG_PATTERN"
-			  value="-%d{${LOG_DATEFORMAT_PATTERN:-yyyy-MM-dd HH:mm:ss.SSS}} ${LOG_LEVEL_PATTERN:-%5p} ${PID:- } --- [%t] %-40.40logger{39} : %m%n${LOG_EXCEPTION_CONVERSION_WORD:-%wEx}"/>
+			  value="%d{${LOG_DATEFORMAT_PATTERN:-yyyy-MM-dd HH:mm:ss.SSS}} ${LOG_LEVEL_PATTERN:-%5p} ${PID:- } --- [%t] %-40.40logger{39} : %m%n${LOG_EXCEPTION_CONVERSION_WORD:-%wEx}"/>
 	
 	<property name="FILE_LOG_CHARSET"
 			  value="${FILE_LOG_CHARSET:-${file.encoding:-UTF-8}}"/>
@@ -49,9 +49,7 @@
 	<logger name="org.springframework.jdbc.core.JdbcTemplate" level="DEBUG"/>
 	<logger name="feign.Logger" level="DEBUG"/>
 
-	<!-- 心跳包日志输出 -->
-	<logger name="com.huamar.charge.pile.server.service.handler.MachineHeartbeatHandler" level="OFF"/>
-	<logger name="com.huamar.charge.pile.server" level="OFF"/>
+
 	
 	<!--1. 输出到控制台-->
 	<appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
@@ -61,6 +59,23 @@
 			<charset>${CONSOLE_LOG_CHARSET}</charset>
 		</encoder>
 	</appender>
+	
+	
+	<appender name="FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
+		<encoder>
+			<pattern>${FILE_LOG_PATTERN}</pattern>
+			<charset>${FILE_LOG_CHARSET}</charset>
+		</encoder>
+		<file>${LOG_PATH}/${LOG_FILE_NAME}.log</file>
+		<rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
+			<fileNamePattern>${LOG_PATH}/${LOG_FILE_NAME}-%d{yyyy-MM-dd}.%i.log</fileNamePattern>
+			<cleanHistoryOnStart>false</cleanHistoryOnStart>
+			<maxFileSize>128MB</maxFileSize>
+			<totalSizeCap>60GB</totalSizeCap>
+			<maxHistory>365</maxHistory>
+		</rollingPolicy>
+	</appender>
+	
 	
 	<!-- 自定义字段分割日志 -->
 	<appender name="PILE_SIFT_FILE" class="ch.qos.logback.classic.sift.SiftingAppender">
@@ -156,13 +171,23 @@
 		<appender-ref ref="STDOUT"/>
 	</root>
 	
+	<!-- 心跳包日志输出 -->
+	<logger name="MachineHeartbeatLogger" level="OFF"/>
+	<logger name="MachinePacketLogger" level="OFF"/>
+	<logger name="com.huamar.charge.pile" level="OFF"/>
+	
 	<!-- 设备心业务日志 -->
-	<logger level="INFO" name="com.huamar.charge.pile.server" additivity="true">
+	<logger level="INFO" name="com.huamar.charge.pile" additivity="true">
+		<appender-ref ref="PILE_SIFT_FILE"/>
+	</logger>
+	
+	<!-- 设备心业务日志 -->
+	<logger level="INFO" name="MachinePacketLogger" additivity="false">
 		<appender-ref ref="PILE_SIFT_FILE"/>
 	</logger>
 	
 	<!-- 设备心跳包日志 -->
-	<logger level="INFO" name="MachineHeartbeatLogger" additivity="false">
+	<logger level="INFO" name="MachineHeartbeatLogger" additivity="true">
 		<appender-ref ref="PILE_HEART_SIFT_FILE"/>
 	</logger>
 	

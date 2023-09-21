@@ -12,7 +12,7 @@ import com.huamar.charge.common.util.HexExtUtil;
  *
  * @author TiAmo(13721682347@163.com)
  */
-public interface McParameterExecute<T extends McBaseParameterDTO> {
+public interface PileParameterExecute<T extends McBaseParameterDTO> {
 
 
     /**

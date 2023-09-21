@@ -2,6 +2,7 @@ package com.huamar.charge.pile.config;
 
 import com.huamar.charge.pile.server.service.receiver.PileMessageExecuteFactory;
 import com.huamar.charge.pile.server.service.receiver.PileMessageReceiver;
+import de.vandermeer.asciitable.AsciiTable;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.redisson.api.RedissonClient;
@@ -12,7 +13,6 @@ import org.springframework.beans.factory.DisposableBean;
 import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
 import org.springframework.boot.context.event.ApplicationReadyEvent;
 import org.springframework.context.ApplicationListener;
-import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
 import org.springframework.core.annotation.Order;
 import org.springframework.lang.NonNull;
@@ -53,16 +53,25 @@ public class MessageReceiverConfiguration implements DisposableBean, Application
 
     @Override
     public void onApplicationEvent(@NonNull ApplicationReadyEvent event) {
+        AsciiTable at = new AsciiTable();
+        at.addRule();
+        at.addRow("MessageReceiver", "isStart");
+        at.addRule();
+
         ConfigurableListableBeanFactory beanFactory = event.getApplicationContext().getBeanFactory();
         SimpleMessageListenerContainer pileMessageListenerContainer = getListenerContainer();
         containerMap.put("pileMessageListenerContainer", pileMessageListenerContainer);
         containerMap.forEach((k,v) -> {
-            log.info("{} init...", k);
             beanFactory.registerSingleton(k, v);
             if(pileMachineProperties.getEnableConsume()){
                 v.start();
             }
+            at.addRow(k, v.isRunning());
+            at.addRule();
         });
+
+        log.info(System.getProperty("line.separator") + at.render());
+
     }
 
     /**

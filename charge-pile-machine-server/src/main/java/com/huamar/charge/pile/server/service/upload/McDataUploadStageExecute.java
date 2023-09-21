@@ -76,7 +76,7 @@ public class McDataUploadStageExecute implements McDataUploadExecute {
             messageData.setBusinessId(chargeStageDataDTO.getIdCode());
             messageData.setMessageId(IdUtil.simpleUUID());
             messageData.setRequestId(IdUtil.simpleUUID());
-            pileMessageProduce.send(pileMachineProperties.getPileMessageQueue(), messageData);
+            pileMessageProduce.send(messageData);
         }catch (Exception e){
             log.error("sendMessage send error e:{}", e.getMessage(), e);
         }
@@ -103,6 +103,7 @@ public class McDataUploadStageExecute implements McDataUploadExecute {
         chargeStageDataDTO.setPileVoltageOutValue(reader.readShort());
         chargeStageDataDTO.setPileElectricityOutValue(reader.readShort());
         chargeStageDataDTO.setGunSort(reader.readByte());
+        chargeStageDataDTO.setIdCode(data.getIdCode());
         return chargeStageDataDTO;
     }
 

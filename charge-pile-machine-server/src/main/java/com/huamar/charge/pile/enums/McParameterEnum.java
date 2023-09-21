@@ -14,7 +14,9 @@ import java.util.Objects;
 public enum McParameterEnum {
 
     SEND("40", "远程参数下发 (0x40)"),
+
     READ("41", "远程参数读取下发 (0x41)"),
+
     READ_CONFIG("42", "远程参数读取 (0x42)"),
     ;
     private final String code;

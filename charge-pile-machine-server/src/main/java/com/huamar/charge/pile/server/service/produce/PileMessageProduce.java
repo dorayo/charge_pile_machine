@@ -39,18 +39,34 @@ public class PileMessageProduce implements InitializingBean, RabbitTemplate.Conf
 
     private RabbitTemplate rabbitTemplate;
 
+    private static final String DEFAULT_EXCHANGE = "";
+
+    private static final String DEFAULT_ROUTING_KEY = "";
+
+
+    /**
+     * 下发消息
+     *
+     * @param object object
+     */
+    public void send(Object object){
+        this.send(pileMachineProperties.getMessageExchange(), DEFAULT_ROUTING_KEY, object);
+    }
+
 
     /**
      * 发送消息
      *
+     * @param exchange exchange
      * @param routingKey routingKey
-     * @param object     object
+     * @param object   object
      */
-    public void send(String routingKey, Object object) {
+    public void send(final String exchange, final String routingKey, Object object) {
         MessageProperties messageProperties = new MessageProperties();
         Snowflake snowflake = IdUtil.getSnowflake();
         messageProperties.setMessageId(snowflake.nextIdStr());
-        rabbitTemplate.send(routingKey, new Message(JSONParser.jsonString(object).getBytes(), messageProperties));
+        Message message = new Message(JSONParser.jsonString(object).getBytes(), messageProperties);
+        rabbitTemplate.send(exchange, routingKey, message);
     }
 
 

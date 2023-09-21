@@ -80,11 +80,10 @@ public class MessageCommandRespServiceImpl implements MessageCommandRespService 
         log.info("消息控制命令响应 data:{}", JSONParser.jsonString(commonRespDTO));
         Snowflake snowflake = IdUtil.getSnowflake();
         String idStr = snowflake.nextIdStr();
-        PileMachineProperties properties = pileMessageProduce.getPileMachineProperties();
         MessageData<Object> messageData = new MessageData<>(MessageCodeEnum.PILE_MESSAGE_COMMON_RESP, commonRespDTO);
         messageData.setMessageId(idStr);
         messageData.setRequestId(idStr);
         messageData.setBusinessId(commonRespDTO.getIdCode());
-        pileMessageProduce.send(properties.getPileMessageQueue(), messageData);
+        pileMessageProduce.send(messageData);
     }
 }

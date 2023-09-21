@@ -48,11 +48,12 @@ public class PileStartChargeExecute implements PileMessageExecute {
      *
      * @param body body
      */
-    @SuppressWarnings("ExtractMethodRecommender")
+    @SuppressWarnings({"ExtractMethodRecommender", "DuplicatedCode"})
     @Override
     public void execute(MessageData<String> body) {
         PileChargeControlDTO chargeControl = JSONParser.parseObject(body.getData(), PileChargeControlDTO.class);
         try {
+
             McChargeCommandDTO chargeCommand = new McChargeCommandDTO();
             chargeCommand.setChargeControl((byte) 1);
             chargeCommand.setChargeEndType(chargeControl.getChargeEndType().byteValue());
@@ -61,6 +62,7 @@ public class PileStartChargeExecute implements PileMessageExecute {
             chargeCommand.setOrderSerialNumber(chargeControl.getOrderSerialNumber().getBytes());
             chargeCommand.setBalance(chargeControl.getBalance().intValue());
             chargeCommand.setIdCode(chargeControl.getIdCode());
+
             mcCommandFactory.getExecute(McCommandEnum.CHARGE).execute(chargeCommand);
             Boolean commandState = chargeCommand.headCommandState();
 

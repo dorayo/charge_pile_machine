@@ -89,7 +89,7 @@ public class MachineHeartbeatHandler implements MachinePacketHandler<DataPacket>
             pileHeartbeatDTO.setDateTime(LocalDateTime.now());
             pileHeartbeatDTO.setTime(reqDTO.getTime().toString());
             MessageData<PileHeartbeatDTO> messageData = new MessageData<>(MessageCodeEnum.PILE_HEART_BEAT, pileHeartbeatDTO);
-            pileMessageProduce.send(pileMachineProperties.getPileMessageQueue(), messageData);
+            pileMessageProduce.send(messageData);
         }catch (Exception e){
             log.error("心跳包发送远程失败 mcMessageProduce send error e:{}", e.getMessage(), e);
         }

@@ -1,37 +1,45 @@
 package com.huamar.charge.pile.server.service.handler;
 
+import cn.hutool.core.date.StopWatch;
 import cn.hutool.crypto.digest.HMac;
 import cn.hutool.crypto.digest.HmacAlgorithm;
-import com.huamar.charge.net.core.SessionChannel;
-import com.huamar.charge.pile.api.dto.PileDTO;
 import com.huamar.charge.common.common.BCDUtils;
 import com.huamar.charge.common.common.BaseResp;
+import com.huamar.charge.common.protocol.DataPacket;
+import com.huamar.charge.common.protocol.FixString;
+import com.huamar.charge.common.util.HexExtUtil;
+import com.huamar.charge.net.core.SessionChannel;
+import com.huamar.charge.pile.api.dto.PileDTO;
 import com.huamar.charge.pile.convert.MachineAuthenticationConvert;
 import com.huamar.charge.pile.entity.dto.MachineAuthenticationReqDTO;
 import com.huamar.charge.pile.entity.dto.command.McQrCodeCommandDTO;
 import com.huamar.charge.pile.entity.dto.mq.MessageData;
 import com.huamar.charge.pile.entity.dto.resp.McAuthResp;
 import com.huamar.charge.pile.enums.*;
-import com.huamar.charge.common.protocol.DataPacket;
-import com.huamar.charge.common.protocol.FixString;
+import com.huamar.charge.pile.server.service.answer.McAnswerExecute;
 import com.huamar.charge.pile.server.service.factory.McAnswerFactory;
 import com.huamar.charge.pile.server.service.factory.McCommandFactory;
-import com.huamar.charge.pile.server.service.answer.McAnswerExecute;
 import com.huamar.charge.pile.server.service.machine.MachineService;
 import com.huamar.charge.pile.server.service.produce.PileMessageProduce;
-import com.huamar.charge.common.util.HexExtUtil;
+import com.huamar.charge.pile.server.session.SessionManager;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
+import org.slf4j.MDC;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.task.TaskExecutor;
 import org.springframework.stereotype.Service;
 
+import java.time.Duration;
+import java.util.Map;
 import java.util.Objects;
+import java.util.concurrent.TimeUnit;
 
 /**
  * 终端鉴权
  * Date: 2023/06/11
  *
- * @author TiAmo(13721682347@163.com)
+ * @author TiAmo(13721682347 @ 163.com)
  */
 @Slf4j
 @Service
@@ -59,6 +67,12 @@ public class MachineAuthenticationHandler implements MachinePacketHandler<DataPa
      */
     private final PileMessageProduce pileMessageProduce;
 
+
+    @SuppressWarnings("SpringJavaAutowiredFieldsWarningInspection")
+    @Autowired
+    private TaskExecutor taskExecutor;
+
+
     /**
      * 协议编码
      *
@@ -77,56 +91,91 @@ public class MachineAuthenticationHandler implements MachinePacketHandler<DataPa
      */
     @Override
     public void handler(DataPacket packet, SessionChannel sessionChannel) {
+
         MachineAuthenticationReqDTO reqDTO = this.reader(packet);
         log.info("终端鉴权，loginNumber={} time={} ip={}", reqDTO.getLoginNumber(), reqDTO.getTerminalTime(), sessionChannel.getIp());
         McAuthResp authResp = new McAuthResp();
         authResp.setTime(BCDUtils.bcdTime());
         authResp.setEncryptionType((byte) 0);
         authResp.setSecretKeyLength((short) 0);
+        authResp.setIdCode(reqDTO.getIdCode());
         authResp.setSecretKey(new FixString(new byte[0]));
         // 应答实现
         McAnswerExecute<BaseResp> answerExecute = answerFactory.getExecute(McAnswerEnum.AUTH);
-        // TODO 验证充电桩 业务逻辑
-        PileDTO pile = machineService.getPile(reqDTO.getIdCode());
-        if (Objects.isNull(pile)) {
-            authResp.setStatus(MachineAuthStatus.TERMINAL_NOT_REGISTER.getCode());
-            answerExecute.execute(authResp, sessionChannel);
-            return;
-        }
+        Map<String, String> mdcMap = MDC.getCopyOfContextMap();
+        taskExecutor.execute(() -> {
+            try {
+                MDC.setContextMap(mdcMap);
+                pileMessageProduce.send(new MessageData<>(MessageCodeEnum.PILE_AUTH, reqDTO.getIdCode()));
+                long startTime = System.currentTimeMillis();
+                long maxWaitTime = Duration.ofSeconds(3).toMillis();
 
-        authResp.setIdCode(pile.getPileCode());
-        authResp.setStatus(MachineAuthStatus.SUCCESS.getCode());
-        // 更新对象
-        PileDTO update = new PileDTO();
-        update.setId(pile.getId());
-        if (StringUtils.isBlank(pile.getMacAddress())) {
-            update.setMacAddress(reqDTO.getMacAddress().toString());
-        }
+                PileDTO pile = null;
+                StopWatch stopWatch = new StopWatch();
+                stopWatch.start("pile get");
+                while (System.currentTimeMillis() - startTime < maxWaitTime) {
+                    pile = machineService.getCache(reqDTO.getIdCode());
+                    if (Objects.isNull(pile)) {
+                        continue;
+                    }
+                    try {
+                        TimeUnit.MILLISECONDS.sleep(500);
+                    } catch (InterruptedException ignored) {
+                    }
+                }
+                stopWatch.stop();
 
-        // mac已登录成功过
-        if (!StringUtils.equalsAnyIgnoreCase(pile.getMacAddress(), reqDTO.getMacAddress().toString())) {
-            authResp.setStatus(MachineAuthStatus.TERMINAL_INFO_NOT_FOUND.getCode());
-            answerExecute.execute(authResp, sessionChannel);
-            return;
-        }
+                log.info("auth get pile task:{} isOk:{}", stopWatch.prettyPrint(TimeUnit.MILLISECONDS), Objects.isNull(pile));
 
-        if(StringUtils.equals(pile.getPileVersion(), reqDTO.getProgramVersionNum())){
-            pile.setPileVersion(reqDTO.getProgramVersionNum());
-        }
+                if (Objects.isNull(pile)) {
+                    authResp.setStatus(MachineAuthStatus.TERMINAL_NOT_REGISTER.getCode());
+                    answerExecute.execute(authResp, sessionChannel);
+                    SessionManager.close(sessionChannel);
+                    return;
+                }
 
-        // 私有加密逻辑
-        this.encryptionSecretKey(reqDTO, authResp);
-        authResp.setStatus(MachineAuthStatus.SUCCESS.getCode());
-        answerExecute.execute(authResp, sessionChannel);
+                authResp.setIdCode(pile.getPileCode());
+                authResp.setStatus(MachineAuthStatus.SUCCESS.getCode());
+                // 更新对象
+                PileDTO update = new PileDTO();
+                update.setId(pile.getId());
+                if (StringUtils.isBlank(pile.getMacAddress())) {
+                    update.setMacAddress(reqDTO.getMacAddress().toString());
+                    pile.setMacAddress(reqDTO.getMacAddress().toString());
+                }
 
-        // 二维码下发
-        this.sendQrCode(authResp);
-        // 设备更新
-        pileMessageProduce.send(pileMessageProduce.getPileMachineProperties().getPileMessageQueue(), new MessageData<>(MessageCodeEnum.PILE_UPDATE, update));
+                // mac已登录成功过
+                if (!StringUtils.equalsAnyIgnoreCase(pile.getMacAddress(), reqDTO.getMacAddress().toString())) {
+                    authResp.setStatus(MachineAuthStatus.TERMINAL_INFO_NOT_FOUND.getCode());
+                    answerExecute.execute(authResp, sessionChannel);
+                    return;
+                }
 
-        //电价更新
-        pileMessageProduce.send(pileMessageProduce.getPileMachineProperties().getPileMessageQueue(), new MessageData<>(MessageCodeEnum.ELECTRICITY_PRICE, update));
+                if (StringUtils.equals(pile.getPileVersion(), reqDTO.getProgramVersionNum())) {
+                    pile.setPileVersion(reqDTO.getProgramVersionNum());
+                }
 
+                // 私有加密逻辑
+                this.encryptionSecretKey(reqDTO, authResp);
+                authResp.setStatus(MachineAuthStatus.SUCCESS.getCode());
+                answerExecute.execute(authResp, sessionChannel);
+
+                // 二维码下发
+                this.sendQrCode(authResp);
+                // 设备更新
+                pileMessageProduce.send(new MessageData<>(MessageCodeEnum.PILE_UPDATE, update));
+
+                //电价更新
+                update.setStationId(pile.getStationId());
+                update.setPileCode(pile.getPileCode());
+                pileMessageProduce.send(new MessageData<>(MessageCodeEnum.ELECTRICITY_PRICE, update));
+
+            }catch (Exception e){
+                log.error("auth execute error:{}", e.getMessage(), e);
+            }finally {
+                machineService.removeCache(reqDTO.getIdCode());
+            }
+        });
     }
 
     /**
@@ -162,9 +211,10 @@ public class MachineAuthenticationHandler implements MachinePacketHandler<DataPa
 
     /**
      * 二维码下发
+     *
      * @param authResp authResp
      */
-    private void sendQrCode(McAuthResp authResp){
+    private void sendQrCode(McAuthResp authResp) {
         McQrCodeCommandDTO qrCodeCommand = new McQrCodeCommandDTO();
         qrCodeCommand.setIdCode(authResp.getIdCode());
         qrCodeCommand.setUrl(machineService.getQrCode());

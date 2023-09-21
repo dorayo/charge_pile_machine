@@ -84,6 +84,14 @@ public class TioSessionChannel implements SessionChannel {
         return channel;
     }
 
+    /**
+     * 关闭连接
+     */
+    @Override
+    public void close() {
+        channel.setCloseCode(ChannelContext.CloseCode.USER_CODE_0);
+    }
+
     public TioSessionChannel(ChannelContext channel) {
         this.channel = channel;
     }

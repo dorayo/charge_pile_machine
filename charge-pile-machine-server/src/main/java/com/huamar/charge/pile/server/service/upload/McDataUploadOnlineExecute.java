@@ -55,7 +55,6 @@ public class McDataUploadOnlineExecute implements McDataUploadExecute {
      */
     @Override
     public void execute(BCD time, List<MachineDataUpItem> list) {
-        log.info("充电桩实时状态信息 start ==>");
         list.forEach(item -> {
             McChargerOnlineInfoDTO parse = this.parse(item);
             log.info("充电桩实时状态信息 data:{}", parse);
@@ -75,7 +74,7 @@ public class McDataUploadOnlineExecute implements McDataUploadExecute {
             messageData.setBusinessId(onlineInfoDTO.getIdCode());
             messageData.setMessageId(IdUtil.simpleUUID());
             messageData.setRequestId(IdUtil.simpleUUID());
-            pileMessageProduce.send(pileMachineProperties.getPileMessageQueue(), messageData);
+            pileMessageProduce.send(messageData);
         }catch (Exception e){
             log.error("sendMessage send error e:{}", e.getMessage(), e);
         }

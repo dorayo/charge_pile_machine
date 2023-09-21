@@ -1,4 +1,4 @@
-package com.huamar.charge.machine.client.handle;
+package com.huamar.charge.machine.client;
 
 import com.huamar.charge.common.common.BCDUtils;
 import com.huamar.charge.common.common.StringPool;
@@ -6,6 +6,7 @@ import com.huamar.charge.common.protocol.BasePacket;
 import com.huamar.charge.common.protocol.DataPacket;
 import com.huamar.charge.common.protocol.FailMathPacket;
 import com.huamar.charge.common.util.HexExtUtil;
+import com.huamar.charge.machine.client.protocol.ProtocolCodecFactory;
 import com.huamar.charge.machine.client.protocol.TioPacket;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
@@ -14,9 +15,12 @@ import org.slf4j.MDC;
 import org.springframework.stereotype.Component;
 import org.tio.client.intf.ClientAioHandler;
 import org.tio.core.ChannelContext;
+import org.tio.core.TioConfig;
+import org.tio.core.exception.TioDecodeException;
 import org.tio.core.intf.Packet;
 
 import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
 
 /**
  * 设备业务拦截器
@@ -27,7 +31,40 @@ import java.nio.ByteBuffer;
 @Slf4j
 @Component
 @RequiredArgsConstructor
-public class MachineHandler extends AbstractHandler implements ClientAioHandler {
+public class MachineHandler implements ClientAioHandler {
+
+
+    /**
+     * 根据ByteBuffer解码成业务需要的Packet对象.
+     * 如果收到的数据不全，导致解码失败，请返回null，在下次消息来时框架层会自动续上前面的收到的数据
+     *
+     * @param buffer         参与本次希望解码的ByteBuffer
+     * @param limit          ByteBuffer的limit
+     * @param position       ByteBuffer的position，不一定是0哦
+     * @param readableLength ByteBuffer参与本次解码的有效数据（= limit - position）
+     * @param channelContext channelContext
+     * @return Packet
+     * @throws TioDecodeException TioDecodeException
+     */
+    @Override
+    public Packet decode(ByteBuffer buffer, int limit, int position, int readableLength, ChannelContext channelContext) throws TioDecodeException {
+        BasePacket basePacket = ProtocolCodecFactory.decode(buffer);
+        return new TioPacket(basePacket);
+    }
+
+    /**
+     * 编码
+     *
+     * @param packet packet
+     * @param tioConfig tioConfig
+     * @param channelContext  channelContext
+     * @return ByteBuffer
+     */
+    @Override
+    public ByteBuffer encode(Packet packet, TioConfig tioConfig, ChannelContext channelContext) {
+        TioPacket encode = (TioPacket) packet;
+        return ProtocolCodecFactory.encode(encode.getBasePacket());
+    }
 
     /**
      * 处理消息
@@ -54,6 +91,7 @@ public class MachineHandler extends AbstractHandler implements ClientAioHandler 
                 FailMathPacket dataPacket = (FailMathPacket) basePacket;
                 log.info("FailMathPacket data:{}", HexExtUtil.encodeHexStrFormat(dataPacket.getBody(), StringPool.SPACE));
             }
+
         }catch (Exception e){
             log.error("error ==> e:{}", e.getMessage(), e);
         }finally {
@@ -72,8 +110,10 @@ public class MachineHandler extends AbstractHandler implements ClientAioHandler 
     @Override
     public Packet heartbeatPacket(ChannelContext channelContext) {
 
-        ByteBuffer byteBuffer = ByteBuffer.allocate(20480);
-        byteBuffer.put(BCDUtils.bcdTime().getData());
+        ByteBuffer byteBuffer = ByteBuffer.allocate(2048);
+        byteBuffer.order(ByteOrder.LITTLE_ENDIAN);
+        byteBuffer.put(HexExtUtil.decodeHex("23 09 01 12 12 22"));
+//        byteBuffer.put(BCDUtils.bcdTime().getData());
         byteBuffer.put((byte) 1);
         byteBuffer.put((byte) 1);
         byteBuffer.put((byte) 2);
@@ -91,8 +131,7 @@ public class MachineHandler extends AbstractHandler implements ClientAioHandler 
         dataPacket.setMsgNumber((short) 1);
         dataPacket.setIdCode("123456789012345678".getBytes());
         dataPacket.setMsgBody(bytes);
-        dataPacket.setCheckTag((byte) Integer.parseInt("23", 16));
-
+        dataPacket.setTagEnd((byte) Integer.parseInt("23", 16));
         return new TioPacket(dataPacket);
     }
 }

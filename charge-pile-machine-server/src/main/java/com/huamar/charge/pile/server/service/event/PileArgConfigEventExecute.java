@@ -61,7 +61,7 @@ public class PileArgConfigEventExecute implements PileEventExecute {
 
         MessageData<PileChargeArgConfigPushDTO> messageData = new MessageData<>(pushDTO);
         messageData.setBusinessCode(MessageCodeEnum.EVENT_CONFIG_EVENT.getCode());
-        messageProduce.send(messageProduce.getPileMachineProperties().getPileMessageQueue(), messageData);
+        messageProduce.send(messageData);
 
     }
 

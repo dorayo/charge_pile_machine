@@ -30,6 +30,12 @@ Content-Type: application/x-www-form-urlencoded
 
 idCode=471000220714302005
 
+### 启动充电
+POST http://127.0.0.1:8881/server/endCharge
+Content-Type: application/x-www-form-urlencoded
+
+idCode=471000220822302003&orderNumber=80edb1708a4944afbd3949d90fad6703
+
 
 ### 命令转义
 POST http://127.0.0.1:8881/codec/transferEncode

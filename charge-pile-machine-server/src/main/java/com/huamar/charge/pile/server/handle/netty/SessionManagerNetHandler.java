@@ -1,5 +1,6 @@
 package com.huamar.charge.pile.server.handle.netty;
 
+import cn.hutool.core.util.IdUtil;
 import com.huamar.charge.common.common.StringPool;
 import com.huamar.charge.common.protocol.BasePacket;
 import com.huamar.charge.common.protocol.DataPacket;
@@ -43,6 +44,13 @@ public class SessionManagerNetHandler extends SimpleChannelInboundHandler<BasePa
     @Override
     public void channelInactive(ChannelHandlerContext ctx) {
         log.info("{} 断开了服务器", ctx.channel().remoteAddress());
+        try {
+            AttributeKey<String> machineId = AttributeKey.valueOf(ConstEnum.MACHINE_ID.getCode());
+            String bsId = ctx.channel().attr(machineId).get();
+            SessionManager.remove(bsId);
+        }catch (Exception ignored){
+
+        }
         ctx.fireChannelInactive();
     }
 
@@ -54,6 +62,7 @@ public class SessionManagerNetHandler extends SimpleChannelInboundHandler<BasePa
      */
     @Override
     protected void channelRead0(ChannelHandlerContext channelHandlerContext, BasePacket packet) {
+        Thread.currentThread().setName(IdUtil.getSnowflakeNextIdStr());
         if(packet instanceof DataPacket){
             DataPacket dataPacket = (DataPacket) packet;
             String bsId = new String((dataPacket).getIdCode());
@@ -70,6 +79,7 @@ public class SessionManagerNetHandler extends SimpleChannelInboundHandler<BasePa
         }
 
         if (packet instanceof FailMathPacket) {
+            MDC.put(ConstEnum.ID_CODE.getCode(), "00000000000000000");
             FailMathPacket dataPacket = (FailMathPacket) packet;
             log.info("FailMathPacket data:{}", HexExtUtil.encodeHexStrFormat(dataPacket.getBody(), StringPool.SPACE));
             return;
@@ -86,6 +96,15 @@ public class SessionManagerNetHandler extends SimpleChannelInboundHandler<BasePa
     @Override
     public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) {
         log.error("{} 连接出异常了,{}", ctx.channel().remoteAddress(), cause.getMessage(), cause);
+        try {
+            AttributeKey<String> machineId = AttributeKey.valueOf(ConstEnum.MACHINE_ID.getCode());
+            String bsId = ctx.channel().attr(machineId).get();
+            SessionManager.remove(bsId);
+        }catch (Exception ignored){
+
+        }
         ctx.close();
     }
+
+
 }

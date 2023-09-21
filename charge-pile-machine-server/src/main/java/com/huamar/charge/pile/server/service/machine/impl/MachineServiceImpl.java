@@ -1,5 +1,7 @@
 package com.huamar.charge.pile.server.service.machine.impl;
 
+import com.github.benmanes.caffeine.cache.Cache;
+import com.github.benmanes.caffeine.cache.Caffeine;
 import com.huamar.charge.common.api.vo.Result;
 import com.huamar.charge.pile.api.ISysPileApi;
 import com.huamar.charge.pile.api.dto.PileDTO;
@@ -7,6 +9,8 @@ import com.huamar.charge.pile.server.service.machine.MachineService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+
+import java.time.Duration;
 
 /**
  * 设备端接口
@@ -19,7 +23,17 @@ import org.springframework.stereotype.Service;
 @Slf4j
 public class MachineServiceImpl implements MachineService {
 
+
+
+    /**
+     * 微服务设备Api
+     */
     protected final ISysPileApi iSysPileApi;
+
+    private final static Cache<String, PileDTO> cache = Caffeine.newBuilder()
+            .initialCapacity(1000)
+            .expireAfterAccess(Duration.ofMinutes(5))
+            .build();
 
     /**
      * 获取设备
@@ -29,12 +43,7 @@ public class MachineServiceImpl implements MachineService {
      */
     @Override
     public PileDTO getPile(String idCode) {
-        //Result<PileDTO> result = iSysPileApi.getByCode(idCode);
-
-        PileDTO pileDTO = new PileDTO();
-        pileDTO.setId(1);
-        pileDTO.setPileCode("471000220714302005");
-        Result<PileDTO> result = Result.OK(pileDTO);
+        Result<PileDTO> result = iSysPileApi.getByCode(idCode);
         if(result.isSuccess()){
             return result.getResult();
         }
@@ -43,14 +52,30 @@ public class MachineServiceImpl implements MachineService {
     }
 
 
+    @Override
+    public PileDTO getCache(String idCode) {
+        return cache.getIfPresent(idCode);
+    }
+
+    @Override
+    public void putCache(String idCode, PileDTO pileDTO) {
+        cache.put(idCode, pileDTO);
+    }
+
+    @Override
+    public void removeCache(String idCode) {
+        cache.invalidate(idCode);
+    }
+
+
     /**
      * 获取二维码地址
-     * //TODO 二维码配置
      *
      * @return String
      */
     @Override
     public String getQrCode() {
+        //TODO 二维码配置
         return "1234567890";
     }
 

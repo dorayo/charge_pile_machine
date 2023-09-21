@@ -40,6 +40,7 @@ public class PileParameterSendExecute implements PileMessageExecute {
         McParameterDTO parameterDTO = new McParameterDTO();
         parameterDTO.setParamNumber((byte) data.size());
         parameterDTO.setDataList(data);
+        parameterDTO.setIdCode(pileParamItemReqDTO.getIdCode());
         mcParameterFactory.getExecute(McParameterEnum.SEND).execute(parameterDTO);
     }
 

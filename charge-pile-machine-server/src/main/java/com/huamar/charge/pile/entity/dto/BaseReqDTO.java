@@ -14,5 +14,5 @@ import lombok.EqualsAndHashCode;
 @Data
 public class BaseReqDTO extends BaseDTO {
 
-    protected String idCode;
+    public String idCode;
 }

@@ -7,6 +7,7 @@ import com.huamar.charge.pile.enums.ProtocolCodeEnum;
 import com.huamar.charge.pile.server.service.factory.MachinePacketFactory;
 import com.huamar.charge.pile.server.service.handler.MachinePacketHandler;
 import com.huamar.charge.pile.server.session.SessionManager;
+import io.netty.channel.ChannelHandler;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
 import lombok.extern.slf4j.Slf4j;
@@ -17,6 +18,7 @@ import lombok.extern.slf4j.Slf4j;
  * @author TiAmo
  */
 @Slf4j
+@ChannelHandler.Sharable
 public class ServerNetHandler extends SimpleChannelInboundHandler<DataPacket> {
 
     private final MachinePacketFactory machinePacketFactory;

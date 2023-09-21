@@ -24,7 +24,6 @@ public class DataPacket extends BasePacket {
 	public static final byte TAG = 35;
 
 
-
 	/**
 	 * 1.标识位
 	 */

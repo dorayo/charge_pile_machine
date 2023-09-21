@@ -15,24 +15,31 @@ import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
 import io.netty.handler.codec.ByteToMessageDecoder;
 import io.netty.handler.codec.MessageToByteEncoder;
+import io.netty.handler.timeout.IdleStateHandler;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.boot.context.event.ApplicationReadyEvent;
+import org.springframework.context.ApplicationListener;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
+import org.springframework.context.event.ContextClosedEvent;
 
+import java.nio.ByteOrder;
 import java.util.List;
+import java.util.Objects;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  * netty 服务端
  */
 @Slf4j
-//@ConditionalOnProperty(name = "machine.server.net-socket-model", havingValue = "NETTY")
+@ConditionalOnProperty(name = "machine.server.net-socket-model", havingValue = "netty")
 @Configuration
 @Import(SimpleSessionContext.class)
-public class MachineNetServer {
+public class MachineNetServer implements NetServer {
 
     /**
      * 设备端通信配置
@@ -75,8 +82,20 @@ public class MachineNetServer {
     }
 
     @Bean
-    public ServerNetHandler serverNetHandler(MachinePacketFactory machinePacketFactory){
-        return new ServerNetHandler(machinePacketFactory);
+    public ApplicationListener<ApplicationReadyEvent> serverStart(){
+        return event -> {
+            MachineNetServer netServer = event.getApplicationContext().getBean(this.getClass());
+            netServer.start();
+            log.info("Server Net start ...{}", netServer.getClass().getName());
+        };
+    }
+
+    @Bean
+    public ApplicationListener<ContextClosedEvent> stopApplicationListener(){
+        return event -> {
+            event.getApplicationContext().getBean(this.getClass()).close();
+            log.info("MachineNetServer close ...");
+        };
     }
 
 
@@ -84,6 +103,7 @@ public class MachineNetServer {
      * 服务端启动
      */
     @SneakyThrows
+    @Override
     public void start(){
         if(isRun.get()){
             return;
@@ -113,11 +133,25 @@ public class MachineNetServer {
                 .childHandler(new ChannelInitializer<SocketChannel>() {
                     @Override
                     protected void initChannel(SocketChannel socketChannel) {
+                        ServerNetHandler serverNetHandler = new ServerNetHandler(machinePacketFactory);
+
                         ChannelPipeline pipeline = socketChannel.pipeline();
-                        pipeline.addLast(new MessageEncodeHandler());
-                        pipeline.addLast(new MessageDecodeHandler());
-                        pipeline.addLast(new SessionManagerNetHandler());
-                        pipeline.addLast(serverNetHandler(machinePacketFactory));
+                        pipeline.addLast("decoder", new MessageDecodeHandler());
+                        pipeline.addLast("encoder", new MessageEncodeHandler());
+                        pipeline.addLast("sessionManager", new SessionManagerNetHandler());
+                        pipeline.addLast("serverNetHandler", serverNetHandler);
+                        pipeline.addLast(new IdleStateHandler(0, 0, properties.getTimeout().getSeconds(), TimeUnit.SECONDS));
+                    }
+
+                    /**
+                     * Handle the {@link Throwable} by logging and closing the {@link Channel}. Sub-classes may override this.
+                     *
+                     * @param ctx ctx
+                     * @param cause cause
+                     */
+                    @Override
+                    public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
+                        super.exceptionCaught(ctx, cause);
                     }
                 });
     }
@@ -125,6 +159,7 @@ public class MachineNetServer {
     /**
      * 停止
      */
+    @Override
     public void close() {
         if(!isRun.get()){
             return;
@@ -146,9 +181,13 @@ public class MachineNetServer {
      */
     static class MessageEncodeHandler extends MessageToByteEncoder<BasePacket> {
 
+        @SuppressWarnings("unused")
+        private final ByteOrder byteOrder = ByteOrder.LITTLE_ENDIAN;
+
         @SneakyThrows
         @Override
         protected void encode(ChannelHandlerContext channelHandlerContext, BasePacket packet, ByteBuf byteBuf) {
+            //byteBuf.order(byteOrder); 不推荐使用，已经废弃
             ProtocolCodecFactory.encode(packet, byteBuf);
         }
     }
@@ -158,9 +197,16 @@ public class MachineNetServer {
      */
     static class MessageDecodeHandler extends ByteToMessageDecoder {
 
+        @SuppressWarnings("unused")
+        private final ByteOrder byteOrder = ByteOrder.LITTLE_ENDIAN;
+
         @Override
         protected void decode(ChannelHandlerContext channelHandlerContext, ByteBuf byteBuf, List<Object> list) {
+            //byteBuf.order(byteOrder); 不推荐使用，已经废弃
             BasePacket basePacket = ProtocolCodecFactory.decode(byteBuf);
+            if(Objects.isNull(basePacket)){
+                return;
+            }
             list.add(basePacket);
         }
     }

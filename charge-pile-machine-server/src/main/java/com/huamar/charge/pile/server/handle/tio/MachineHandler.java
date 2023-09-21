@@ -62,6 +62,7 @@ public class MachineHandler extends AbstractHandler implements ServerAioHandler 
             }
 
             if (basePacket instanceof FailMathPacket) {
+                MDC.put(ConstEnum.ID_CODE.getCode(), "00000000000000000");
                 FailMathPacket dataPacket = (FailMathPacket) basePacket;
                 log.info("FailMathPacket data:{}", HexExtUtil.encodeHexStrFormat(dataPacket.getBody(), StringPool.SPACE));
             }

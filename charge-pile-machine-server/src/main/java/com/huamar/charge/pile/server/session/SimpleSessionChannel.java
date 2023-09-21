@@ -99,4 +99,12 @@ public class SimpleSessionChannel implements SessionChannel {
     public ChannelHandlerContext channel() {
         return channelContext;
     }
+
+    /**
+     * 关闭连接
+     */
+    @Override
+    public void close() {
+        channelContext.close();
+    }
 }

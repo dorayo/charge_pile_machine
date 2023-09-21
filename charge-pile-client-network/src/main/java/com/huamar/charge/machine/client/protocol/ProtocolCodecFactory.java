@@ -1,9 +1,8 @@
-package com.huamar.charge.machine.client.handle;
+package com.huamar.charge.machine.client.protocol;
 
 import com.huamar.charge.common.exception.ProtocolCodecException;
 import com.huamar.charge.common.protocol.BasePacket;
 import com.huamar.charge.common.protocol.DataPacket;
-import com.huamar.charge.common.protocol.ProtocolCodec;
 import lombok.Getter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -44,8 +43,8 @@ public class ProtocolCodecFactory {
     /**
      * 编码协议对象
      */
-    public static ByteBuffer encode(BasePacket packet) throws TioDecodeException {
-        ProtocolCodec protocolCodec = ProtocolCodecEnum.getCodec(packet.getClass());
+    public static ByteBuffer encode(BasePacket packet) {
+        PacketCodec protocolCodec = ProtocolCodecEnum.getCodec(packet.getClass());
         if(Objects.isNull(protocolCodec)){
             return null;
         }
@@ -56,12 +55,12 @@ public class ProtocolCodecFactory {
 
     @Getter
     enum ProtocolCodecEnum{
-        DATA_PACKET(DataPacket.class, new ClientProtocolCodec());
+        DATA_PACKET(DataPacket.class, new PacketCodec());
 
         private final Class<?> clazz;
-        private final ProtocolCodec protocolCodec;
+        private final PacketCodec protocolCodec;
 
-        ProtocolCodecEnum(Class<?> clazz, ProtocolCodec protocolCodec) {
+        ProtocolCodecEnum(Class<?> clazz, PacketCodec protocolCodec) {
             this.clazz = clazz;
             this.protocolCodec = protocolCodec;
         }
@@ -70,7 +69,7 @@ public class ProtocolCodecFactory {
          * 获取对应类型的解码器
          * @author TiAmo(13721682347@163.com)
          */
-        public static ProtocolCodec getCodec(Class<?> clazz) {
+        public static PacketCodec getCodec(Class<?> clazz) {
             for (ProtocolCodecEnum e : values()) {
                 if (Objects.equals(clazz, e.getClazz())) {
                     return e.getProtocolCodec();

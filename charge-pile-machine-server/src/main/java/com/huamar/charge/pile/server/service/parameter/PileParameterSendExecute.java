@@ -1,9 +1,9 @@
 package com.huamar.charge.pile.server.service.parameter;
 
-import com.huamar.charge.common.common.BCDUtils;
+import cn.hutool.core.collection.CollectionUtil;
 import com.huamar.charge.common.protocol.DataPacket;
 import com.huamar.charge.common.protocol.DataPacketWriter;
-import com.huamar.charge.pile.entity.dto.parameter.McParameterReadDTO;
+import com.huamar.charge.pile.entity.dto.parameter.McParameterDTO;
 import com.huamar.charge.pile.enums.McParameterEnum;
 import com.huamar.charge.pile.enums.ProtocolCodeEnum;
 import com.huamar.charge.pile.server.session.SessionManager;
@@ -20,8 +20,7 @@ import org.springframework.stereotype.Component;
 @Slf4j
 @Component
 @RequiredArgsConstructor
-public class McParameterReadSendExecute implements McParameterExecute<McParameterReadDTO> {
-
+public class PileParameterSendExecute implements PileParameterExecute<McParameterDTO> {
 
 
     /**
@@ -31,7 +30,7 @@ public class McParameterReadSendExecute implements McParameterExecute<McParamete
      */
     @Override
     public McParameterEnum getCode() {
-        return McParameterEnum.READ;
+        return McParameterEnum.SEND;
     }
 
     /**
@@ -40,11 +39,11 @@ public class McParameterReadSendExecute implements McParameterExecute<McParamete
      * @param command command
      */
     @Override
-    public void execute(McParameterReadDTO command) {
+    public void execute(McParameterDTO command) {
         DataPacket packet = this.packet(command);
-        packet.setMsgId(ProtocolCodeEnum.PARAMETER_READ_SEND.codeByte());
+        packet.setMsgId(ProtocolCodeEnum.PARAMETER_SEND.codeByte());
         boolean sendCommand = SessionManager.writePacket(packet);
-        log.info("Parameter Read idCode:{} sendCommand:{} ", command.getIdCode(), sendCommand);
+        log.info("Parameter Send idCode:{} sendCommand:{} ", command.getIdCode(), sendCommand);
     }
 
 
@@ -55,10 +54,21 @@ public class McParameterReadSendExecute implements McParameterExecute<McParamete
      * @return DataPacketWriter
      */
     @Override
-    public DataPacketWriter writer(McParameterReadDTO command) {
-        command.setTime(BCDUtils.bcdTime());
+    public DataPacketWriter writer(McParameterDTO command) {
         DataPacketWriter writer = new DataPacketWriter();
-        writer.write(command.getTime().getData());
+        writer.write(command.getParamNumber());
+        if(CollectionUtil.isEmpty(command.getDataList())){
+            return writer;
+        }
+
+        command.getDataList().forEach(item -> {
+            Short id = item.getId();
+            Short len = item.getParamLength();
+            String paramData = item.getParamData();
+            writer.write(id);
+            writer.write(len);
+            writer.write(paramData,len);
+        });
         return writer;
     }
 }

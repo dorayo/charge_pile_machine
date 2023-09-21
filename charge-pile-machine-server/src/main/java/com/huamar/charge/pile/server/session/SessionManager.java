@@ -107,4 +107,13 @@ public class SessionManager implements ApplicationListener<ContextRefreshedEvent
         }
         return Convert.toShort(incremented);
     }
+
+    /**
+     * 关闭客户端连接
+     *
+     * @param sessionChannel sessionChannel
+     */
+    public static void close(SessionChannel sessionChannel){
+        sessionChannel.close();
+    }
 }
