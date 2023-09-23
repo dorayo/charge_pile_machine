@@ -36,6 +36,8 @@ public class MachineClient implements InitializingBean, ApplicationContextAware 
 
     private final AtomicInteger messageNumber = new AtomicInteger(0);
 
+    private Integer clientId;
+
     /**
      * 构建服务器节点
      */

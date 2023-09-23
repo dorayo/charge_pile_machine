@@ -20,7 +20,7 @@ import java.util.List;
  *
  * @author TiAmo(13721682347 @ 163.com)
  **/
-@Component
+@Component("PileMessageParameterSendExecute")
 @RequiredArgsConstructor
 public class PileParameterSendExecute implements PileMessageExecute {
 

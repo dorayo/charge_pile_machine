@@ -15,7 +15,12 @@ import org.springframework.context.event.EventListener;
 import org.springframework.core.annotation.Order;
 import org.springframework.core.env.Environment;
 
+import java.math.BigDecimal;
 import java.net.InetAddress;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Optional;
+import java.util.concurrent.atomic.AtomicReference;
 
 /**
  * 服务端程序入口
@@ -31,8 +36,6 @@ public class Application {
 
     @SneakyThrows
     public static void main(String[] args) {
-        SpringApplication.run(Application.class, args);
-
     }
 
     @EventListener(ApplicationReadyEvent.class)

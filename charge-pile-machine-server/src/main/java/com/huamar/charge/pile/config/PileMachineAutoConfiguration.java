@@ -50,5 +50,8 @@ public class PileMachineAutoConfiguration implements InitializingBean {
                 rabbitAdmin.declareBinding(BindingBuilder.bind(queue).to(exchange));
             });
         });
+        Queue queue = new Queue(machineProperties.getPileControlQueue());
+        String string = rabbitAdmin.declareQueue(queue);
+        log.info("创建队列：{}, 结果：{}", queue, string);
     }
 }
