@@ -33,10 +33,10 @@ public enum PileCommonResultEnum {
 
     TERMINAL_UNSUPPORTED_A_PARAM("0202","远程参数下发-终端不支持某个参数 (0x0202)"),
 
-    UNKNOWN_REASON("0203","远程参数下发-位置原因导致参数下发失败 (0x0203)"),
+    UNKNOWN_REASON("0203","远程参数下发-未知原因 (0x0203)"),
 
     @SuppressWarnings("SpellCheckingInspection")
-    INVALID("FFFF","远程参数下发-位置原因导致参数下发失败 (0xFFFF)"),
+    INVALID("FFFF","远程参数下发-未知原因 (0xFFFF)"),
 
     UNKNOWN("UNKNOWN","未知返回结果 UNKNOWN"),
 

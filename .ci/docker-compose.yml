@@ -1,51 +1,17 @@
 version: "3.8"
 services:
-  charge_pile_nacos:
-    image: nacos/nacos-server:${NACOS_TAG}
-    container_name: charge_pile_nacos
-    restart: always
-    privileged: true
-    extra_hosts:
-      - "rabbit.hm.com:120.46.210.11"
-      - "redis.hm.com:120.46.159.203"
-      - "hm-charge-mysql.com:120.46.159.203"
-    environment:
-      MODE: standalone
-      SPRING_DATASOURCE_PLATFORM: mysql
-      MYSQL_DATABASE_NUM: 1
-      MYSQL_SERVICE_HOST: hm-charge-mysql.com
-      MYSQL_SERVICE_PORT: 13306
-      MYSQL_SERVICE_USER: root
-      MYSQL_SERVICE_PASSWORD: a8EYUSoT8wHbuRkX
-      MYSQL_SERVICE_DB_NAME: nacos
-      MYSQL_SERVICE_DB_PARAM: "characterEncoding=utf8&connectTimeout=1000&socketTimeout=3000&autoReconnect=true&useUnicode=true&useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true"
-      NACOS_APPLICATION_PORT: 9999
-      NACOS_AUTH_CACHE_ENABLE: true
-      NACOS_AUTH_ENABLE: false
-      NACOS_AUTH_TOKEN_EXPIRE_SECONDS: 18000
-      NACOS_AUTH_TOKEN: SecretKey012345678901234567890123456789012345678901234567890123456789
-    ports:
-      - "8848:9999"
-    healthcheck:
-      test: [ "CMD", "curl", "-f", "http://localhost:9999/nacos" ]
-      interval: 10s
-      timeout: 5s
-      retries: 6
-
-
+# 通讯端
   charge_pile_machine:
-    depends_on:
-      charge_pile_nacos:
-        condition: service_healthy
+#    depends_on:
+#      charge_pile_nacos:
+#        condition: service_healthy
 
     container_name: charge_pile_machine
     image: charge_pile_machine:latest
     restart: always
     privileged: true
     extra_hosts:
-      - "redis.hm.com:120.46.159.203"
-      - "rabbit.hm.com:120.46.210.11"
-      - "dev.charge-pile-nacos.com:192.168.10.14"
+      - "dev.charge-pile-nacos-internal.huamar.com:192.168.10.14"
     ports:
       - "8886:8886"
       - "8881:8881"

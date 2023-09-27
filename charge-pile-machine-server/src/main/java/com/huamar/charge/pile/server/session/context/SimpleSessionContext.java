@@ -7,6 +7,7 @@ import com.huamar.charge.pile.server.session.SessionManager;
 import com.huamar.charge.pile.server.session.SimpleSessionChannel;
 import io.netty.channel.ChannelHandlerContext;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.util.Assert;
 
 /**
  * 默认的上下文管理 基于 netty
@@ -28,9 +29,10 @@ public class SimpleSessionContext implements MachineSessionContext {
     public boolean writePacket(DataPacket packet, SessionChannel channel) {
         try {
             SimpleSessionChannel sessionChannel = (SimpleSessionChannel) channel;
-            sessionChannel.channel().writeAndFlush(packet).sync();
-        } catch (InterruptedException e) {
-            log.error("writePacket error");
+            Assert.notNull(sessionChannel, "session is null");
+            sessionChannel.channel().writeAndFlush(packet);
+        } catch (Exception e) {
+            log.error("writePacket error", e);
             return false;
         }
         return true;
@@ -47,9 +49,10 @@ public class SimpleSessionContext implements MachineSessionContext {
         try {
             SimpleSessionChannel sessionChannel = (SimpleSessionChannel) SessionManager.get(new String(packet.getIdCode()));
             ChannelHandlerContext channelHandlerContext = sessionChannel.channel();
-            channelHandlerContext.writeAndFlush(packet).sync();
-        } catch (InterruptedException e) {
-            log.error("writePacket error");
+            Assert.notNull(sessionChannel, "session is null");
+            channelHandlerContext.writeAndFlush(packet);
+        } catch (Exception e) {
+            log.error("writePacket error", e);
             return false;
         }
         return true;

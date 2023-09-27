@@ -33,6 +33,7 @@ import org.springframework.stereotype.Service;
 import java.time.Duration;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -112,7 +113,7 @@ public class MachineAuthenticationHandler implements MachinePacketHandler<DataPa
 
                 PileDTO pile = null;
                 StopWatch stopWatch = new StopWatch();
-                stopWatch.start("pile get");
+                stopWatch.start("pile auth");
                 while (System.currentTimeMillis() - startTime < maxWaitTime) {
                     pile = machineService.getCache(reqDTO.getIdCode());
                     if (Objects.isNull(pile)) {
@@ -124,8 +125,8 @@ public class MachineAuthenticationHandler implements MachinePacketHandler<DataPa
                     }
                 }
                 stopWatch.stop();
-
-                log.info("auth get pile task:{} isOk:{}", stopWatch.prettyPrint(TimeUnit.MILLISECONDS), Objects.isNull(pile));
+                log.info("auth pile isSuccess:{}", Optional.ofNullable(pile).isPresent());
+                log.info("auth get pile task:{}", stopWatch.prettyPrint(TimeUnit.MILLISECONDS));
 
                 if (Objects.isNull(pile)) {
                     authResp.setStatus(MachineAuthStatus.TERMINAL_NOT_REGISTER.getCode());

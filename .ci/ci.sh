@@ -7,7 +7,7 @@
 # 临时目录
 host_name=root@192.168.10.14
 tmp_dir=/tmp/tmp-devops-$(openssl rand -hex 8)
-
+service_name=charge_pile_machine
 
 # SCP 发布包
 echo "start deploy to server path:${tmp_dir}"
@@ -23,8 +23,8 @@ scp -r ../charge-pile-machine-server/target/application.jar         ${host_name}
 
 ssh -tt ${host_name} << remotessh
 cd ${tmp_dir}
-docker buildx build -t charge_pile_machine:latest .
-docker-compose -p charge_pile_machine up -d
+docker buildx build -t ${service_name}:latest .
+docker-compose -p ${service_name} up -d
 exit
 remotessh
 echo "end"
