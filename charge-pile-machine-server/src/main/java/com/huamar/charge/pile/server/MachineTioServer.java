@@ -59,7 +59,7 @@ public class MachineTioServer implements NetServer {
         return event -> {
             MachineTioServer server = event.getApplicationContext().getBean(this.getClass());
             server.start();
-            log.info("Server Net start ...{}", server.getClass().getName());
+            log.info("Server Net start ...{}", server.getClass().getSimpleName());
         };
     }
 

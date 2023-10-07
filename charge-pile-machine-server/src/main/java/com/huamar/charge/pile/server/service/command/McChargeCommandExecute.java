@@ -44,9 +44,7 @@ public class McChargeCommandExecute implements McCommandExecute<McChargeCommandD
         Short messageNumber = SessionManager.getMessageNumber(command.getIdCode());
         DataPacket packet = this.packet(command);
         packet.setMsgNumber(messageNumber);
-
-//        boolean sendCommand = SessionManager.writePacket(packet);
-        boolean sendCommand = false;
+        boolean sendCommand = SessionManager.writePacket(packet);
         command.headCommandState(sendCommand);
         command.headMessageNum(messageNumber);
         log.info("ChargeCommand idCode:{} sendCommand:{} ", command.getIdCode(), sendCommand);

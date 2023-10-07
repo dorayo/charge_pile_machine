@@ -86,7 +86,7 @@ public class MachineNetServer implements NetServer {
         return event -> {
             MachineNetServer netServer = event.getApplicationContext().getBean(this.getClass());
             netServer.start();
-            log.info("Server Net start ...{}", netServer.getClass().getName());
+            log.info("Server Net start ...{}", netServer.getClass().getSimpleName());
         };
     }
 
