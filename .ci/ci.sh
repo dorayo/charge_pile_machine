@@ -5,7 +5,7 @@
 
 # 必须在当前目录下执行脚本
 # 临时目录
-host_name=root@192.168.10.14
+host_name=root@221.176.140.236
 tmp_dir=/tmp/tmp-devops-$(openssl rand -hex 8)
 service_name=charge_pile_machine
 
@@ -24,7 +24,7 @@ scp -r ../charge-pile-machine-server/target/application.jar         ${host_name}
 ssh -tt ${host_name} << remotessh
 cd ${tmp_dir}
 docker buildx build -t ${service_name}:latest .
-docker-compose -p ${service_name} up -d
+docker-compose -p ${service_name} up -d --force-recreate
 exit
 remotessh
 echo "end"
