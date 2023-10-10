@@ -12,6 +12,7 @@ import com.huamar.charge.pile.server.service.factory.McCommandFactory;
 import com.huamar.charge.pile.server.service.command.MessageCommandRespService;
 import com.huamar.charge.pile.server.service.receiver.PileMessageExecute;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.log4j.Log4j;
 import org.springframework.stereotype.Component;
 
 /**
@@ -20,6 +21,7 @@ import org.springframework.stereotype.Component;
  *
  * @author TiAmo(13721682347 @ 163.com)
  **/
+@Log4j
 @Component
 @RequiredArgsConstructor
 public class PileStartChargeExecute implements PileMessageExecute {
@@ -62,7 +64,7 @@ public class PileStartChargeExecute implements PileMessageExecute {
             chargeCommand.setOrderSerialNumber(chargeControl.getOrderSerialNumber().getBytes());
             chargeCommand.setBalance(chargeControl.getBalance().intValue());
             chargeCommand.setIdCode(chargeControl.getIdCode());
-
+            log.info("开启充电参数下发："+chargeCommand);
             mcCommandFactory.getExecute(McCommandEnum.CHARGE).execute(chargeCommand);
             Boolean commandState = chargeCommand.headCommandState();
 
@@ -75,6 +77,7 @@ public class PileStartChargeExecute implements PileMessageExecute {
             messageCommandRespService.put(commonResp);
 
             if (!commandState) {
+
                 messageCommandRespService.sendCommonResp(commonResp);
             }
 
