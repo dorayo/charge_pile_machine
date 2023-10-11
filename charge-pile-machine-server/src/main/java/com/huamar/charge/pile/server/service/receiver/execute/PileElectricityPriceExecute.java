@@ -11,14 +11,13 @@ import com.huamar.charge.common.protocol.NumberFixStr;
 import com.huamar.charge.pile.server.service.factory.McCommandFactory;
 import com.huamar.charge.pile.server.service.receiver.PileMessageExecute;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Component;
 
 import java.math.BigDecimal;
 import java.time.LocalTime;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -26,6 +25,7 @@ import java.util.stream.Collectors;
  *  DATE: 2023.08.07
  * @author TiAmo(13721682347@163.com)
  **/
+@Slf4j
 @Component
 @RequiredArgsConstructor
 public class PileElectricityPriceExecute implements PileMessageExecute {
@@ -51,22 +51,87 @@ public class PileElectricityPriceExecute implements PileMessageExecute {
     public void execute(MessageData<String> body) {
         PileElectricityPriceDTO pileElectricityPriceDTO = JSON.parseObject(body.getData(), PileElectricityPriceDTO.class);
         List<ChargPriceDTO> list = pileElectricityPriceDTO.getList();
-        Map<Integer, ChargPriceDTO> collect = list.stream().collect(Collectors.toMap(ChargPriceDTO::getSortNum, item -> item, (k1, k2) -> k1));
+        Map<Integer, ChargPriceDTO> collect = new HashMap<>();
+        for (int i=0;i<list.size();i++) {
+            collect.put(i,list.get(i));
+        }
+//        Map<Integer, ChargPriceDTO> collect = list.stream().collect(Collectors.toMap(ChargPriceDTO::getSortNum, item -> item, (k1, k2) -> k1));
         McElectricityPriceCommandDTO commandDTO = buildPrice(collect);
+//        byte[] timePriceBucket = new byte[48];
         String[] timePriceBucket = new String[48];
-        Arrays.fill(timePriceBucket, "0");
+//          byte zero = '0';
+        Arrays.fill(timePriceBucket,"0");
+
+
         list.forEach(item -> {
-            int start = getTimeBucket(item.getStartTime());
-            int end = getTimeBucket(item.getEndTime());
-            for (int i = start; i < end; i++) {
-                timePriceBucket[i] = String.valueOf(item.getSortNum());
+            LocalTime startTime = LocalTime.parse(item.getStartTime());
+            LocalTime endTime = LocalTime.parse(item.getEndTime());
+            int startHour = startTime.getHour() ;
+            int startMinute = startTime.getMinute();
+            int endHour = endTime.getHour();
+            int endMinute = endTime.getMinute()+1;
+            int start = Math.max(startHour *2+(startMinute / 30) ,0);
+            int end = Math.max(0,endHour *2 + (endMinute / 30) -1) ;
+            BigDecimal unit = new BigDecimal("10000");
+            if (start > end  ) {
+                return;
             }
+           for (;start <= end; start++){
+               if (start > 47) {
+                   return;
+               }
+                short  price1   =   commandDTO.getPrice1();
+                short  service1   =   commandDTO.getServicePrice1();
+                short  price2  =   commandDTO.getPrice2();
+                short  service2   =   commandDTO.getServicePrice2();
+                short  price3  =   commandDTO.getPrice3();
+                short  service3   =   commandDTO.getServicePrice3();
+                short  price4  =   commandDTO.getPrice4();
+                short  service4   =   commandDTO.getServicePrice4();
+                short  price5  =   commandDTO.getPrice5();
+                short  service5   =   commandDTO.getServicePrice5();
+                short  price6  =   commandDTO.getPrice6();
+                short  service6   =   commandDTO.getServicePrice6();
+
+               short charge  =  item.getCharge().multiply(unit).shortValue();
+               short serviceCharge  =  item.getServiceCharge().multiply(unit).shortValue();
+               if (charge==price1&&  serviceCharge  == service1){
+                   timePriceBucket[start] ="0";
+                   continue;
+               }
+               if (charge==price2&&  serviceCharge  == service2){
+                   timePriceBucket[start] = "1";
+                   continue;
+               }
+               if (charge==price3&&  serviceCharge  == service3){
+                   timePriceBucket[start] = "2";
+                   continue;
+               }
+               if (charge==price4&&  serviceCharge  == service4){
+                   timePriceBucket[start] ="3";
+                   continue;
+               }
+               if (charge==price5&&  serviceCharge  == service5){
+                   timePriceBucket[start] = "4";
+                   continue;
+               }
+               if (charge==price6&&  serviceCharge  == service6){
+                   timePriceBucket[start] = "5";
+                   continue;
+               }
+            }
+
+
         });
         commandDTO.setGunSort((byte) 0);
         commandDTO.setIdCode(pileElectricityPriceDTO.getIdCode());
+//        commandDTO.setTimeStage(new NumberFixStr(  timePriceBucket ));
         commandDTO.setTimeStage(new NumberFixStr(StringUtils.join(timePriceBucket).getBytes()));
+        log.info("commandDTO{}",commandDTO);
         mcCommandFactory.getExecute(McCommandEnum.ELECTRICITY_PRICE).execute(commandDTO);
     }
+
+
 
     /**
      * 填充价格
