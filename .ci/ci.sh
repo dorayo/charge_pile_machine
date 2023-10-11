@@ -5,7 +5,7 @@
 
 # 必须在当前目录下执行脚本
 # 临时目录
-host_name=root@221.176.140.236
+host_name=root@121.36.36.155
 tmp_dir=/tmp/tmp-devops-$(openssl rand -hex 8)
 service_name=charge_pile_machine
 

@@ -11,7 +11,7 @@ services:
     restart: always
     privileged: true
     extra_hosts:
-      - "dev.charge-pile-nacos-internal.huamar.com:192.168.10.14"
+      - "dev.charge-pile-nacos-internal.huamar.com:192.168.0.179"
     ports:
       - "8886:8886"
       - "8881:8881"
