@@ -54,12 +54,13 @@ public class PileStartChargeExecute implements PileMessageExecute {
     @Override
     public void execute(MessageData<String> body) {
         PileChargeControlDTO chargeControl = JSONParser.parseObject(body.getData(), PileChargeControlDTO.class);
+        log.info("开启充电参数下发："+chargeControl);
         try {
 
             McChargeCommandDTO chargeCommand = new McChargeCommandDTO();
             chargeCommand.setChargeControl((byte) 1);
             chargeCommand.setChargeEndType(chargeControl.getChargeEndType().byteValue());
-            chargeCommand.setChargeEndValue(chargeControl.getChargeEndValue().byteValue());
+            chargeCommand.setChargeEndValue(chargeControl.getChargeEndValue().intValue());
             chargeCommand.setGunSort(chargeControl.getGunSort().byteValue());
             chargeCommand.setOrderSerialNumber(chargeControl.getOrderSerialNumber().getBytes());
             chargeCommand.setBalance(chargeControl.getBalance().intValue());
