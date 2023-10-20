@@ -221,5 +221,6 @@ public class MachineAuthenticationHandler implements MachinePacketHandler<DataPa
         qrCodeCommand.setUrl(machineService.getQrCode());
         qrCodeCommand.setUrlLength((byte) qrCodeCommand.getUrl().length());
         commandFactory.getExecute(McCommandEnum.QR_CODE).execute(qrCodeCommand);
+        log.info("QrCodeCommand idCode:{} qrCode:{} ", authResp.getIdCode(), machineService.getQrCode());
     }
 }
