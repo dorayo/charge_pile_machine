@@ -219,6 +219,7 @@ public class MachineAuthenticationHandler implements MachinePacketHandler<DataPa
         McQrCodeCommandDTO qrCodeCommand = new McQrCodeCommandDTO();
         qrCodeCommand.setIdCode(authResp.getIdCode());
         qrCodeCommand.setUrl(machineService.getQrCode());
+        qrCodeCommand.setUrlLength((byte) qrCodeCommand.getUrl().length());
         commandFactory.getExecute(McCommandEnum.QR_CODE).execute(qrCodeCommand);
     }
 }
