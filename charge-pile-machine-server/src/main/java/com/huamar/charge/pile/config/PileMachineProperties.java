@@ -39,4 +39,8 @@ public class PileMachineProperties {
      */
     private Boolean enableConsume = Boolean.TRUE;
 
+    /**
+     * 二维码下发
+     */
+    private String qrCodeUrl;
 }

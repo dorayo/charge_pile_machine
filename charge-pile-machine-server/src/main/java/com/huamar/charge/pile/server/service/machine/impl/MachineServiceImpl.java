@@ -5,6 +5,7 @@ import com.github.benmanes.caffeine.cache.Caffeine;
 import com.huamar.charge.common.api.vo.Result;
 import com.huamar.charge.pile.api.ISysPileApi;
 import com.huamar.charge.pile.api.dto.PileDTO;
+import com.huamar.charge.pile.config.PileMachineProperties;
 import com.huamar.charge.pile.server.service.machine.MachineService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -29,6 +30,11 @@ public class MachineServiceImpl implements MachineService {
      * 微服务设备Api
      */
     protected final ISysPileApi iSysPileApi;
+
+    /**
+     * 设备端属性配置
+     */
+    private final PileMachineProperties pileMachineProperties;
 
     private final static Cache<String, PileDTO> cache = Caffeine.newBuilder()
             .initialCapacity(1000)
@@ -75,9 +81,7 @@ public class MachineServiceImpl implements MachineService {
      */
     @Override
     public String getQrCode() {
-        //TODO 二维码配置
-        return "1234567890";
+        return pileMachineProperties.getQrCodeUrl();
     }
-
 
 }
