@@ -128,6 +128,16 @@ public class MachineAuthenticationHandler implements MachinePacketHandler<DataPa
                 log.info("auth pile isSuccess:{}", Optional.ofNullable(pile).isPresent());
                 log.info("auth get pile task:{}", stopWatch.prettyPrint(TimeUnit.MILLISECONDS));
 
+                // 多次鉴权并发问题
+                Object auth = sessionChannel.getAttribute("auth");
+                if(Objects.nonNull(auth)){
+                    log.info("pile auth:{}", auth);
+                    authResp.setStatus(MachineAuthStatus.SUCCESS.getCode());
+                    answerExecute.execute(authResp, sessionChannel);
+                    return;
+                }
+
+
                 if (Objects.isNull(pile)) {
                     authResp.setStatus(MachineAuthStatus.TERMINAL_NOT_REGISTER.getCode());
                     answerExecute.execute(authResp, sessionChannel);
@@ -160,6 +170,8 @@ public class MachineAuthenticationHandler implements MachinePacketHandler<DataPa
                 this.encryptionSecretKey(reqDTO, authResp);
                 authResp.setStatus(MachineAuthStatus.SUCCESS.getCode());
                 answerExecute.execute(authResp, sessionChannel);
+                // 标记此连接鉴权成功
+                sessionChannel.setAttribute("auth","ok");
 
                 // 二维码下发
                 this.sendQrCode(authResp);
