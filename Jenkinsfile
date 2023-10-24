@@ -1,7 +1,11 @@
 pipeline {
   agent { label 'master' }
 
-    properties([disableConcurrentBuilds()])
+    options {
+        disableConcurrentBuilds()
+        buildDiscarder(logRotator(numToKeepStr: '10'))
+    }
+
 
   stages {
     stage('git checkout'){
