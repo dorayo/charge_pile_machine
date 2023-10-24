@@ -10,7 +10,7 @@ service_name=charge_pile_machine
 container_tag=latest
 
 # 环境
-profile=prod
+profile=dev
 
 ## build
 mvn -DskipTests=true clean package -P ${profile} -f ../pom.xml
