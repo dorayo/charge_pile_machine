@@ -85,8 +85,8 @@ public class MessageReceiverConfiguration implements DisposableBean, Application
         pileMessageListenerContainer.setAcknowledgeMode(AcknowledgeMode.MANUAL);
         pileMessageListenerContainer.setMessageListener(new PileMessageReceiver(pileMessageExecuteFactory, redissonClient));
         pileMessageListenerContainer.setPrefetchCount(1);
-        pileMessageListenerContainer.setConcurrentConsumers(1);
-        pileMessageListenerContainer.setMaxConcurrentConsumers(1);
+        pileMessageListenerContainer.setConcurrentConsumers(20);
+        pileMessageListenerContainer.setMaxConcurrentConsumers(50);
         return pileMessageListenerContainer;
     }
 

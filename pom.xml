@@ -237,7 +237,7 @@
 			
 			<properties>
 				<profile.name>dev</profile.name>
-				<config.server-addr>http://192.168.0.179:8848</config.server-addr>
+				<config.server-addr>dev.charge-pile-nacos-internal.huamar.com:8848</config.server-addr>
 				<config.namespace>public</config.namespace>
 				<config.group>DEFAULT_GROUP</config.group>
 			</properties>
@@ -245,14 +245,12 @@
 		
 		<profile>
 			<id>prod</id>
-			
 			<properties>
 				<profile.name>prod</profile.name>
 				<config.server-addr>prod.charge-pile-nacos-internal.huamar.com:8848</config.server-addr>
 				<config.namespace>public</config.namespace>
 				<config.group>DEFAULT_GROUP</config.group>
 			</properties>
-			
 		</profile>
 		
 	</profiles>
