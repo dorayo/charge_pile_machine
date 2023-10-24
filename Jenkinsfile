@@ -3,7 +3,7 @@ pipeline {
 
   stages {
     stage('git checkout'){
-
+        echo "hello word"
     }
   }
 }
