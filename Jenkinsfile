@@ -3,7 +3,9 @@ pipeline {
 
   stages {
     stage('git checkout'){
-        echo "hello word"
+        steps{
+            echo "hello word"
+        }
     }
   }
 }
