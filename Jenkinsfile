@@ -11,6 +11,7 @@ pipeline {
     stage('git checkout'){
         steps{
             echo "hello word"
+            sh mvn
         }
     }
   }
