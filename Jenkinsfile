@@ -12,7 +12,7 @@ pipeline {
         steps{
             script {
                 echo "hello word"
-                sh docker images
+                sh "docker images"
             }
 
         }
