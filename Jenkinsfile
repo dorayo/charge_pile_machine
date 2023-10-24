@@ -10,8 +10,11 @@ pipeline {
   stages {
     stage('git checkout'){
         steps{
-            echo "hello word"
-            sh docker images
+            script {
+                echo "hello word"
+                sh docker images
+            }
+
         }
     }
   }
