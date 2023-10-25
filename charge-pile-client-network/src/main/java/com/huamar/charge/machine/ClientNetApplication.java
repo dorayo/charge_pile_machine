@@ -8,19 +8,15 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.context.event.ApplicationReadyEvent;
-import org.springframework.boot.context.event.ApplicationStartedEvent;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.event.EventListener;
 import org.springframework.core.annotation.Order;
 import org.springframework.core.env.Environment;
+import org.tio.core.Node;
+import org.tio.core.Tio;
 
-import java.math.BigDecimal;
 import java.net.InetAddress;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
-import java.util.concurrent.atomic.AtomicReference;
 
 /**
  * 服务端程序入口
@@ -32,23 +28,27 @@ import java.util.concurrent.atomic.AtomicReference;
 @EnableConfigurationProperties
 @SpringBootApplication
 @Slf4j
-public class Application {
+public class ClientNetApplication {
 
     @SneakyThrows
     public static void main(String[] args) {
+        Thread.currentThread().setName("main");
+        SpringApplication.run(ClientNetApplication.class, args);
     }
 
     @EventListener(ApplicationReadyEvent.class)
     @Order(0)
     public void listen(ApplicationReadyEvent event) throws Exception {
         MachineClient machineClient = event.getApplicationContext().getBean(MachineClient.class);
-        machineClient.connect();
+        machineClient.connect(new Node("127.0.0.1", 8886));
+
+        Tio.close(machineClient.clientChannelContext, "close");
     }
 
     @EventListener(ApplicationReadyEvent.class)
     @Order(Integer.MAX_VALUE)
     public void listenReady(ApplicationReadyEvent event) {
-        Application.print(event.getApplicationContext());
+        ClientNetApplication.print(event.getApplicationContext());
     }
 
 

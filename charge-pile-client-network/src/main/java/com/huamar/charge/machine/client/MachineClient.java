@@ -9,6 +9,7 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.lang.NonNull;
+import org.springframework.stereotype.Component;
 import org.tio.client.ClientChannelContext;
 import org.tio.client.ClientTioConfig;
 import org.tio.client.ReconnConf;
@@ -19,6 +20,7 @@ import org.tio.core.ChannelContext;
 import org.tio.core.Node;
 import org.tio.core.intf.Packet;
 
+import java.io.IOException;
 import java.util.Objects;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -29,71 +31,48 @@ import java.util.concurrent.atomic.AtomicInteger;
  * @author lizhou
  */
 @Data
-@Configuration
+@Component
 public class MachineClient implements InitializingBean, ApplicationContextAware {
 
     private ApplicationContext applicationContext;
 
+
+    /**
+     * 设备流水号
+     */
     private final AtomicInteger messageNumber = new AtomicInteger(0);
 
-    private Integer clientId;
-
-    /**
-     * 构建服务器节点
-     */
-    public Node serverNode;
-
-    /**
-     * handler, 包括编码、解码、消息处理
-     */
-    public ClientAioHandler clientAioHandler;
-
-    /**
-     * 事件监听器，可以为null，但建议自己实现该接口，可以参考showcase了解些接口
-     */
-    public ClientAioListener clientAioListener;
-
-
-    /**
-     * 一组连接共用的上下文对象
-     */
-    public ClientTioConfig clientTioConfig;
 
     /**
      * 客户端入口
      */
-    public TioClient tioClient = null;
+    public TioClient tioClient;
 
     /**
      * 客户端TCP连接上下文
      */
-    public ClientChannelContext clientChannelContext = null;
+    public ClientChannelContext clientChannelContext;
 
     /**
      * 启动程序入口
      */
-    public void connect() throws Exception {
-        tioClient = new TioClient(clientTioConfig);
-        // 连接到服务器
+    public void connect(Node serverNode) throws Exception {
         clientChannelContext = tioClient.connect(serverNode);
     }
 
     @Override
-    public void afterPropertiesSet() {
-        serverNode = new Node("127.0.0.1", 8886);
-
-        // 事件监听器，可以为null，但建议自己实现该接口，可以参考showcase了解些接口
-        clientAioHandler = applicationContext.getBean(MachineHandler.class);
-        clientAioListener = new ClientListener();
+    public void afterPropertiesSet() throws IOException {
 
         // 一组连接共用的上下文对象
-        clientTioConfig = new ClientTioConfig(clientAioHandler, clientAioListener, new ReconnConf(5 * 1000, 5));
+        ClientTioConfig clientTioConfig = new ClientTioConfig(new MachineHandler(), new ClientListener(), new ReconnConf(5 * 1000, 5));
 
         // 服务名称
         clientTioConfig.setName("T-io Client");
 
         // 心跳超时时间
         clientTioConfig.setHeartbeatTimeout(TimeUnit.MINUTES.toMillis(1));
+
+        tioClient = new TioClient(clientTioConfig);
     }
 
     @Override

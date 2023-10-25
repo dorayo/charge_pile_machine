@@ -1,6 +1,5 @@
 package com.huamar.charge.machine.client;
 
-import com.huamar.charge.common.common.BCDUtils;
 import com.huamar.charge.common.common.StringPool;
 import com.huamar.charge.common.protocol.BasePacket;
 import com.huamar.charge.common.protocol.DataPacket;
@@ -8,11 +7,9 @@ import com.huamar.charge.common.protocol.FailMathPacket;
 import com.huamar.charge.common.util.HexExtUtil;
 import com.huamar.charge.machine.client.protocol.ProtocolCodecFactory;
 import com.huamar.charge.machine.client.protocol.TioPacket;
-import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.slf4j.MDC;
-import org.springframework.stereotype.Component;
 import org.tio.client.intf.ClientAioHandler;
 import org.tio.core.ChannelContext;
 import org.tio.core.TioConfig;
@@ -29,8 +26,6 @@ import java.nio.ByteOrder;
  * @author TiAmo(13721682347@163.com)
  */
 @Slf4j
-@Component
-@RequiredArgsConstructor
 public class MachineHandler implements ClientAioHandler {
 
 

@@ -142,17 +142,6 @@ public class MachineNetServer implements NetServer {
                         pipeline.addLast("serverNetHandler", serverNetHandler);
                         pipeline.addLast(new IdleStateHandler(0, 0, properties.getTimeout().getSeconds(), TimeUnit.SECONDS));
                     }
-
-                    /**
-                     * Handle the {@link Throwable} by logging and closing the {@link Channel}. Sub-classes may override this.
-                     *
-                     * @param ctx ctx
-                     * @param cause cause
-                     */
-                    @Override
-                    public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
-                        super.exceptionCaught(ctx, cause);
-                    }
                 });
     }
 

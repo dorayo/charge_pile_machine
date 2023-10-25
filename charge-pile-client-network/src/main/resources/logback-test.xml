@@ -10,8 +10,6 @@
 	<property name="LOG_FILE" value="${LOG_FILE:-${LOG_PATH:-${LOG_TEMP:-${java.io.tmpdir:-/tmp}}}/spring.log}"/>
 	<property name="LOG_PATH" value="${LOG_PATH:-${LOG_TEMP:-${java.io.tmpdir:-/tmp}}}"/>
 	
-	<springProperty scope="context" name="LOG_LOCATION" source="logLocation" defaultValue="/data/weblog/java" />
-	
 	
 	<!-- 彩色日志格式 -->
 	<property name="LOG_PATTERN"
