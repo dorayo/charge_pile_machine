@@ -1,33 +1,22 @@
 package com.huamar.charge.pile.controller;
 
-import cn.hutool.core.lang.Snowflake;
 import cn.hutool.core.util.IdUtil;
-import com.huamar.charge.common.common.BCDUtils;
-import com.huamar.charge.common.util.JSONParser;
-import com.huamar.charge.pile.config.PileMachineProperties;
+import com.alibaba.fastjson.JSON;
 import com.huamar.charge.pile.entity.dto.mq.MessageData;
-import com.huamar.charge.pile.entity.dto.parameter.McBaseParameterDTO;
-import com.huamar.charge.pile.entity.dto.parameter.McParamItemDTO;
-import com.huamar.charge.pile.entity.dto.parameter.McParameterDTO;
-import com.huamar.charge.pile.entity.dto.parameter.PileParameterReadDTO;
-import com.huamar.charge.pile.entity.dto.platform.PileChargeControlDTO;
-import com.huamar.charge.pile.enums.McParameterEnum;
+import com.huamar.charge.pile.entity.dto.parameter.PileParamItemDTO;
+import com.huamar.charge.pile.entity.dto.parameter.PileParameterDTO;
 import com.huamar.charge.pile.enums.MessageCodeEnum;
-import com.huamar.charge.pile.server.service.factory.McParameterFactory;
-import com.huamar.charge.pile.server.service.parameter.PileParameterExecute;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.amqp.core.Message;
 import org.springframework.amqp.core.MessageProperties;
-import org.springframework.amqp.rabbit.connection.ConnectionFactory;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -43,111 +32,87 @@ import java.util.List;
 @RequestMapping("/server")
 public class ServerController {
 
-
-    private final McParameterFactory parameterFactory;
-
-    private final ConnectionFactory connectionFactory;
-
-    private final PileMachineProperties pileMachineProperties;
-
-    @SneakyThrows
-    @PostMapping("/send")
-    public Object send(@RequestParam("id") String id, @RequestParam("body") String body) {
-        return "ok";
-    }
-
-
-    @SneakyThrows
-    @PostMapping("/sendByToken")
-    public Object sendByToken(@RequestParam("token") String id, @RequestParam("body") String body) {
-        return "ok";
-    }
-
-    @PostMapping("/sendReadParameter")
-    public Object sendReadParameter(@RequestParam("idCode") String idCode) {
-        PileParameterReadDTO parameterReadDTO = new PileParameterReadDTO();
-        parameterReadDTO.setTime(BCDUtils.bcdTime());
-        parameterReadDTO.setIdCode(idCode);
-        PileParameterExecute<McBaseParameterDTO> execute = parameterFactory.getExecute(McParameterEnum.READ);
-        execute.execute(parameterReadDTO);
-        return "success";
-    }
-
-    @PostMapping("/setParameter")
-    public Object setParameter(@RequestParam("idCode") String idCode) {
-        McParameterDTO parameterDTO = new McParameterDTO();
-        parameterDTO.setIdCode(idCode);
-        McParamItemDTO mcParamItemDTO = new McParamItemDTO();
-        mcParamItemDTO.setId((short) 6);
-        mcParamItemDTO.setParamData("2500");
-
-        List<McParamItemDTO> data = new ArrayList<>();
-        data.add(mcParamItemDTO);
-        parameterDTO.setDataList(data);
-        parameterDTO.setParamNumber((byte) data.size());
-
-        PileParameterExecute<McBaseParameterDTO> execute = parameterFactory.getExecute(McParameterEnum.SEND);
-        execute.execute(parameterDTO);
-        return "success";
-    }
-
-    /**
-     * @param idCode 设备码
-     * @return Object
-     */
-    @PostMapping("/startCharge")
-    public Object startCharge(@RequestParam("idCode") String idCode) {
-        String orderNumber = IdUtil.simpleUUID();
-        PileChargeControlDTO chargeControl = new PileChargeControlDTO();
-        chargeControl.setGunSort(1);
-        chargeControl.setChargeEndType(3);
-        chargeControl.setChargeEndValue(3);
-        chargeControl.setOrderSerialNumber(orderNumber);
-        chargeControl.setBalance(new BigDecimal("3"));
-        chargeControl.setIdCode(idCode);
-
-        MessageData<PileChargeControlDTO> messageData = new MessageData<>(MessageCodeEnum.PILE_START_CHARGE, chargeControl);
-        messageData.setBusinessId(idCode);
-
-        MessageProperties messageProperties = new MessageProperties();
-        Snowflake snowflake = IdUtil.getSnowflake();
-        messageProperties.setMessageId(snowflake.nextIdStr());
-
-        // 消息发送
-        RabbitTemplate rabbitTemplate = new RabbitTemplate(this.connectionFactory);
-        rabbitTemplate.send(pileMachineProperties.getPileControlQueue(), new Message(JSONParser.jsonString(messageData).getBytes(), messageProperties));
-
-        return "success:{}" + orderNumber;
-    }
-    /**
-     * @param idCode 设备码
-     * @return Object
-     */
-    @PostMapping("/endCharge")
-    public Object endCharge(
-            @RequestParam("idCode") String idCode,
-            @RequestParam("orderNumber") String orderNumber
-    ) {
-        PileChargeControlDTO chargeControl = new PileChargeControlDTO();
-        chargeControl.setGunSort(1);
-        chargeControl.setChargeEndType(3);
-        chargeControl.setChargeEndValue(5);
-        chargeControl.setOrderSerialNumber(orderNumber);
-        chargeControl.setBalance(new BigDecimal("5"));
-        chargeControl.setIdCode(idCode);
-
-        MessageData<PileChargeControlDTO> messageData = new MessageData<>(MessageCodeEnum.PILE_STOP_CHARGE, chargeControl);
-        messageData.setBusinessId(idCode);
-
-        MessageProperties messageProperties = new MessageProperties();
-        Snowflake snowflake = IdUtil.getSnowflake();
-        messageProperties.setMessageId(snowflake.nextIdStr());
-
-        // 消息发送
-        RabbitTemplate rabbitTemplate = new RabbitTemplate(this.connectionFactory);
-        rabbitTemplate.send(pileMachineProperties.getPileControlQueue(), new Message(JSONParser.jsonString(messageData).getBytes(), messageProperties));
-
-        return "success" + orderNumber;
-    }
+//
+//    @Autowired
+//    private RabbitTemplate rabbitTemplate;
+//
+//    @SneakyThrows
+//    @PostMapping("/hello")
+//    public Object send() {
+//        return "word";
+//    }
+//
+//    @SuppressWarnings("DuplicatedCode")
+//    @SneakyThrows
+//    @PostMapping("/admin/electronicLock")
+//    public Object electronicLock(String pileCode, String command) {
+//
+//        PileParameterDTO pileParameterDTO = new PileParameterDTO();
+//        pileParameterDTO.setParamNumber((byte) 1);
+//        pileParameterDTO.setIdCode(pileCode);
+//        List<PileParamItemDTO> list = new ArrayList<>();
+//
+//        PileParamItemDTO paramItemDTO = new PileParamItemDTO();
+//        paramItemDTO.setId((short) 8);
+//        paramItemDTO.setParamData(command);
+//        list.add(paramItemDTO);
+//        pileParameterDTO.setList(list);
+//
+//
+//        MessageData<PileParameterDTO> messageData = new MessageData<>(MessageCodeEnum.PILE_PARAMETER_UPDATE, pileParameterDTO);
+//        MessageProperties messageProperties = new MessageProperties();
+//        messageProperties.setMessageId(IdUtil.randomUUID());
+//        rabbitTemplate.send("pile.machine.control.queue", new Message(JSON.toJSONString(messageData).getBytes(), messageProperties));
+//        return "word";
+//    }
+//
+//
+//    @SuppressWarnings("DuplicatedCode")
+//    @SneakyThrows
+//    @PostMapping("/admin/reboot")
+//    public Object reboot(String pileCode) {
+//
+//        PileParameterDTO pileParameterDTO = new PileParameterDTO();
+//        pileParameterDTO.setParamNumber((byte) 1);
+//        pileParameterDTO.setIdCode(pileCode);
+//        List<PileParamItemDTO> list = new ArrayList<>();
+//
+//        PileParamItemDTO paramItemDTO = new PileParamItemDTO();
+//        paramItemDTO.setId((short) 10);
+//        paramItemDTO.setParamData("reboot");
+//        list.add(paramItemDTO);
+//        pileParameterDTO.setList(list);
+//
+//
+//        MessageData<PileParameterDTO> messageData = new MessageData<>(MessageCodeEnum.PILE_PARAMETER_UPDATE, pileParameterDTO);
+//        MessageProperties messageProperties = new MessageProperties();
+//        messageProperties.setMessageId(IdUtil.randomUUID());
+//        rabbitTemplate.send("pile.machine.control.queue", new Message(JSON.toJSONString(messageData).getBytes(), messageProperties));
+//        return "word";
+//    }
+//
+//    @SuppressWarnings("DuplicatedCode")
+//    @SneakyThrows
+//    @PostMapping("/admin/lock")
+//    public Object lock(String pileCode, String command) {
+//
+//        PileParameterDTO pileParameterDTO = new PileParameterDTO();
+//        pileParameterDTO.setParamNumber((byte) 1);
+//        pileParameterDTO.setIdCode(pileCode);
+//        List<PileParamItemDTO> list = new ArrayList<>();
+//
+//        PileParamItemDTO paramItemDTO = new PileParamItemDTO();
+//        paramItemDTO.setId((short) 9);
+//        paramItemDTO.setParamData(command);
+//        list.add(paramItemDTO);
+//        pileParameterDTO.setList(list);
+//
+//
+//        MessageData<PileParameterDTO> messageData = new MessageData<>(MessageCodeEnum.PILE_PARAMETER_UPDATE, pileParameterDTO);
+//        MessageProperties messageProperties = new MessageProperties();
+//        messageProperties.setMessageId(IdUtil.randomUUID());
+//        rabbitTemplate.send("pile.machine.control.queue", new Message(JSON.toJSONString(messageData).getBytes(), messageProperties));
+//        return "word";
+//    }
 
 }

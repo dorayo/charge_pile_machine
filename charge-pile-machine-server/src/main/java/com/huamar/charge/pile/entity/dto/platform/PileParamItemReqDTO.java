@@ -1,6 +1,6 @@
 package com.huamar.charge.pile.entity.dto.platform;
 
-import com.huamar.charge.pile.entity.dto.parameter.McParamItemDTO;
+import com.huamar.charge.pile.entity.dto.parameter.PileParamItemDTO;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
@@ -19,5 +19,5 @@ public class PileParamItemReqDTO extends PileBaseControlDTO {
     /**
      * 远程参数集合
      */
-    List<McParamItemDTO> list;
+    List<PileParamItemDTO> list;
 }

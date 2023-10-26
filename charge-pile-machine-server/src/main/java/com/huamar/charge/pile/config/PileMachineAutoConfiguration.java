@@ -11,6 +11,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Configuration;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -35,6 +36,11 @@ public class PileMachineAutoConfiguration implements InitializingBean {
         this.rabbitAdmin = rabbitAdmin;
     }
 
+    /**
+     * 启动后置处理器初始化队列逻辑
+     *
+     * @throws Exception Exception
+     */
     @Override
     public void afterPropertiesSet() throws Exception {
         Map<String, List<String>> exchangeQueue = new HashMap<>();
@@ -50,8 +56,15 @@ public class PileMachineAutoConfiguration implements InitializingBean {
                 rabbitAdmin.declareBinding(BindingBuilder.bind(queue).to(exchange));
             });
         });
-        Queue queue = new Queue(machineProperties.getPileControlQueue());
-        String string = rabbitAdmin.declareQueue(queue);
-        log.info("创建队列：{}, 结果：{}", queue, string);
+
+        // 创建直连队列
+        List<String> directQueue = new ArrayList<>();
+        directQueue.add(machineProperties.getPileControlQueue());
+        directQueue.add(machineProperties.getPileFaultQueue());
+        directQueue.forEach(item -> {
+            Queue queue = new Queue(item);
+            String string = rabbitAdmin.declareQueue(queue);
+            log.info("创建队列：{}, 结果：{}", queue, string);
+        });
     }
 }

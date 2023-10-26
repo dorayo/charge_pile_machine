@@ -1,6 +1,6 @@
 package com.huamar.charge.pile.server.service.parameter;
 
-import com.huamar.charge.pile.entity.dto.parameter.McBaseParameterDTO;
+import com.huamar.charge.pile.entity.dto.parameter.PileBaseParameterDTO;
 import com.huamar.charge.pile.enums.McParameterEnum;
 import com.huamar.charge.common.protocol.DataPacket;
 import com.huamar.charge.common.protocol.DataPacketWriter;
@@ -12,7 +12,7 @@ import com.huamar.charge.common.util.HexExtUtil;
  *
  * @author TiAmo(13721682347@163.com)
  */
-public interface PileParameterExecute<T extends McBaseParameterDTO> {
+public interface PileParameterExecute<T extends PileBaseParameterDTO> {
 
 
     /**

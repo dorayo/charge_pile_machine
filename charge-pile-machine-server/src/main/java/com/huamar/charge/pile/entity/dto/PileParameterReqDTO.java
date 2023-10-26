@@ -1,6 +1,6 @@
 package com.huamar.charge.pile.entity.dto;
 
-import com.huamar.charge.pile.entity.dto.parameter.McBaseParameterDTO;
+import com.huamar.charge.pile.entity.dto.parameter.PileBaseParameterDTO;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
@@ -12,7 +12,7 @@ import lombok.EqualsAndHashCode;
  */
 @EqualsAndHashCode(callSuper = true)
 @Data
-public class McParameterReqDTO extends McBaseParameterDTO {
+public class PileParameterReqDTO extends PileBaseParameterDTO {
 
     /**
      * 消息流水号

@@ -3,7 +3,7 @@ package com.huamar.charge.pile.server.service.handler;
 import com.huamar.charge.common.protocol.DataPacket;
 import com.huamar.charge.common.util.HexExtUtil;
 import com.huamar.charge.net.core.SessionChannel;
-import com.huamar.charge.pile.entity.dto.parameter.McBaseParameterDTO;
+import com.huamar.charge.pile.entity.dto.parameter.PileBaseParameterDTO;
 import com.huamar.charge.pile.entity.dto.resp.McCommonResp;
 import com.huamar.charge.pile.enums.McAnswerEnum;
 import com.huamar.charge.pile.enums.McParameterEnum;
@@ -69,7 +69,7 @@ public class MachineParameterHandler implements MachinePacketHandler<DataPacket>
                 log.error("factory get null eventEnum:{}", mcParameterEnum);
             }
 
-            McBaseParameterDTO reader = execute.reader(packet);
+            PileBaseParameterDTO reader = execute.reader(packet);
             if(Objects.isNull(reader)){
                 log.error("handler reader null eventEnum:{}", mcParameterEnum);
             }

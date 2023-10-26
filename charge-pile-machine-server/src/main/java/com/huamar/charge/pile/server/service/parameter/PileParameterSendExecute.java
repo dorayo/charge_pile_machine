@@ -3,7 +3,7 @@ package com.huamar.charge.pile.server.service.parameter;
 import cn.hutool.core.collection.CollectionUtil;
 import com.huamar.charge.common.protocol.DataPacket;
 import com.huamar.charge.common.protocol.DataPacketWriter;
-import com.huamar.charge.pile.entity.dto.parameter.McParameterDTO;
+import com.huamar.charge.pile.entity.dto.parameter.PileParameterDTO;
 import com.huamar.charge.pile.enums.McParameterEnum;
 import com.huamar.charge.pile.enums.ProtocolCodeEnum;
 import com.huamar.charge.pile.server.session.SessionManager;
@@ -20,7 +20,7 @@ import org.springframework.stereotype.Component;
 @Slf4j
 @Component
 @RequiredArgsConstructor
-public class PileParameterSendExecute implements PileParameterExecute<McParameterDTO> {
+public class PileParameterSendExecute implements PileParameterExecute<PileParameterDTO> {
 
 
     /**
@@ -39,7 +39,7 @@ public class PileParameterSendExecute implements PileParameterExecute<McParamete
      * @param command command
      */
     @Override
-    public void execute(McParameterDTO command) {
+    public void execute(PileParameterDTO command) {
         DataPacket packet = this.packet(command);
         packet.setMsgId(ProtocolCodeEnum.PARAMETER_SEND.codeByte());
         boolean sendCommand = SessionManager.writePacket(packet);
@@ -54,14 +54,14 @@ public class PileParameterSendExecute implements PileParameterExecute<McParamete
      * @return DataPacketWriter
      */
     @Override
-    public DataPacketWriter writer(McParameterDTO command) {
+    public DataPacketWriter writer(PileParameterDTO command) {
         DataPacketWriter writer = new DataPacketWriter();
         writer.write(command.getParamNumber());
-        if(CollectionUtil.isEmpty(command.getDataList())){
+        if(CollectionUtil.isEmpty(command.getList())){
             return writer;
         }
 
-        command.getDataList().forEach(item -> {
+        command.getList().forEach(item -> {
             Short id = item.getId();
             Short len = item.getParamLength();
             String paramData = item.getParamData();

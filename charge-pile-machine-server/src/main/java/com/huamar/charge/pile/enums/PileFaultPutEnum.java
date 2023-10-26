@@ -11,7 +11,7 @@ import java.util.Objects;
  * @author TiAmo(13721682347@163.com)
  */
 @Getter
-public enum McFaultPutEnum {
+public enum PileFaultPutEnum {
 
     CONFIG_EVENT("1", "电表故障"),
     SCREEN_FAULT_EVENT("2", "显示器故障"),
@@ -19,13 +19,13 @@ public enum McFaultPutEnum {
     private final String code;
     private final String desc;
 
-    McFaultPutEnum(String code, String desc) {
+    PileFaultPutEnum(String code, String desc) {
         this.code = code;
         this.desc = desc;
     }
 
-    public static McFaultPutEnum getByCode(String code) {
-        for (McFaultPutEnum e : values()) {
+    public static PileFaultPutEnum getByCode(String code) {
+        for (PileFaultPutEnum e : values()) {
             if (Objects.equals(code, e.getCode())) {
                 return e;
             }

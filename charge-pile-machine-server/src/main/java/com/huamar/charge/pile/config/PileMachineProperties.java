@@ -18,6 +18,12 @@ import java.util.Map;
 @Data
 public class PileMachineProperties {
 
+
+    /**
+     * 消费队列线程开关
+     */
+    private Boolean enableConsume = Boolean.TRUE;
+
     /**
      * App控制设备端下发消息队列
      */
@@ -35,9 +41,9 @@ public class PileMachineProperties {
     private List<String> fanoutExchangeQueues;
 
     /**
-     * 消费队列线程开关
+     * 设备故障处理队列
      */
-    private Boolean enableConsume = Boolean.TRUE;
+    private String pileFaultQueue;
 
     /**
      * 二维码下发

@@ -1,7 +1,7 @@
 package com.huamar.charge.pile.server.service.fault;
 
-import com.huamar.charge.pile.entity.dto.fault.McFaultPutReqDTO;
-import com.huamar.charge.pile.enums.McFaultPutEnum;
+import com.huamar.charge.pile.entity.dto.fault.PileFaultPutReqDTO;
+import com.huamar.charge.pile.enums.PileFaultPutEnum;
 import com.huamar.charge.common.protocol.DataPacket;
 import com.huamar.charge.common.protocol.DataPacketWriter;
 import lombok.extern.slf4j.Slf4j;
@@ -15,7 +15,7 @@ import org.springframework.stereotype.Component;
  */
 @Slf4j
 @Component
-public class McGunFaultPutExecute implements McFaultPutExecute<McFaultPutReqDTO> {
+public class McGunFaultPutExecute implements McFaultPutExecute<PileFaultPutReqDTO> {
 
     /**
      * 协议编码
@@ -23,8 +23,8 @@ public class McGunFaultPutExecute implements McFaultPutExecute<McFaultPutReqDTO>
      * @return ProtocolCodeEnum
      */
     @Override
-    public McFaultPutEnum getCode() {
-        return McFaultPutEnum.CONFIG_EVENT;
+    public PileFaultPutEnum getCode() {
+        return PileFaultPutEnum.CONFIG_EVENT;
     }
 
     /**
@@ -33,7 +33,7 @@ public class McGunFaultPutExecute implements McFaultPutExecute<McFaultPutReqDTO>
      * @param reqDTO reqDTO
      */
     @Override
-    public void execute(McFaultPutReqDTO reqDTO) {
+    public void execute(PileFaultPutReqDTO reqDTO) {
         log.info("电表故障:{}", "start");
     }
 
@@ -44,7 +44,7 @@ public class McGunFaultPutExecute implements McFaultPutExecute<McFaultPutReqDTO>
      * @return McBaseParameterDTO
      */
     @Override
-    public McFaultPutReqDTO reader(DataPacket packet) {
+    public PileFaultPutReqDTO reader(DataPacket packet) {
         return McFaultPutExecute.super.reader(packet);
     }
 
@@ -55,7 +55,7 @@ public class McGunFaultPutExecute implements McFaultPutExecute<McFaultPutReqDTO>
      * @return DataPacketWriter
      */
     @Override
-    public DataPacketWriter writer(McFaultPutReqDTO command) {
+    public DataPacketWriter writer(PileFaultPutReqDTO command) {
         return McFaultPutExecute.super.writer(command);
     }
 }

@@ -1,8 +1,8 @@
 package com.huamar.charge.pile.server.service.receiver.execute;
 
 import com.huamar.charge.pile.entity.dto.mq.MessageData;
-import com.huamar.charge.pile.entity.dto.parameter.McParamItemDTO;
-import com.huamar.charge.pile.entity.dto.parameter.McParameterDTO;
+import com.huamar.charge.pile.entity.dto.parameter.PileParamItemDTO;
+import com.huamar.charge.pile.entity.dto.parameter.PileParameterDTO;
 import com.huamar.charge.pile.entity.dto.platform.PileParamItemReqDTO;
 import com.huamar.charge.pile.enums.McParameterEnum;
 import com.huamar.charge.pile.enums.MessageCodeEnum;
@@ -36,10 +36,10 @@ public class PileParameterSendExecute implements PileMessageExecute {
     @Override
     public void execute(MessageData<String> body) {
         PileParamItemReqDTO pileParamItemReqDTO = JSONParser.parseObject(body.getData(), PileParamItemReqDTO.class);
-        List<McParamItemDTO> data = pileParamItemReqDTO.getList();
-        McParameterDTO parameterDTO = new McParameterDTO();
+        List<PileParamItemDTO> data = pileParamItemReqDTO.getList();
+        PileParameterDTO parameterDTO = new PileParameterDTO();
         parameterDTO.setParamNumber((byte) data.size());
-        parameterDTO.setDataList(data);
+        parameterDTO.setList(data);
         parameterDTO.setIdCode(pileParamItemReqDTO.getIdCode());
         mcParameterFactory.getExecute(McParameterEnum.SEND).execute(parameterDTO);
     }

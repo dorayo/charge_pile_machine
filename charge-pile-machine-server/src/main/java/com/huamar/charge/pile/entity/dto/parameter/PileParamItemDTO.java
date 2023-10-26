@@ -13,7 +13,7 @@ import lombok.Getter;
  */
 @EqualsAndHashCode(callSuper = true)
 @Data
-public class McParamItemDTO extends BaseDTO {
+public class PileParamItemDTO extends BaseDTO {
 
     /**
      * 参数编号

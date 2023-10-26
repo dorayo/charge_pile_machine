@@ -1,7 +1,7 @@
 package com.huamar.charge.pile.convert;
 
 
-import com.huamar.charge.pile.entity.dto.fault.McFaultPutReqDTO;
+import com.huamar.charge.pile.entity.dto.fault.PileFaultPutReqDTO;
 import com.huamar.charge.common.protocol.DataPacket;
 import com.huamar.charge.common.protocol.DataPacketReader;
 import org.mapstruct.Mapper;
@@ -23,9 +23,9 @@ public interface McFaultConvert {
 	 * @param dataPacket dataPacket
 	 * @return MachineAuthenticationReqDTO
 	 */
-	default McFaultPutReqDTO convert(DataPacket dataPacket){
+	default PileFaultPutReqDTO convert(DataPacket dataPacket){
 		DataPacketReader reader = new DataPacketReader(dataPacket.getMsgBody());
-		McFaultPutReqDTO reqDTO = new McFaultPutReqDTO();
+		PileFaultPutReqDTO reqDTO = new PileFaultPutReqDTO();
 		reqDTO.setGunCount(reader.readByte());
 		reqDTO.setGunNumber(reader.readByte());
 		reqDTO.setStatus(reader.readByte());

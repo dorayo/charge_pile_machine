@@ -1,6 +1,6 @@
 package com.huamar.charge.pile.server.service.fault;
 
-import com.huamar.charge.pile.enums.McFaultPutEnum;
+import com.huamar.charge.pile.enums.PileFaultPutEnum;
 import com.huamar.charge.common.protocol.DataPacket;
 import com.huamar.charge.common.protocol.DataPacketWriter;
 
@@ -18,7 +18,7 @@ public interface McFaultPutExecute<T> {
      *
      * @return ProtocolCodeEnum
      */
-    McFaultPutEnum getCode();
+    PileFaultPutEnum getCode();
 
     /**
      * 执行方法

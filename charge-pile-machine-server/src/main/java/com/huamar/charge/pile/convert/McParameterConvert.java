@@ -2,7 +2,7 @@ package com.huamar.charge.pile.convert;
 
 
 import cn.hutool.core.convert.Convert;
-import com.huamar.charge.pile.entity.dto.McParameterReqDTO;
+import com.huamar.charge.pile.entity.dto.PileParameterReqDTO;
 import com.huamar.charge.common.protocol.DataPacket;
 import com.huamar.charge.common.protocol.DataPacketReader;
 import org.mapstruct.Mapper;
@@ -24,9 +24,9 @@ public interface McParameterConvert {
 	 * @param dataPacket dataPacket
 	 * @return MachineAuthenticationReqDTO
 	 */
-	default McParameterReqDTO convert(DataPacket dataPacket){
+	default PileParameterReqDTO convert(DataPacket dataPacket){
 		DataPacketReader reader = new DataPacketReader(dataPacket.getMsgBody());
-		McParameterReqDTO reqDTO = new McParameterReqDTO();
+		PileParameterReqDTO reqDTO = new PileParameterReqDTO();
 		reqDTO.setMsgNumber(reader.readShort());
 		reqDTO.setMeterType(Convert.toInt(reader.readByte()));
 		reqDTO.setModuleType(Convert.toInt(reader.readByte()));

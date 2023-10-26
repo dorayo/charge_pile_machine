@@ -1,6 +1,6 @@
 package com.huamar.charge.pile.server.service.factory;
 
-import com.huamar.charge.pile.entity.dto.parameter.McBaseParameterDTO;
+import com.huamar.charge.pile.entity.dto.parameter.PileBaseParameterDTO;
 import com.huamar.charge.pile.enums.McParameterEnum;
 import com.huamar.charge.pile.server.service.parameter.PileParameterExecute;
 import org.springframework.beans.factory.InitializingBean;
@@ -21,7 +21,7 @@ import java.util.Map;
 @Component
 public class McParameterFactory implements InitializingBean, ApplicationContextAware {
 
-    private static final Map<McParameterEnum, PileParameterExecute<McBaseParameterDTO>> EXECUTE_MAP = new EnumMap<>(McParameterEnum.class);
+    private static final Map<McParameterEnum, PileParameterExecute<PileBaseParameterDTO>> EXECUTE_MAP = new EnumMap<>(McParameterEnum.class);
 
     private ApplicationContext applicationContext;
 
@@ -31,7 +31,7 @@ public class McParameterFactory implements InitializingBean, ApplicationContextA
      * @param eventEnum eventEnum
      * @return JobTicketFlowEventExec
      */
-    public PileParameterExecute<McBaseParameterDTO> getExecute(McParameterEnum eventEnum) {
+    public PileParameterExecute<PileBaseParameterDTO> getExecute(McParameterEnum eventEnum) {
         return EXECUTE_MAP.get(eventEnum);
     }
 

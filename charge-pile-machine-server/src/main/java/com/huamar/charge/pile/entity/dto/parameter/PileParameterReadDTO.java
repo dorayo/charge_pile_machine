@@ -12,7 +12,7 @@ import lombok.EqualsAndHashCode;
  */
 @EqualsAndHashCode(callSuper = true)
 @Data
-public class PileParameterReadDTO extends McBaseParameterDTO {
+public class PileParameterReadDTO extends PileBaseParameterDTO {
 
     /**
      * 服务器时间

@@ -1,8 +1,9 @@
 package com.huamar.charge.pile.entity.dto.parameter;
 
-import com.huamar.charge.common.common.BaseDTO;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
+
+import java.util.List;
 
 /**
  * 设备远程参数控制
@@ -12,10 +13,16 @@ import lombok.EqualsAndHashCode;
  */
 @EqualsAndHashCode(callSuper = true)
 @Data
-public class McBaseParameterDTO extends BaseDTO {
+public class PileParameterDTO extends PileBaseParameterDTO {
 
     /**
-     * 设备唯一编码
+     * 参数个数
      */
-    private String idCode;
+    private byte paramNumber;
+
+    /**
+     * 参数内容
+     */
+    private List<PileParamItemDTO> list;
+
 }

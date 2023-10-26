@@ -12,7 +12,7 @@ import lombok.EqualsAndHashCode;
  */
 @Data
 @EqualsAndHashCode(callSuper = true)
-public class McFaultPutReqDTO extends BaseReqDTO {
+public class PileFaultPutReqDTO extends BaseReqDTO {
 
 	/**
 	 * 故障枪数量

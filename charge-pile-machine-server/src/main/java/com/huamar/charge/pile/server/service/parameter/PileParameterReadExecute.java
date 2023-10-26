@@ -3,7 +3,7 @@ package com.huamar.charge.pile.server.service.parameter;
 import cn.hutool.core.util.IdUtil;
 import com.huamar.charge.common.protocol.DataPacket;
 import com.huamar.charge.pile.convert.McParameterConvert;
-import com.huamar.charge.pile.entity.dto.McParameterReqDTO;
+import com.huamar.charge.pile.entity.dto.PileParameterReqDTO;
 import com.huamar.charge.pile.entity.dto.mq.MessageData;
 import com.huamar.charge.pile.enums.McParameterEnum;
 import com.huamar.charge.pile.enums.MessageCodeEnum;
@@ -21,7 +21,7 @@ import org.springframework.stereotype.Component;
 @Slf4j
 @Component
 @RequiredArgsConstructor
-public class PileParameterReadExecute implements PileParameterExecute<McParameterReqDTO> {
+public class PileParameterReadExecute implements PileParameterExecute<PileParameterReqDTO> {
 
     /**
      * 消息生产者
@@ -44,9 +44,9 @@ public class PileParameterReadExecute implements PileParameterExecute<McParamete
      * @param command command
      */
     @Override
-    public void execute(McParameterReqDTO command) {
+    public void execute(PileParameterReqDTO command) {
         log.info("Parameter Read idCode:{}", command.getIdCode());
-        MessageData<McParameterReqDTO> messageData = new MessageData<>(MessageCodeEnum.PILE_PARAMETER_READ, command);
+        MessageData<PileParameterReqDTO> messageData = new MessageData<>(MessageCodeEnum.PILE_PARAMETER_READ, command);
         messageData.setBusinessId(command.getIdCode());
         messageData.setMessageId(IdUtil.simpleUUID());
         messageData.setRequestId(IdUtil.simpleUUID());
@@ -62,7 +62,7 @@ public class PileParameterReadExecute implements PileParameterExecute<McParamete
      * @return McBaseParameterDTO
      */
     @Override
-    public McParameterReqDTO reader(DataPacket packet) {
+    public PileParameterReqDTO reader(DataPacket packet) {
         return McParameterConvert.INSTANCE.convert(packet);
     }
 
