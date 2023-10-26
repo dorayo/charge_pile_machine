@@ -71,7 +71,7 @@
 			<fileNamePattern>${LOG_PATH}/${LOG_FILE_NAME}-%d{yyyy-MM-dd}.%i.log</fileNamePattern>
 			<cleanHistoryOnStart>false</cleanHistoryOnStart>
 			<maxFileSize>128MB</maxFileSize>
-			<totalSizeCap>60GB</totalSizeCap>
+			<totalSizeCap>10GB</totalSizeCap>
 			<maxHistory>365</maxHistory>
 		</rollingPolicy>
 	</appender>
@@ -98,7 +98,7 @@
 					<fileNamePattern>${LOG_PATH}/%d/pile_${idCode}_%i.log</fileNamePattern>
 					<cleanHistoryOnStart>false</cleanHistoryOnStart>
 					<maxFileSize>100MB</maxFileSize>
-					<totalSizeCap>60GB</totalSizeCap>
+					<totalSizeCap>10GB</totalSizeCap>
 					<maxHistory>365</maxHistory>
 				</rollingPolicy>
 			
@@ -128,7 +128,7 @@
 					<fileNamePattern>${LOG_PATH}/%d/pile_heart_${idCode}_%i.log</fileNamePattern>
 					<cleanHistoryOnStart>false</cleanHistoryOnStart>
 					<maxFileSize>100MB</maxFileSize>
-					<totalSizeCap>60GB</totalSizeCap>
+					<totalSizeCap>10GB</totalSizeCap>
 					<maxHistory>365</maxHistory>
 				</rollingPolicy>
 			

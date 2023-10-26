@@ -16,6 +16,9 @@ POST http://120.46.210.11:8848/v1/ns/instance?serviceName=nacos.naming.serviceNa
 POST http://127.0.0.1:8881/server/admin/electronicLock?pileCode=471000220714302005&command=open
 
 ### 远程参数下发读取
+POST http://127.0.0.1:8881/server/hello
+
+### 远程参数下发读取
 POST http://127.0.0.1:8881/server/electronic/close?pileCode=471000220714302005
 
 ### 远程参数下发读取

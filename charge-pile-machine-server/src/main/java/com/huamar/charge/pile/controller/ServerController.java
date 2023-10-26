@@ -9,8 +9,9 @@ import com.huamar.charge.pile.enums.MessageCodeEnum;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.amqp.core.Message;
-import org.springframework.amqp.core.MessageProperties;
+import org.springframework.amqp.core.*;
+import org.springframework.amqp.rabbit.connection.CorrelationData;
+import org.springframework.amqp.rabbit.core.RabbitAdmin;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -18,7 +19,9 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * 命令测试
@@ -31,6 +34,15 @@ import java.util.List;
 @RestController
 @RequestMapping("/server")
 public class ServerController {
+
+
+
+//    @Autowired
+//    private RabbitTemplate rabbitTemplate;
+//
+//    @Autowired
+//    private RabbitAdmin admin;
+
 
 //
 //    @Autowired
