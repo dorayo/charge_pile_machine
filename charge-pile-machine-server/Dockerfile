@@ -1,6 +1,6 @@
 FROM amazoncorretto:8u382
 USER root
-WORKDIR /opt/app
+WORKDIR /opt
 
 ARG JAR_NAME=application
 ARG JAR_FILE=target/${JAR_NAME}.jar

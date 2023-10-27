@@ -2,6 +2,13 @@ version: "3.8"
 services:
 # 通讯端
   charge_pile_machine:
+    logging:
+      driver: "json-file"
+      options:
+        # 日志文件大小
+        max-size: "500m"
+        # 日志的数量
+        max-file: "10"
 #    depends_on:
 #      charge_pile_nacos:
 #        condition: service_healthy
@@ -16,4 +23,5 @@ services:
       - "8886:8886"
       - "8881:8881"
     environment:
-      - "TZ=Asia/Shanghai"
+      TZ: Asia/Shanghai
+      JAVA_OPTS: -Xms128m -Xmx1024m -Dspring.profiles.active=default,prod,linux -Dspring.devtools.restart.enabled=false
