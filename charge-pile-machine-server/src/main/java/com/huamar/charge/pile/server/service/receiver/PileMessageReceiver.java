@@ -1,6 +1,7 @@
 package com.huamar.charge.pile.server.service.receiver;
 
 
+import cn.hutool.core.util.IdUtil;
 import com.alibaba.fastjson.JSONObject;
 import com.alibaba.fastjson.TypeReference;
 import com.huamar.charge.common.common.StringPool;
@@ -64,6 +65,7 @@ public class PileMessageReceiver implements ChannelAwareMessageListener {
         String lockKey = "";
         RLock clientLock = null;
         try {
+            Thread.currentThread().setName(IdUtil.getSnowflakeNextIdStr());
             MessageProperties properties = message.getMessageProperties();
             String idCode = properties.getHeader(ConstEnum.ID_CODE.getCode());
             MDC.put(ConstEnum.ID_CODE.getCode(), idCode);
@@ -113,6 +115,7 @@ public class PileMessageReceiver implements ChannelAwareMessageListener {
             if (Objects.nonNull(clientLock) && StringUtils.isNotBlank(lockKey)) {
                 clientLock.unlock();
             }
+            MDC.clear();
         }
     }
 }
