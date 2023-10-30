@@ -5,6 +5,7 @@ import com.alibaba.fastjson.JSONObject;
 import com.alibaba.fastjson.TypeReference;
 import com.huamar.charge.common.common.StringPool;
 import com.huamar.charge.pile.entity.dto.mq.MessageData;
+import com.huamar.charge.pile.enums.ConstEnum;
 import com.huamar.charge.pile.enums.MessageCodeEnum;
 import com.rabbitmq.client.Channel;
 import lombok.RequiredArgsConstructor;
@@ -12,8 +13,10 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.redisson.api.RLock;
 import org.redisson.api.RedissonClient;
+import org.slf4j.MDC;
 import org.slf4j.helpers.MessageFormatter;
 import org.springframework.amqp.core.Message;
+import org.springframework.amqp.core.MessageProperties;
 import org.springframework.amqp.rabbit.listener.api.ChannelAwareMessageListener;
 import org.springframework.dao.DuplicateKeyException;
 import org.springframework.util.Assert;
@@ -60,6 +63,14 @@ public class PileMessageReceiver implements ChannelAwareMessageListener {
         boolean lock = false;
         String lockKey = "";
         RLock clientLock = null;
+        try {
+            MessageProperties properties = message.getMessageProperties();
+            String idCode = properties.getHeader(ConstEnum.ID_CODE.getCode());
+            MDC.put(ConstEnum.ID_CODE.getCode(), idCode);
+        }catch (Exception ignored){
+
+        }
+
         try {
             lockKey = MessageFormatter
                     .format(

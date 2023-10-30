@@ -3,6 +3,7 @@ package com.huamar.charge.pile;
 
 import com.huamar.charge.pile.config.PrintDocInfo;
 import com.huamar.charge.pile.config.ServerApplicationProperties;
+import com.huamar.charge.pile.server.session.SessionManager;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.context.event.ApplicationStartedEvent;
@@ -10,6 +11,10 @@ import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.cloud.client.discovery.EnableDiscoveryClient;
 import org.springframework.cloud.openfeign.EnableFeignClients;
 import org.springframework.context.event.EventListener;
+
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 
 /**
  * 服务端程序入口
@@ -35,6 +40,14 @@ public class ServerApplication {
     @EventListener
     public void onApplicationEvent(ApplicationStartedEvent event) {
         PrintDocInfo.print(event.getApplicationContext());
+//        ScheduledExecutorService executor = Executors.newScheduledThreadPool(1);
+//        executor.scheduleWithFixedDelay(
+//                () -> {
+//
+//                },
+//                0,
+//                1000,
+//                TimeUnit.MILLISECONDS);
     }
 
 }

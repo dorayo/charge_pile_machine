@@ -12,8 +12,10 @@ import com.huamar.charge.pile.server.session.SessionManager;
 import com.huamar.charge.pile.server.session.SimpleSessionChannel;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
+import io.netty.handler.timeout.IdleStateEvent;
 import io.netty.util.AttributeKey;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.MDC;
 
 import java.util.Objects;
@@ -33,6 +35,7 @@ public class SessionManagerNetHandler extends SimpleChannelInboundHandler<BasePa
      */
     @Override
     public void channelActive(ChannelHandlerContext ctx) {
+        MDC.clear();
         log.info("{} 连上了服务器", ctx.channel().remoteAddress());
     }
 
@@ -41,17 +44,23 @@ public class SessionManagerNetHandler extends SimpleChannelInboundHandler<BasePa
      *
      * @param ctx ctx
      */
+    @SuppressWarnings("DuplicatedCode")
     @Override
     public void channelInactive(ChannelHandlerContext ctx) {
+        MDC.clear();
         log.info("{} 断开了服务器", ctx.channel().remoteAddress());
         try {
             AttributeKey<String> machineId = AttributeKey.valueOf(ConstEnum.MACHINE_ID.getCode());
             String bsId = ctx.channel().attr(machineId).get();
-            SessionManager.remove(bsId);
-        }catch (Exception ignored){
-
+            if (StringUtils.isNotBlank(bsId)) {
+                MDC.put(ConstEnum.ID_CODE.getCode(), bsId);
+                SessionManager.remove(bsId);
+            }
+        } catch (Exception ignored) {
+            log.info("{} 断开了服务器 error", ctx.channel().remoteAddress());
+        } finally {
+            ctx.close();
         }
-        ctx.fireChannelInactive();
     }
 
     /**
@@ -63,12 +72,13 @@ public class SessionManagerNetHandler extends SimpleChannelInboundHandler<BasePa
     @Override
     protected void channelRead0(ChannelHandlerContext channelHandlerContext, BasePacket packet) {
         Thread.currentThread().setName(IdUtil.getSnowflakeNextIdStr());
-        if(packet instanceof DataPacket){
+        if (packet instanceof DataPacket) {
             DataPacket dataPacket = (DataPacket) packet;
             String bsId = new String((dataPacket).getIdCode());
             MDC.put(ConstEnum.ID_CODE.getCode(), new String((dataPacket).getIdCode()));
             SessionChannel session = SessionManager.get(bsId);
-            if(Objects.isNull(session)){
+            log.info("channelRead0 start >>>>>>>>>>>>>>>>>>");
+            if (Objects.isNull(session)) {
                 SimpleSessionChannel sessionChannelNew = new SimpleSessionChannel(channelHandlerContext);
                 sessionChannelNew.setId(bsId);
                 SessionManager.put(bsId, sessionChannelNew);
@@ -82,9 +92,12 @@ public class SessionManagerNetHandler extends SimpleChannelInboundHandler<BasePa
             MDC.put(ConstEnum.ID_CODE.getCode(), "00000000000000000");
             FailMathPacket dataPacket = (FailMathPacket) packet;
             log.info("FailMathPacket data:{}", HexExtUtil.encodeHexStrFormat(dataPacket.getBody(), StringPool.SPACE));
+            MDC.clear();
             return;
         }
         channelHandlerContext.fireChannelRead(packet);
+        log.info("channelRead0 end <<<<<<<<<<<<<<<<<<<");
+        MDC.clear();
     }
 
     /**
@@ -93,18 +106,56 @@ public class SessionManagerNetHandler extends SimpleChannelInboundHandler<BasePa
      * @param ctx   ctx
      * @param cause cause
      */
+    @SuppressWarnings("DuplicatedCode")
     @Override
     public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) {
+        MDC.clear();
         log.error("{} 连接出异常了,{}", ctx.channel().remoteAddress(), cause.getMessage(), cause);
         try {
             AttributeKey<String> machineId = AttributeKey.valueOf(ConstEnum.MACHINE_ID.getCode());
             String bsId = ctx.channel().attr(machineId).get();
-            SessionManager.remove(bsId);
-        }catch (Exception ignored){
-
+            if (StringUtils.isNotBlank(bsId)) {
+                MDC.put(ConstEnum.ID_CODE.getCode(), bsId);
+                SessionManager.remove(bsId);
+            }
+        } catch (Exception ignored) {
+            log.error("{} exceptionCaught error,{}", ctx.channel().remoteAddress(), cause.getMessage(), cause);
+        } finally {
+            ctx.close();
         }
-        ctx.close();
     }
 
-
+    /**
+     * 心跳检测事件处理
+     *
+     * @param ctx ctx
+     * @param evt evt
+     * @throws Exception Exception
+     */
+    @SuppressWarnings("DuplicatedCode")
+    @Override
+    public void userEventTriggered(ChannelHandlerContext ctx, Object evt) throws Exception {
+        // 入站的消息就是 IdleStateEvent 具体的事件
+        IdleStateEvent event = (IdleStateEvent) evt;
+        AttributeKey<String> machineId = AttributeKey.valueOf(ConstEnum.MACHINE_ID.getCode());
+        String bsId = ctx.channel().attr(machineId).get();
+        if (StringUtils.isNotBlank(bsId)) {
+            MDC.put(ConstEnum.ID_CODE.getCode(), bsId);
+        }
+        switch (event.state()) {
+            case READER_IDLE:
+                log.info("读取数据空闲");
+                break;
+            case WRITER_IDLE:
+                // 不处理
+                break;
+            case ALL_IDLE:
+                log.warn("IdCode:{} ALL_IDLE 心跳链接超时，关闭连接", bsId);
+                if (StringUtils.isNotBlank(bsId)) {
+                    SessionManager.remove(bsId);
+                }
+                ctx.close();
+                break;
+        }
+    }
 }

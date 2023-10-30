@@ -108,12 +108,17 @@ public class MachineAuthenticationHandler implements MachinePacketHandler<DataPa
             try {
                 MDC.setContextMap(mdcMap);
                 pileMessageProduce.send(new MessageData<>(MessageCodeEnum.PILE_AUTH, reqDTO.getIdCode()));
+
+                // 多次鉴权并发问题，先返回成功，认证失败关闭连接
+                authResp.setStatus(MachineAuthStatus.SUCCESS.getCode());
+                answerExecute.execute(authResp, sessionChannel);
+
                 long startTime = System.currentTimeMillis();
                 long maxWaitTime = Duration.ofSeconds(3).toMillis();
 
                 PileDTO pile = null;
-                StopWatch stopWatch = new StopWatch();
-                stopWatch.start("pile auth");
+                StopWatch stopWatch = new StopWatch("Auth");
+                stopWatch.start("wait pile");
                 while (System.currentTimeMillis() - startTime < maxWaitTime) {
                     pile = machineService.getCache(reqDTO.getIdCode());
                     if (Objects.isNull(pile)) {
@@ -126,7 +131,9 @@ public class MachineAuthenticationHandler implements MachinePacketHandler<DataPa
                 }
                 stopWatch.stop();
                 log.info("auth pile isSuccess:{}", Optional.ofNullable(pile).isPresent());
-                log.info("auth get pile task:{}", stopWatch.prettyPrint(TimeUnit.MILLISECONDS));
+                log.info("auth auth task run time:{} prettyPrint:{}"
+                        , stopWatch.getTotalTimeSeconds()
+                        ,stopWatch.prettyPrint(TimeUnit.MILLISECONDS));
 
                 // 多次鉴权并发问题
                 Object auth = sessionChannel.getAttribute("auth");
@@ -136,7 +143,6 @@ public class MachineAuthenticationHandler implements MachinePacketHandler<DataPa
                     answerExecute.execute(authResp, sessionChannel);
                     return;
                 }
-
 
                 if (Objects.isNull(pile)) {
                     authResp.setStatus(MachineAuthStatus.TERMINAL_NOT_REGISTER.getCode());

@@ -6,11 +6,9 @@
 	
 	<include resource="org/springframework/boot/logging/logback/defaults.xml"/>
 	
-	<property name="LOG_FILE_NAME" value="application"/>
 	<property name="LOG_FILE" value="${LOG_FILE:-${LOG_PATH:-${LOG_TEMP:-${java.io.tmpdir:-/tmp}}}/spring.log}"/>
 	<property name="LOG_PATH" value="${LOG_PATH:-${LOG_TEMP:-${java.io.tmpdir:-/tmp}}}"/>
-	
-	<springProperty scope="context" name="LOG_LOCATION" source="logLocation" defaultValue="/data/weblog/java" />
+	<springProperty scope="context" name="LOG_FILE_NAME" source="spring.application.name"/>
 	
 	
 	<!-- 彩色日志格式 -->
@@ -169,6 +167,7 @@
 	
 	<root level="INFO">
 		<appender-ref ref="STDOUT"/>
+		<appender-ref ref="FILE"/>
 	</root>
 	
 	<!-- 心跳包日志输出 -->
@@ -181,10 +180,6 @@
 		<appender-ref ref="PILE_SIFT_FILE"/>
 	</logger>
 	
-	<!-- 设备心业务日志 -->
-	<logger level="INFO" name="MachinePacketLogger" additivity="false">
-		<appender-ref ref="PILE_SIFT_FILE"/>
-	</logger>
 	
 	<!-- 设备心跳包日志 -->
 	<logger level="INFO" name="MachineHeartbeatLogger" additivity="false">

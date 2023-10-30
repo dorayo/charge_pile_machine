@@ -6,6 +6,7 @@ import com.github.benmanes.caffeine.cache.Caffeine;
 import com.huamar.charge.common.protocol.DataPacket;
 import com.huamar.charge.net.core.SessionChannel;
 import com.huamar.charge.pile.enums.CacheKeyEnum;
+import lombok.extern.slf4j.Slf4j;
 import org.redisson.api.RAtomicLong;
 import org.redisson.api.RedissonClient;
 import org.springframework.context.ApplicationContext;
@@ -23,6 +24,7 @@ import java.util.Objects;
  *
  * @author TiAmo(13721682347@163.com)
  */
+@Slf4j
 @Component
 public class SessionManager implements ApplicationListener<ContextRefreshedEvent> {
 
@@ -55,6 +57,17 @@ public class SessionManager implements ApplicationListener<ContextRefreshedEvent
      * @param bsId bsId
      */
     public static void remove(String bsId){
+        try {
+            if(Objects.isNull(bsId)){
+                return;
+            }
+            SessionChannel sessionChannel = cache.getIfPresent(bsId);
+            if(Objects.nonNull(sessionChannel)){
+                sessionChannel.close();
+            }
+        }catch (Exception e){
+            log.error("remove error:{}", e.getMessage(), e);
+        }
         cache.invalidate(bsId);
     }
 

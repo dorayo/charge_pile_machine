@@ -42,7 +42,7 @@ public class ClientNetApplication {
         MachineClient machineClient = event.getApplicationContext().getBean(MachineClient.class);
         machineClient.connect(new Node("127.0.0.1", 8886));
 
-        Tio.close(machineClient.clientChannelContext, "close");
+        //Tio.close(machineClient.clientChannelContext, "close");
     }
 
     @EventListener(ApplicationReadyEvent.class)

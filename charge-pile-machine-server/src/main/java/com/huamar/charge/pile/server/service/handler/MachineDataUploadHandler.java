@@ -50,7 +50,7 @@ public class MachineDataUploadHandler implements MachinePacketHandler<DataPacket
     public void handler(DataPacket packet, SessionChannel sessionChannel) {
         String channelIp = sessionChannel.getIp();
         MachineDataUploadReqDTO dataUploadReqDTO = MachineDataUploadConvert.INSTANCE.convert(packet);
-        log.info("终端数据汇报，ip={},idCode:{},msgNum:{}", new String(packet.getIdCode()), channelIp, packet.getMsgNumber());
+        log.info("终端数据汇报，IdCode={},IP:{},msgNum:{}", new String(packet.getIdCode()), channelIp, packet.getMsgNumber());
         answerFactory.getExecute(McAnswerEnum.COMMON).execute(McCommonResp.ok(packet), sessionChannel);
 
 

@@ -49,6 +49,11 @@ public class MessageData<T> extends BaseDTO {
     private String requestId;
 
     /**
+     * 设备编码
+     */
+    private String idCode;
+
+    /**
      * 元数据
      */
     private T data;
