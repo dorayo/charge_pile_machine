@@ -10,7 +10,7 @@ import java.time.Duration;
  * 服务端配置类
  * 2023/07/24
  *
- * @author TiAmo(13721682347@163.com)
+ * @author TiAmo(13721682347 @ 163.com)
  */
 @Data
 @ConfigurationProperties(prefix = "machine.server")
@@ -24,6 +24,12 @@ public class ServerApplicationProperties {
      * 监听端口
      */
     private Integer port = 8886;
+
+
+    /**
+     * 监听端口B
+     */
+    private Integer portB = 8888;
 
     /**
      * 备用端口
