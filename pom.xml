@@ -237,7 +237,7 @@
 			
 			<properties>
 				<profile.name>dev</profile.name>
-				<config.server-addr>dev.charge-pile-nacos-internal.huamar.com:8848</config.server-addr>
+				<config.server-addr>nacos.charge-dev.svc.cluster.local:8848</config.server-addr>
 				<config.namespace>public</config.namespace>
 				<config.group>DEFAULT_GROUP</config.group>
 			</properties>
@@ -247,7 +247,7 @@
 			<id>prod</id>
 			<properties>
 				<profile.name>prod</profile.name>
-				<config.server-addr>prod.charge-pile-nacos-internal.huamar.com:8848</config.server-addr>
+				<config.server-addr>nacos.charge-prod.svc.cluster.local:8848</config.server-addr>
 				<config.namespace>public</config.namespace>
 				<config.group>DEFAULT_GROUP</config.group>
 			</properties>

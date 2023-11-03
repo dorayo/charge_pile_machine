@@ -16,14 +16,10 @@ ssh ${host_name} "mkdir -p ${tmp_dir}/target/"
 # 发布包
 scp -r ./.env                                                       ${host_name}:$tmp_dir
 scp -r ./docker-compose.yml                                         ${host_name}:$tmp_dir
-scp -r ../charge-pile-machine-server/Dockerfile                     ${host_name}:$tmp_dir
-scp -r ../charge-pile-machine-server/docker-entrypoint.sh           ${host_name}:$tmp_dir
-scp -r ../charge-pile-machine-server/target/application.jar         ${host_name}:$tmp_dir/target/
 
 
 ssh -tt ${host_name} << remotessh
 cd ${tmp_dir}
-docker buildx build -t ${service_name}:latest .
 docker-compose -p ${service_name} up -d --force-recreate
 exit
 remotessh
