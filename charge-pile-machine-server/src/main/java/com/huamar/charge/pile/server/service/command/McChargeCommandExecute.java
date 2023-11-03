@@ -57,6 +57,7 @@ public class McChargeCommandExecute implements McCommandExecute<McChargeCommandD
      */
     @Override
     public McCommandDTO convert(McChargeCommandDTO command) {
+        //cover a b
         DataPacketWriter writer = new DataPacketWriter();
         writer.write(command.getChargeControl());
         writer.write(command.getGunSort());
