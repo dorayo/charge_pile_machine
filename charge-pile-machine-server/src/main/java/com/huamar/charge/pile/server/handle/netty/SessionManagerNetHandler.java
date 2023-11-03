@@ -144,7 +144,7 @@ public class SessionManagerNetHandler extends SimpleChannelInboundHandler<BasePa
      */
     @SuppressWarnings("DuplicatedCode")
     @Override
-    public void userEventTriggered(ChannelHandlerContext ctx, Object evt) throws Exception {
+    public void userEventTriggered(ChannelHandlerContext ctx, Object evt) {
         // 入站的消息就是 IdleStateEvent 具体的事件
         IdleStateEvent event = (IdleStateEvent) evt;
         AttributeKey<String> machineId = AttributeKey.valueOf(ConstEnum.MACHINE_ID.getCode());

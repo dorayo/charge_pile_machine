@@ -18,7 +18,6 @@ import org.springframework.stereotype.Component;
 import java.math.BigDecimal;
 import java.time.LocalTime;
 import java.util.*;
-import java.util.stream.Collectors;
 
 /**
  * 消息执行器-电价下发
@@ -118,7 +117,6 @@ public class PileElectricityPriceExecute implements PileMessageExecute {
                 }
                 if (charge == price6 && serviceCharge == service6) {
                     timePriceBucket[start] = "5";
-                    continue;
                 }
             }
 
@@ -180,17 +178,5 @@ public class PileElectricityPriceExecute implements PileMessageExecute {
         return defaultPrice;
     }
 
-    /**
-     * 计算时间区间
-     *
-     * @param time time
-     * @return int
-     */
-    private int getTimeBucket(String time) {
-        LocalTime parse = LocalTime.parse(time);
-        int hour = parse.getHour();
-        int minute = parse.getMinute();
-        return (hour * 2 + (minute >= 30 ? 1 : 0));
-    }
 
 }
