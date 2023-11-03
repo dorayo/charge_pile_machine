@@ -7,7 +7,9 @@ import com.huamar.charge.common.util.JSONParser;
 import com.huamar.charge.pile.entity.dto.command.McCommandDTO;
 import com.huamar.charge.pile.entity.dto.command.McElectricityPriceCommandDTO;
 import com.huamar.charge.pile.enums.McCommandEnum;
+import com.huamar.charge.pile.enums.McTypeEnum;
 import com.huamar.charge.pile.server.session.SessionManager;
+import com.huamar.charge.pile.server.session.SimpleSessionChannel;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
@@ -16,7 +18,7 @@ import org.springframework.stereotype.Component;
  * 远程控制执行-电价下发
  * 2023/07/24
  *
- * @author TiAmo(13721682347@163.com)
+ * @author TiAmo(13721682347 @ 163.com)
  */
 @Slf4j
 @Component
@@ -55,22 +57,41 @@ public class McElectricityPriceCommandExecute implements McCommandExecute<McElec
      */
     @Override
     public McCommandDTO convert(McElectricityPriceCommandDTO command) {
+        McTypeEnum type = McTypeEnum.A;
+        SimpleSessionChannel sessionChannel = (SimpleSessionChannel) SessionManager.get(command.getIdCode());
+        if (sessionChannel != null) {
+            type = sessionChannel.getType();
+        }
+
         short typeCode = Convert.toShort(getCode().getCode());
         DataPacketWriter writer = new DataPacketWriter();
-        writer.write(command.getGunSort());
-        writer.write(command.getPrice1());
-        writer.write(command.getPrice2());
-        writer.write(command.getPrice3());
-        writer.write(command.getPrice4());
-        writer.write(command.getPrice5());
-        writer.write(command.getPrice6());
-        writer.write(command.getServicePrice1());
-        writer.write(command.getServicePrice2());
-        writer.write(command.getServicePrice3());
-        writer.write(command.getServicePrice4());
-        writer.write(command.getServicePrice5());
-        writer.write(command.getServicePrice6());
-        writer.write(command.getTimeStage());
+        //noinspection SwitchStatementWithTooFewBranches
+        switch (type) {
+            case B:
+                writer.write(command.getGunSort());
+                writer.write(command.getPrice1());
+                writer.write(command.getPrice2());
+                writer.write(command.getPrice3());
+                writer.write(command.getPrice4());
+                writer.write(command.getTimeStage());
+                writer.write(command.getServicePrice1());
+                break;
+            default:
+                writer.write(command.getGunSort());
+                writer.write(command.getPrice1());
+                writer.write(command.getPrice2());
+                writer.write(command.getPrice3());
+                writer.write(command.getPrice4());
+                writer.write(command.getPrice5());
+                writer.write(command.getPrice6());
+                writer.write(command.getServicePrice1());
+                writer.write(command.getServicePrice2());
+                writer.write(command.getServicePrice3());
+                writer.write(command.getServicePrice4());
+                writer.write(command.getServicePrice5());
+                writer.write(command.getServicePrice6());
+                writer.write(command.getTimeStage());
+        }
         McCommandDTO commandDTO = new McCommandDTO(typeCode, command.getFieldsByteLength(), writer.toByteArray());
         log.info("McCommandDTO:{}", JSONParser.jsonString(commandDTO));
         return commandDTO;

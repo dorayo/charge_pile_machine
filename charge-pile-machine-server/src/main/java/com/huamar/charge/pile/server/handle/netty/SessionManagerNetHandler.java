@@ -8,6 +8,7 @@ import com.huamar.charge.common.protocol.FailMathPacket;
 import com.huamar.charge.common.util.HexExtUtil;
 import com.huamar.charge.net.core.SessionChannel;
 import com.huamar.charge.pile.enums.ConstEnum;
+import com.huamar.charge.pile.enums.McTypeEnum;
 import com.huamar.charge.pile.server.session.SessionManager;
 import com.huamar.charge.pile.server.session.SimpleSessionChannel;
 import io.netty.channel.ChannelHandlerContext;
@@ -27,6 +28,14 @@ import java.util.Objects;
  */
 @Slf4j
 public class SessionManagerNetHandler extends SimpleChannelInboundHandler<BasePacket> {
+    McTypeEnum type = McTypeEnum.A;
+
+    public SessionManagerNetHandler(McTypeEnum type) {
+        this.type = type;
+    }
+
+    public SessionManagerNetHandler() {
+    }
 
     /**
      * 服务端上线的时候调用
@@ -81,6 +90,7 @@ public class SessionManagerNetHandler extends SimpleChannelInboundHandler<BasePa
             if (Objects.isNull(session)) {
                 SimpleSessionChannel sessionChannelNew = new SimpleSessionChannel(channelHandlerContext);
                 sessionChannelNew.setId(bsId);
+                sessionChannelNew.setType(type);
                 SessionManager.put(bsId, sessionChannelNew);
             }
 

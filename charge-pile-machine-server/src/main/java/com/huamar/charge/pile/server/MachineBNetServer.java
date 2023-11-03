@@ -2,6 +2,7 @@ package com.huamar.charge.pile.server;
 
 import com.huamar.charge.common.protocol.BasePacket;
 import com.huamar.charge.pile.config.ServerApplicationProperties;
+import com.huamar.charge.pile.enums.McTypeEnum;
 import com.huamar.charge.pile.server.handle.netty.ServerNetHandler;
 import com.huamar.charge.pile.server.handle.netty.SessionManagerNetHandler;
 import com.huamar.charge.pile.server.protocol.ProtocolCodecFactory;
@@ -139,7 +140,7 @@ public class MachineBNetServer implements NetServer {
                         pipeline.addLast("encoder", new MessageEncodeHandler());
                         // IdleStateHandler 下一个 handler 必须实现 userEventTriggered 方法处理对应事件
                         pipeline.addLast(new IdleStateHandler(0, 0, properties.getTimeout().getSeconds(), TimeUnit.SECONDS));
-                        pipeline.addLast("sessionManager", new SessionManagerNetHandler());
+                        pipeline.addLast("sessionManager", new SessionManagerNetHandler(McTypeEnum.B));
                         pipeline.addLast("serverNetHandler", serverNetHandler);
                     }
                 });
