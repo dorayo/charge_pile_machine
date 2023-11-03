@@ -140,7 +140,6 @@ public class SessionManagerNetHandler extends SimpleChannelInboundHandler<BasePa
      *
      * @param ctx ctx
      * @param evt evt
-     * @throws Exception Exception
      */
     @SuppressWarnings("DuplicatedCode")
     @Override
