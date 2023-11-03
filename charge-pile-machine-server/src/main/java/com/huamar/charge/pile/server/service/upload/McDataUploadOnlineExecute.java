@@ -22,7 +22,7 @@ import java.util.List;
  * 充电桩实时状态信息 One
  * 2023/07/24
  *
- * @author TiAmo(13721682347@163.com)
+ * @author TiAmo(13721682347 @ 163.com)
  */
 @Slf4j
 @Component
@@ -56,18 +56,28 @@ public class McDataUploadOnlineExecute implements McDataUploadExecute {
     @Override
     public void execute(BCD time, List<MachineDataUpItem> list) {
         list.forEach(item -> {
-            McChargerOnlineInfoDTO parse = this.parse(item);
-            log.info("充电桩实时状态信息 data:{}", parse);
-            this.sendMessage(parse);
+            execute(time, item);
         });
     }
 
+    /**
+     * Execute.
+     *
+     * @param time time
+     * @param item the item
+     */
+    public void execute(BCD time, MachineDataUpItem item) {
+        McChargerOnlineInfoDTO parse = this.parse(item);
+        log.info("充电桩实时状态信息 data:{}", parse);
+        this.sendMessage(parse);
+    }
 
     /**
      * 发送设备端消息
+     *
      * @param onlineInfoDTO onlineInfoDTO
      */
-    private void sendMessage(McChargerOnlineInfoDTO onlineInfoDTO){
+    private void sendMessage(McChargerOnlineInfoDTO onlineInfoDTO) {
         try {
             Assert.notNull(onlineInfoDTO, "McChargerOnlineInfoDTO noNull");
             MessageData<McChargerOnlineInfoDTO> messageData = new MessageData<>(MessageCodeEnum.PILE_ONLINE, onlineInfoDTO);
@@ -75,32 +85,38 @@ public class McDataUploadOnlineExecute implements McDataUploadExecute {
             messageData.setMessageId(IdUtil.simpleUUID());
             messageData.setRequestId(IdUtil.simpleUUID());
             pileMessageProduce.send(messageData);
-        }catch (Exception e){
+        } catch (Exception e) {
             log.error("sendMessage send error e:{}", e.getMessage(), e);
         }
     }
 
     /**
      * 解析对象
+     *
      * @param data data
      * @return McChargerOnlineInfoDto
      */
     @SuppressWarnings("DuplicatedCode")
-    private McChargerOnlineInfoDTO parse(MachineDataUpItem data){
+    private McChargerOnlineInfoDTO parse(MachineDataUpItem data) {
         McChargerOnlineInfoDTO onlineInfoDto = new McChargerOnlineInfoDTO();
         onlineInfoDto.setIdCode(data.getIdCode());
         DataPacketReader reader = new DataPacketReader(data.getData());
-        if(reader.getBuffer().array().length == 24){
+        if (reader.getBuffer().array().length == 56) {
+            //adopte machine b
             this.parse(onlineInfoDto, reader);
             return onlineInfoDto;
         }
-        if(reader.getBuffer().array().length == 32){
+        if (reader.getBuffer().array().length == 24) {
+            this.parse(onlineInfoDto, reader);
+            return onlineInfoDto;
+        }
+        if (reader.getBuffer().array().length == 32) {
             this.parse(onlineInfoDto, reader);
             onlineInfoDto.setFaultCode1(reader.readInt());
             onlineInfoDto.setFaultCode2(reader.readInt());
             return onlineInfoDto;
         }
-        if(onlineInfoDto.getGunNum() == 0){
+        if (onlineInfoDto.getGunNum() == 0) {
             return onlineInfoDto;
         }
 
@@ -122,10 +138,11 @@ public class McDataUploadOnlineExecute implements McDataUploadExecute {
 
     /**
      * 解析对象
+     *
      * @param onlineInfoDto onlineInfoDto
-     * @param reader reader
+     * @param reader        reader
      */
-    private void parse(McChargerOnlineInfoDTO onlineInfoDto, DataPacketReader reader){
+    private void parse(McChargerOnlineInfoDTO onlineInfoDto, DataPacketReader reader) {
         onlineInfoDto.setGunSort(reader.readByte());
         onlineInfoDto.setGunState(reader.readByte());
         onlineInfoDto.setStartTime(reader.readBCD());
