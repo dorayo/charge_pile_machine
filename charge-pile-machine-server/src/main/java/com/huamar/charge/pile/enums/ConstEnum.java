@@ -8,7 +8,7 @@ import java.util.Objects;
  * 常量枚举
  * 2023/07/24
  *
- * @author TiAmo(13721682347@163.com)
+ * @author TiAmo(13721682347 @ 163.com)
  */
 @Getter
 public enum ConstEnum {
@@ -21,10 +21,10 @@ public enum ConstEnum {
     BASE("压制警告", "压制警告"),
 
 
-
     ;
     private final String code;
     private final String desc;
+
     ConstEnum(String code, String desc) {
         this.code = code;
         this.desc = desc;

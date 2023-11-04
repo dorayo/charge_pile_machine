@@ -30,6 +30,10 @@ public class ServerApplicationProperties {
      * 监听端口B
      */
     private Integer portB = 8888;
+    /**
+     * 监听端口C
+     */
+    private Integer portC = 8889;
 
     /**
      * 备用端口
