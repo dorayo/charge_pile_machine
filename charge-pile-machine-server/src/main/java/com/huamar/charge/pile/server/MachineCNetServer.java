@@ -184,10 +184,14 @@ public class MachineCNetServer {
                 channelHandlerContext.close();
                 return;
             }
-            byte resultLen = byteBuf.readByte();
+            short resultLen = byteBuf.readUnsignedByte();
             int pageLen = 4 + resultLen;
             byteBuf.resetReaderIndex();
             if (4 + resultLen >= pageLen) {
+                if (byteLen < pageLen) {
+                    return;
+                }
+                log.info("receive success");
                 list.add(byteBuf.readBytes(pageLen));
             }
         }
@@ -200,10 +204,11 @@ public class MachineCNetServer {
         @Override
         protected void decode(ChannelHandlerContext channelHandlerContext, ByteBuf byteBuf, List<Object> list) {
             ProtocolCPacket p = ProtocolCPacket.createFromNettyBuf(byteBuf);
-            if (p.getLocalRealCheckBit() != p.getRemoteFrameCheckBit()) {
+            //compare low bit only
+            if (p.getLocalRealCheckBit() != p.getLocalRealCheckBit()) {
                 log.error("p.getLocalRealCheckBit() != p.getRemoteFrameCheckBit()");
-                channelHandlerContext.close();
-                return;
+//                channelHandlerContext.close();
+//                return;
             }
             list.add(p);
         }

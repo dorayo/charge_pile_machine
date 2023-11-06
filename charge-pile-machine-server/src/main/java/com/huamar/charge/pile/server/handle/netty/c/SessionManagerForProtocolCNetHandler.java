@@ -86,18 +86,16 @@ public class SessionManagerForProtocolCNetHandler extends SimpleChannelInboundHa
         Thread.currentThread().setName(IdUtil.getSnowflakeNextIdStr());
         ByteBuf body = packet.getBody();
         body.markReaderIndex();
-        switch (packet.getBodyType()) {
-            case 0x01:
-                String id = BinaryViews.bcdViewsLe(body.readBytes(7));
-                AttributeKey<String> machineId = AttributeKey.valueOf(ConstEnum.MACHINE_ID.getCode());
-                channelHandlerContext.channel().attr(machineId).set(id);
-                SimpleSessionChannel sessionChannelNew = new SimpleSessionChannel(channelHandlerContext);
-                sessionChannelNew.setId(id);
-                sessionChannelNew.setType(type);
-                SessionManager.put(id, sessionChannelNew);
-                break;
-            default:
-                log.error("unknown type " + packet.getBodyType());
+        if (packet.getBodyType() == 0x01) {
+            String id = BinaryViews.bcdViewsLe(body.readBytes(7));
+            AttributeKey<String> machineId = AttributeKey.valueOf(ConstEnum.MACHINE_ID.getCode());
+            channelHandlerContext.channel().attr(machineId).set(id);
+            SimpleSessionChannel sessionChannelNew = new SimpleSessionChannel(channelHandlerContext);
+            sessionChannelNew.setId(id);
+            sessionChannelNew.setType(type);
+            SessionManager.put(id, sessionChannelNew);
+            //            default:
+//                log.error("unknown type " + packet.getBodyType());
         }
         body.resetReaderIndex();
         channelHandlerContext.fireChannelRead(packet);

@@ -1,5 +1,6 @@
 package com.huamar.charge.pile.server.handle.netty.c;
 
+import cn.hutool.core.lang.Assert;
 import com.huamar.charge.common.protocol.DataPacket;
 import com.huamar.charge.common.protocol.c.ProtocolCPacket;
 import com.huamar.charge.common.util.HexExtUtil;
@@ -9,6 +10,7 @@ import com.huamar.charge.pile.enums.ProtocolCodeEnum;
 import com.huamar.charge.pile.server.service.factory.MachinePacketFactory;
 import com.huamar.charge.pile.server.service.handler.MachinePacketHandler;
 import com.huamar.charge.pile.server.service.handler.c.MachineCAuthenticationHandler;
+import com.huamar.charge.pile.server.service.handler.c.MachineCHeartbeatHandler;
 import com.huamar.charge.pile.server.service.produce.PileMessageProduce;
 import com.huamar.charge.pile.server.session.SessionManager;
 import io.netty.channel.ChannelHandler;
@@ -30,6 +32,7 @@ import org.springframework.stereotype.Component;
 public class ServerNetHandlerForMC extends SimpleChannelInboundHandler<ProtocolCPacket> {
 
     private final MachineCAuthenticationHandler machineCAuthenticationHandler;
+    private final MachineCHeartbeatHandler machineCHeartbeatHandler;
 
     /**
      * 消息生产者
@@ -38,10 +41,15 @@ public class ServerNetHandlerForMC extends SimpleChannelInboundHandler<ProtocolC
     protected void channelRead0(ChannelHandlerContext channelHandlerContext, ProtocolCPacket cPacket) {
         log.info("aa");
         AttributeKey<String> machineId = AttributeKey.valueOf(ConstEnum.MACHINE_ID.getCode());
-        SessionChannel session = SessionManager.get(machineId.name());
+        SessionChannel session = SessionManager.get(channelHandlerContext.channel().attr(machineId).get());
+        Assert.notNull(session);
         switch (cPacket.getBodyType()) {
             case 0x01:
-                machineCAuthenticationHandler.handler(cPacket, session);
+                machineCAuthenticationHandler.handler(cPacket, session, channelHandlerContext);
+                break;
+            case 0x03:
+                machineCHeartbeatHandler.handler(cPacket, session, channelHandlerContext);
+                break;
         }
     }
 

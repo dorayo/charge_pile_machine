@@ -62,19 +62,19 @@ public class ProtocolChecks {
                     0x80, 0x41, 0x00, 0xc1, 0x81, 0x40
             };
 
-    static public short modbusCRC(ByteBuf bf) {
-        short byCRCHi = (short) 0xff;
-        short byCRCLo = (short) 0xff;
-        short byIdx;
-        short crc;
+    static public int modbusCRC(ByteBuf bf) {
+        int byCRCHi = 0xff;
+        int byCRCLo = 0xff;
+        int byIdx;
+        int crc;
         while (bf.isReadable()) {
-            byIdx = (short) (byCRCHi ^ (bf.readByte()));
-            byCRCHi = (short) (byCRCLo ^ gabyCRCHi[byIdx]);
-            byCRCLo = (short) gabyCRCLo[byIdx];
+            byIdx = (byCRCHi ^ ((int) bf.readUnsignedByte()));
+            byCRCHi = (byCRCLo ^ gabyCRCHi[byIdx]);
+            byCRCLo = gabyCRCLo[byIdx];
         }
         crc = byCRCHi;
         crc <<= 8;
         crc += byCRCLo;
-        return crc;
+        return crc & 0xffff;
     }
 }
