@@ -20,6 +20,8 @@ public enum CacheKeyEnum {
 
     WARNING("压制警告", "压制警告", Duration.ofMinutes(1)),
 
+    MACHINE_SERVICE_PRICE("charge:price", "服务费", Duration.ofDays(30)),
+
     ;
     private final String code;
 
