@@ -6,6 +6,7 @@ import com.huamar.charge.common.protocol.c.ProtocolCPacket;
 import com.huamar.charge.common.util.HexExtUtil;
 import com.huamar.charge.net.core.SessionChannel;
 import com.huamar.charge.pile.enums.ConstEnum;
+import com.huamar.charge.pile.enums.NAttrKeys;
 import com.huamar.charge.pile.enums.ProtocolCodeEnum;
 import com.huamar.charge.pile.server.service.factory.MachinePacketFactory;
 import com.huamar.charge.pile.server.service.handler.MachinePacketHandler;
@@ -46,6 +47,15 @@ public class ServerNetHandlerForMC extends SimpleChannelInboundHandler<ProtocolC
         log.info("aa");
         AttributeKey<String> machineId = AttributeKey.valueOf(ConstEnum.MACHINE_ID.getCode());
         SessionChannel session = SessionManager.get(ctx.channel().attr(machineId).get());
+        ctx.attr(NAttrKeys.PROTOCOL_C_LATEST_PACKET).set(cPacket);
+        Integer latestOrderV = ctx.attr(NAttrKeys.PROTOCOL_C_LATEST_ORDER_V).get();
+        if (latestOrderV == null) {
+            latestOrderV = 0;
+        }
+        int currentPacketOrderV = cPacket.getOrderV();
+        if (latestOrderV < currentPacketOrderV) {
+            ctx.attr(NAttrKeys.PROTOCOL_C_LATEST_ORDER_V).set(currentPacketOrderV);
+        }
         Assert.notNull(session);
         switch (cPacket.getBodyType()) {
             //login
@@ -59,8 +69,15 @@ public class ServerNetHandlerForMC extends SimpleChannelInboundHandler<ProtocolC
             //verify price model
             case 0x05:
                 machineCHandlers.handler0x05(cPacket, ctx);
+                break;
+            // request price model
             case 0x09:
                 machineCHandlers.handler0x09(cPacket, ctx);
+                break;
+            // start charge response
+            case 0x33:
+                machineCHandlers.handler0x33(cPacket, ctx);
+                break;
         }
     }
 

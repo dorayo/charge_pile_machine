@@ -103,7 +103,6 @@ public class MachineCHeartbeatHandler {
     }
 
     public void handler(ProtocolCPacket packet, SessionChannel sessionChannel, ChannelHandlerContext ctx) {
-        McHeartbeatReqDTO reqDTO = null;
         try {
             packet.getBody()[8] = 0;
             ByteBuf response = BinaryBuilders.protocolCLeResponseBuilder(packet.getBody(), packet.getOrderVBf(), (byte) 0x04);
@@ -126,12 +125,12 @@ public class MachineCHeartbeatHandler {
         }
 
         try {
-            Assert.notNull(reqDTO, "McHeartbeatReqDTO noNull");
+//            Assert.notNull(reqDTO, "McHeartbeatReqDTO noNull");
             PileHeartbeatDTO pileHeartbeatDTO = new PileHeartbeatDTO();
-            pileHeartbeatDTO.setProtocolNumber(reqDTO.getProtocolNumber());
-            pileHeartbeatDTO.setIdCode(reqDTO.getIdCode());
+//            pileHeartbeatDTO.setProtocolNumber(reqDTO.getProtocolNumber());
+            pileHeartbeatDTO.setIdCode(packet.getId());
             pileHeartbeatDTO.setDateTime(LocalDateTime.now());
-            pileHeartbeatDTO.setTime(reqDTO.getTime().toString());
+//            pileHeartbeatDTO.setTime(reqDTO.getTime().toString());
             MessageData<PileHeartbeatDTO> messageData = new MessageData<>(MessageCodeEnum.PILE_HEART_BEAT, pileHeartbeatDTO);
             pileMessageProduce.send(messageData);
         } catch (Exception e) {

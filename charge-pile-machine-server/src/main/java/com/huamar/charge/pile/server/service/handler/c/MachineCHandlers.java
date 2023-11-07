@@ -73,4 +73,15 @@ public class MachineCHandlers {
         } catch (Exception e) {
         }
     }
+
+    public void handler0x33(ProtocolCPacket packet, ChannelHandlerContext ctx) {
+        McHeartbeatReqDTO reqDTO = null;
+        try {
+            PileDTO update = new PileDTO();
+            ctx.channel().attr(NAttrKeys.PROTOCOL_C_0x09_PACKET).set(packet);
+            update.setPileCode(BinaryViews.bcdViewsLe(packet.getIdBody()));
+            pileMessageProduce.send(new MessageData<>(MessageCodeEnum.ELECTRICITY_PRICE, update));
+        } catch (Exception e) {
+        }
+    }
 }

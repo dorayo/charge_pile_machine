@@ -205,6 +205,7 @@ public class MachineCNetServer {
         protected void decode(ChannelHandlerContext channelHandlerContext, ByteBuf byteBuf, List<Object> list) {
             ProtocolCPacket p = ProtocolCPacket.createFromNettyBuf(byteBuf);
             //compare low bit only
+            byteBuf.release();
             if (p.getLocalRealCheckBit() != p.getLocalRealCheckBit()) {
                 log.error("p.getLocalRealCheckBit() != p.getRemoteFrameCheckBit()");
 //                channelHandlerContext.close();

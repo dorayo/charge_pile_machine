@@ -11,11 +11,20 @@ import java.nio.ByteBuffer;
 
 @Data
 public class ProtocolCPacket {
-    String id;
+    String id = "";
+
+    public String getId() {
+        if (id.length() == 0 && idBody.length != 0) {
+            id = BinaryViews.bcdViewsLe(idBody);
+        }
+        return id;
+    }
+
     int bufLen;
     byte sign;
     byte bodyLen;
     byte[] orderVBf;
+    int orderV;
     boolean encryptState;
     byte bodyType;
     byte[] body;
@@ -38,6 +47,7 @@ public class ProtocolCPacket {
         byteBuf.resetReaderIndex();
         body = NUtils.nBFToBf(byteBuf.readBytes(bodyLen - 4));
         remoteFrameCheckBit = byteBuf.readUnsignedShortLE();
+        orderV = orderVBf[1] << 8 | orderVBf[0];
     }
 
     static public ProtocolCPacket createFromNettyBuf(ByteBuf byteBuf) {
