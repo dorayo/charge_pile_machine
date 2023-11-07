@@ -94,7 +94,7 @@ public class McElectricityPriceCommandExecute implements McCommandExecute<McElec
         }
         DataPacket packet = this.packet(command);
         boolean sendCommand = SessionManager.writePacket(packet);
-        log.info("Electricity Price idCode:{} sendCommand:{} ", command.getIdCode(), sendCommand);
+        log.info("Electricity Price idCode:{} sendCommand:{} msgId:{} ", command.getIdCode(), sendCommand,packet.getMsgNumber());
     }
 
 
@@ -114,15 +114,17 @@ public class McElectricityPriceCommandExecute implements McCommandExecute<McElec
         short typeCode = Convert.toShort(getCode().getCode());
         DataPacketWriter writer = new DataPacketWriter();
         //noinspection SwitchStatementWithTooFewBranches
+        log.info("电价信息:{}", JSONParser.jsonString(command));
         switch (type) {
             case B:
                 writer.write(command.getGunSort());
-                writer.write(command.getPrice1() / 100);
-                writer.write(command.getPrice2() / 100);
-                writer.write(command.getPrice3() / 100);
-                writer.write(command.getPrice4() / 100);
+                writer.write(command.getPrice1());
+                writer.write(command.getPrice2());
+                writer.write(command.getPrice3());
+                writer.write(command.getPrice4());
                 writer.write(command.getTimeStage());
-                writer.write(command.getServicePrice1() / 100);
+                writer.write(command.getServicePrice1());
+
                 break;
             default:
                 writer.write(command.getGunSort());

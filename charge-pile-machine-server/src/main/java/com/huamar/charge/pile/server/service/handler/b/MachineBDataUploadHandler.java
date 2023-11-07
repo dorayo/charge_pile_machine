@@ -4,10 +4,13 @@ import com.huamar.charge.net.core.SessionChannel;
 import com.huamar.charge.pile.convert.MachineDataUploadConvert;
 import com.huamar.charge.pile.entity.dto.MachineDataUpItem;
 import com.huamar.charge.pile.entity.dto.MachineDataUploadReqDTO;
+import com.huamar.charge.pile.entity.dto.event.PileEventReqDTO;
 import com.huamar.charge.pile.entity.dto.resp.McCommonResp;
 import com.huamar.charge.pile.enums.ProtocolCodeEnum;
 import com.huamar.charge.common.protocol.DataPacket;
 import com.huamar.charge.pile.server.service.answer.b.McBCommonAnswerExecute;
+import com.huamar.charge.pile.server.service.event.PileChargeFinishEventExecute;
+import com.huamar.charge.pile.server.service.event.PileEventExecute;
 import com.huamar.charge.pile.server.service.factory.McAnswerFactory;
 import com.huamar.charge.pile.server.service.factory.McDataUploadFactory;
 import com.huamar.charge.pile.server.service.upload.McDataUploadOnlineExecute;
@@ -49,6 +52,10 @@ public class MachineBDataUploadHandler implements MachinePacketHandler<DataPacke
      * 处理ox0A
      */
     private final McDataUploadStageExecute mcDataUploadStageExecute;
+    /**
+     * 处理国花0x02
+     */
+    private final PileChargeFinishEventExecute pileChargeFinishEventExecute  ;
 
     /**
      * 执行器
@@ -69,10 +76,12 @@ public class MachineBDataUploadHandler implements MachinePacketHandler<DataPacke
             switch (item.getUnitId()) {
                 // 充电记录上传
                 case 0x02:
+                    pileChargeFinishEventExecute.execute(item);
                     //implementation at platform
                     break;
                 // 地面充电机数据
                 case 0x07:
+                    mcDataUploadOnlineExecute.chargerExecute(dataUploadReqDTO.getTime(), item);
                     //implementation at platform
                     break;
                 // 充电机实时状态信息

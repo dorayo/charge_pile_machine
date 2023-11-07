@@ -32,6 +32,9 @@ public class PileChargeFinishEventDTO extends PileEventBaseDTO {
     //用于保存管理员输入密码启动充电订单开始时间,结束时间暂时用开始时间+充电时长
     public BCD startTime;
 
+    //用于保存管理员输入密码启动充电订单结束时间
+    public BCD endTime;
+
     // 4 累计充电时间 WORD 单位：，1Min/bit， 偏移 0
     public int cumulativeChargeTime;
 
