@@ -4,6 +4,7 @@ package com.huamar.charge.pile.convert;
 import com.huamar.charge.pile.entity.dto.McCommonReq;
 import com.huamar.charge.common.protocol.DataPacket;
 import com.huamar.charge.common.protocol.DataPacketReader;
+import lombok.extern.slf4j.Slf4j;
 import org.mapstruct.Mapper;
 import org.mapstruct.factory.Mappers;
 
@@ -13,6 +14,7 @@ import org.mapstruct.factory.Mappers;
  *
  * @author TiAmo(13721682347@163.com)
  */
+
 @Mapper
 public interface McCommonConvert {
 
@@ -29,7 +31,14 @@ public interface McCommonConvert {
 		reqDTO.setMsgId(reader.readByte());
 		reqDTO.setMsgNumber(reader.readShort());
 		reqDTO.setMsgResult(reader.readShort());
-		reqDTO.setTime(reader.readBCD());
+		switch (reader.getBuffer().limit()){
+			case 11:{
+				reqDTO.setTime(reader.readBCD());
+				break;
+			}
+			default:
+				reqDTO.setTime(null);
+		}
 		return reqDTO;
 	}
 }
