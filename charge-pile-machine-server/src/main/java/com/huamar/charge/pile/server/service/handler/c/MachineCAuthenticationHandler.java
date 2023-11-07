@@ -10,6 +10,7 @@ import com.huamar.charge.common.protocol.DataPacket;
 import com.huamar.charge.common.protocol.FixString;
 import com.huamar.charge.common.protocol.c.ProtocolCPacket;
 import com.huamar.charge.common.util.HexExtUtil;
+import com.huamar.charge.common.util.netty.NUtils;
 import com.huamar.charge.net.core.SessionChannel;
 import com.huamar.charge.pile.api.dto.PileDTO;
 import com.huamar.charge.pile.convert.MachineAuthenticationConvert;
@@ -110,7 +111,7 @@ public class MachineCAuthenticationHandler {
         ByteBuf bfB = ByteBufAllocator.DEFAULT.heapBuffer();
         bfB.writeBytes(BinaryViews.bcdStringToByte(id));
         bfB.writeByte(0x00);
-        channelHandlerContext.channel().writeAndFlush(BinaryBuilders.protocolCLeResponseBuilder(bfB, (short) packet.getOrderV(), (byte) 0x02)).addListener((f) -> {
+        channelHandlerContext.channel().writeAndFlush(BinaryBuilders.protocolCLeResponseBuilder(NUtils.nBFToBf(bfB), packet.getOrderVBf(), (byte) 0x02)).addListener((f) -> {
             bfB.release();
             if (f.isSuccess()) {
                 sessionChannel.setAttribute("auth", "ok");
@@ -142,12 +143,12 @@ public class MachineCAuthenticationHandler {
                 // 二维码下发
 //                this.sendQrCode(authResp);
                 // 设备更新
-                pileMessageProduce.send(new MessageData<>(MessageCodeEnum.PILE_UPDATE, update));
+//                pileMessageProduce.send(new MessageData<>(MessageCodeEnum.PILE_UPDATE, update));
 
                 //电价更新
 //                update.setStationId(pile.getStationId());
 //                update.setPileCode(pile.getPileCode());
-                pileMessageProduce.send(new MessageData<>(MessageCodeEnum.ELECTRICITY_PRICE, update));
+//                pileMessageProduce.send(new MessageData<>(MessageCodeEnum.ELECTRICITY_PRICE, update));
 
             } catch (Exception e) {
                 log.error("auth execute error:{}", e.getMessage(), e);

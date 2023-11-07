@@ -15,14 +15,11 @@ import com.huamar.charge.pile.enums.McAnswerEnum;
 import com.huamar.charge.pile.enums.MessageCodeEnum;
 import com.huamar.charge.pile.enums.ProtocolCodeEnum;
 import com.huamar.charge.pile.server.service.factory.McAnswerFactory;
-import com.huamar.charge.pile.server.service.handler.MachinePacketHandler;
 import com.huamar.charge.pile.server.service.produce.PileMessageProduce;
 import com.huamar.charge.pile.utils.binaryBuilder.BinaryBuilders;
 import io.netty.buffer.ByteBuf;
-import io.netty.buffer.ByteBufAllocator;
 import io.netty.channel.ChannelHandlerContext;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
@@ -31,48 +28,35 @@ import org.springframework.util.Assert;
 import java.time.LocalDateTime;
 
 /**
- * 设备心跳包
- * 2023/08/01
- *
- * @author TiAmo(13721682347 @ 163.com)
+ * The type Machine c verify price model handler.
  */
 @Service
 @RequiredArgsConstructor
-@Slf4j
-public class MachineCHeartbeatHandler {
+public class MachineCVerifyPriceModelHandler {
 
-//    private final Logger log = LoggerFactory.getLogger(LoggerEnum.HEARTBEAT_LOGGER.getCode());
+    private final Logger log = LoggerFactory.getLogger(LoggerEnum.HEARTBEAT_LOGGER.getCode());
 
-    /**
-     * 设备终端上下文
-     */
     private final McAnswerFactory answerFactory;
 
 
-    /**
-     * 消息投递
-     */
     private final PileMessageProduce pileMessageProduce;
 
-    /**
-     * 设备参数配置
-     */
     private final PileMachineProperties pileMachineProperties;
 
     /**
-     * 协议编码
+     * Gets code.
      *
-     * @return ProtocolCodeEnum
+     * @return the code
      */
     public ProtocolCodeEnum getCode() {
         return ProtocolCodeEnum.HEART_BEAT;
     }
 
     /**
-     * 执行器
+     * Handler.
      *
-     * @param packet         packet
-     * @param sessionChannel sessionChannel
+     * @param packet         the packet
+     * @param sessionChannel the session channel
      */
     public void handler(DataPacket packet, SessionChannel sessionChannel) {
         McHeartbeatReqDTO reqDTO = null;
@@ -102,6 +86,13 @@ public class MachineCHeartbeatHandler {
         }
     }
 
+    /**
+     * Handler.
+     *
+     * @param packet         the packet
+     * @param sessionChannel the session channel
+     * @param ctx            the ctx
+     */
     public void handler(ProtocolCPacket packet, SessionChannel sessionChannel, ChannelHandlerContext ctx) {
         McHeartbeatReqDTO reqDTO = null;
         try {
@@ -141,10 +132,10 @@ public class MachineCHeartbeatHandler {
 
 
     /**
-     * 读取参数
+     * Reader mc heartbeat req dto.
      *
-     * @param packet packet
-     * @return McBaseParameterDTO
+     * @param packet the packet
+     * @return the mc heartbeat req dto
      */
     public McHeartbeatReqDTO reader(DataPacket packet) {
         return McHeartbeatConvert.INSTANCE.convert(packet);

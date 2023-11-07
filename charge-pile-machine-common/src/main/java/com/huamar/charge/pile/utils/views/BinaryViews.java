@@ -5,11 +5,11 @@ import io.netty.buffer.ByteBuf;
 import java.nio.charset.StandardCharsets;
 
 public class BinaryViews {
-    static public String bcdViewsLe(ByteBuf bf) {
-        int resultLen = bf.readableBytes() * 2;
+    static public String bcdViewsLe(byte[] bf) {
+        int resultLen = bf.length * 2;
         byte[] s = new byte[resultLen];
-        for (int resultI = resultLen - 1; bf.isReadable(); ) {
-            byte byteV = bf.readByte();
+        for (int resultI = resultLen - 1, bfI = 0; resultI > 0; ) {
+            byte byteV = bf[bfI++];
             s[resultI--] = (byte) ((byteV & 0x0f) + 0x30);
             s[resultI--] = (byte) ((byteV >> 4) + 0x30);
         }

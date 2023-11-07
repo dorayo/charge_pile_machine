@@ -119,8 +119,6 @@ public class PileElectricityPriceExecute implements PileMessageExecute {
                     timePriceBucket[start] = "5";
                 }
             }
-
-
         });
         commandDTO.setGunSort((byte) 0);
         commandDTO.setIdCode(pileElectricityPriceDTO.getIdCode());

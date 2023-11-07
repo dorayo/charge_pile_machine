@@ -14,14 +14,15 @@ import java.util.Objects;
 public enum ConstEnum {
 
     MACHINE_ID("MACHINE_ID", "设备ID"),
+    PROTOCOL_C_PRICE_ORDER_ID("PROTOCOL_C_PRICE_ORDER_ID", "电价单号"),
 
     // MDC log使用
     ID_CODE("idCode", "设备ID"),
 
     BASE("压制警告", "压制警告"),
-
-
     ;
+
+
     private final String code;
     private final String desc;
 

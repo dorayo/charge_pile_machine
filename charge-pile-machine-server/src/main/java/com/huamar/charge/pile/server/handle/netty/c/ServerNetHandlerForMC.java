@@ -10,6 +10,7 @@ import com.huamar.charge.pile.enums.ProtocolCodeEnum;
 import com.huamar.charge.pile.server.service.factory.MachinePacketFactory;
 import com.huamar.charge.pile.server.service.handler.MachinePacketHandler;
 import com.huamar.charge.pile.server.service.handler.c.MachineCAuthenticationHandler;
+import com.huamar.charge.pile.server.service.handler.c.MachineCHandlers;
 import com.huamar.charge.pile.server.service.handler.c.MachineCHeartbeatHandler;
 import com.huamar.charge.pile.server.service.produce.PileMessageProduce;
 import com.huamar.charge.pile.server.session.SessionManager;
@@ -20,6 +21,8 @@ import io.netty.util.AttributeKey;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
+
+import java.nio.charset.StandardCharsets;
 
 
 /**
@@ -33,23 +36,31 @@ public class ServerNetHandlerForMC extends SimpleChannelInboundHandler<ProtocolC
 
     private final MachineCAuthenticationHandler machineCAuthenticationHandler;
     private final MachineCHeartbeatHandler machineCHeartbeatHandler;
+    private final MachineCHandlers machineCHandlers;
 
     /**
      * 消息生产者
      */
     @Override
-    protected void channelRead0(ChannelHandlerContext channelHandlerContext, ProtocolCPacket cPacket) {
+    protected void channelRead0(ChannelHandlerContext ctx, ProtocolCPacket cPacket) {
         log.info("aa");
         AttributeKey<String> machineId = AttributeKey.valueOf(ConstEnum.MACHINE_ID.getCode());
-        SessionChannel session = SessionManager.get(channelHandlerContext.channel().attr(machineId).get());
+        SessionChannel session = SessionManager.get(ctx.channel().attr(machineId).get());
         Assert.notNull(session);
         switch (cPacket.getBodyType()) {
+            //login
             case 0x01:
-                machineCAuthenticationHandler.handler(cPacket, session, channelHandlerContext);
+                machineCAuthenticationHandler.handler(cPacket, session, ctx);
                 break;
+            //heartbeat
             case 0x03:
-                machineCHeartbeatHandler.handler(cPacket, session, channelHandlerContext);
+                machineCHeartbeatHandler.handler(cPacket, session, ctx);
                 break;
+            //verify price model
+            case 0x05:
+                machineCHandlers.handler0x05(cPacket, ctx);
+            case 0x09:
+                machineCHandlers.handler0x09(cPacket, ctx);
         }
     }
 

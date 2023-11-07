@@ -1,5 +1,6 @@
 package com.huamar.charge.common.protocol.c;
 
+import com.huamar.charge.common.util.netty.NUtils;
 import com.huamar.charge.pile.utils.ProtocolChecks;
 import com.huamar.charge.pile.utils.views.BinaryViews;
 import io.netty.buffer.ByteBuf;
@@ -14,28 +15,28 @@ public class ProtocolCPacket {
     int bufLen;
     byte sign;
     byte bodyLen;
-    int orderV;
+    byte[] orderVBf;
     boolean encryptState;
     byte bodyType;
-    ByteBuf body;
+    byte[] body;
     int remoteFrameCheckBit;
     int localRealCheckBit;
-    ByteBuf idBody;
+    byte[] idBody;
 
     private ProtocolCPacket(ByteBuf byteBuf) {
         bufLen = byteBuf.readableBytes();
         sign = byteBuf.readByte();
         bodyLen = byteBuf.readByte();
         byteBuf.markReaderIndex();
-        localRealCheckBit = ProtocolChecks.modbusCRC(byteBuf.readBytes(bodyLen));
+        localRealCheckBit = ProtocolChecks.modbusCRC(byteBuf.copy(0, bodyLen));
         byteBuf.resetReaderIndex();
-        orderV = byteBuf.readUnsignedShortLE();
+        orderVBf = NUtils.nBFToBf(byteBuf.readBytes(2));
         encryptState = byteBuf.readBoolean();
         bodyType = byteBuf.readByte();
         byteBuf.markReaderIndex();
-        idBody = byteBuf.readBytes(7);
+        idBody = NUtils.nBFToBf(byteBuf.readBytes(7));
         byteBuf.resetReaderIndex();
-        body = byteBuf.readBytes(bodyLen - 4);
+        body = NUtils.nBFToBf(byteBuf.readBytes(bodyLen - 4));
         remoteFrameCheckBit = byteBuf.readUnsignedShortLE();
     }
 

@@ -7,6 +7,7 @@ import com.huamar.charge.common.protocol.DataPacket;
 import com.huamar.charge.common.protocol.FailMathPacket;
 import com.huamar.charge.common.protocol.c.ProtocolCPacket;
 import com.huamar.charge.common.util.HexExtUtil;
+import com.huamar.charge.common.util.netty.NUtils;
 import com.huamar.charge.net.core.SessionChannel;
 import com.huamar.charge.pile.enums.ConstEnum;
 import com.huamar.charge.pile.enums.McTypeEnum;
@@ -14,6 +15,7 @@ import com.huamar.charge.pile.server.session.SessionManager;
 import com.huamar.charge.pile.server.session.SimpleSessionChannel;
 import com.huamar.charge.pile.utils.views.BinaryViews;
 import io.netty.buffer.ByteBuf;
+import io.netty.buffer.ByteBufAllocator;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
 import io.netty.handler.timeout.IdleStateEvent;
@@ -84,10 +86,10 @@ public class SessionManagerForProtocolCNetHandler extends SimpleChannelInboundHa
     @Override
     protected void channelRead0(ChannelHandlerContext channelHandlerContext, ProtocolCPacket packet) {
         Thread.currentThread().setName(IdUtil.getSnowflakeNextIdStr());
-        ByteBuf body = packet.getBody();
-        body.markReaderIndex();
+        ByteBuf body = ByteBufAllocator.DEFAULT.heapBuffer();
+        body.writeBytes(packet.getBody());
         if (packet.getBodyType() == 0x01) {
-            String id = BinaryViews.bcdViewsLe(body.readBytes(7));
+            String id = BinaryViews.bcdViewsLe(NUtils.nBFToBf(body.readBytes(7)));
             AttributeKey<String> machineId = AttributeKey.valueOf(ConstEnum.MACHINE_ID.getCode());
             channelHandlerContext.channel().attr(machineId).set(id);
             SimpleSessionChannel sessionChannelNew = new SimpleSessionChannel(channelHandlerContext);
@@ -97,7 +99,6 @@ public class SessionManagerForProtocolCNetHandler extends SimpleChannelInboundHa
             //            default:
 //                log.error("unknown type " + packet.getBodyType());
         }
-        body.resetReaderIndex();
         channelHandlerContext.fireChannelRead(packet);
         log.info("channelRead0 end <<<<<<<<<<<<<<<<<<<");
         MDC.clear();

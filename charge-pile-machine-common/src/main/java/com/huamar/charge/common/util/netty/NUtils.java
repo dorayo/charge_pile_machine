@@ -8,4 +8,13 @@ public class NUtils {
     static public ChannelFuture writeBfWithCb(ChannelHandlerContext ctx, ByteBuf bf) {
         return ctx.channel().writeAndFlush(bf);
     }
+
+    static public byte[] nBFToBf(ByteBuf bf) {
+        byte[] result = new byte[bf.readableBytes()];
+        int i = 0;
+        while (bf.isReadable()) {
+            result[i++] = bf.readByte();
+        }
+        return result;
+    }
 }
