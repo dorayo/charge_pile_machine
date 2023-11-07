@@ -34,8 +34,8 @@ public interface MachineAuthenticationConvert {
 		reqDTO.setBoardNum(reader.readByte());
 		reqDTO.setProgramVersionLen(reader.readByte());
 		reqDTO.setBoardVersionMaps(new HashMap<>());
-		String programVersionNum = reader.readString(reqDTO.getProgramVersionLen()).trim();
-		reqDTO.getBoardVersionMaps().put(1, programVersionNum);
+//		String programVersionNum = reader.readString(reqDTO.getProgramVersionLen()).trim();
+//		reqDTO.getBoardVersionMaps().put(1, programVersionNum);
 		reqDTO.setLongitude((reader.readInt()) / 100000D);
 		reqDTO.setLatitude((reader.readInt()) / 100000D);
 		reqDTO.setIdCode(new String(dataPacket.getIdCode()));
