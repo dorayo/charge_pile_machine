@@ -1,6 +1,7 @@
 package com.huamar.charge.pile.server.service.event;
 
 import com.huamar.charge.pile.convert.PileChargeFinishEventConvert;
+import com.huamar.charge.pile.entity.dto.MachineDataUpItem;
 import com.huamar.charge.pile.entity.dto.event.PileChargeFinishEventDTO;
 import com.huamar.charge.pile.entity.dto.event.PileEventReqDTO;
 import com.huamar.charge.pile.entity.dto.mq.MessageData;
@@ -90,5 +91,60 @@ public class PileChargeFinishEventExecute implements PileEventExecute {
         return eventDTO;
     }
 
+    /**
+     * 执行方法
+     *
+     * @param reqDTO reqDTO
+     */
+    public void execute(MachineDataUpItem reqDTO) {
+        log.info("事件汇报：{}", getCode().getDesc());
+        PileChargeFinishEventDTO eventDTO = this.parse(reqDTO);
+
+        log.info("事件汇报：{}, data:{}", getCode().getDesc(), JSONParser.jsonString(eventDTO));
+
+        PileChargeFinishEventPushDTO eventPushDTO = PileChargeFinishEventConvert.INSTANCE.convert(eventDTO);
+
+        PileEventReqDTO reqDTOTemp = new  PileEventReqDTO();
+        reqDTOTemp.setIdCode(reqDTO.getIdCode());
+        reqDTOTemp.setEventStartTime(eventDTO.getStartTime());
+        reqDTOTemp.setEventEndTime(eventDTO.getEndTime());
+        reqDTOTemp.setEventState((byte)2);
+        PileChargeFinishEventConvert.INSTANCE.copyBaseField(eventPushDTO, reqDTOTemp);
+
+        MessageData<PileChargeFinishEventPushDTO> messageData = new MessageData<>(eventPushDTO);
+        messageData.setBusinessCode(MessageCodeEnum.EVENT_CHARGE_FINISH.getCode());
+        messageData.setBusinessId(reqDTO.getIdCode());
+        messageProduce.send(messageData);
+    }
+
+    /**
+     * 解析元数据
+     *
+     * @param reqDTO reqDTO
+     * @return McEventBaseDTO
+     */
+    private PileChargeFinishEventDTO parse(MachineDataUpItem reqDTO) {
+        DataPacketReader reader = new DataPacketReader(reqDTO.getData());
+        PileChargeFinishEventDTO eventDTO = new PileChargeFinishEventDTO();
+        eventDTO.setGunSort(reader.readByte());
+        eventDTO.setOutPower(reader.readInt());
+        eventDTO.setChargeMoney(reader.readInt());
+        eventDTO.setEndReason(reader.readShort());
+        eventDTO.setStartTime(reader.readBCD());
+        eventDTO.setEndTime(reader.readBCD());
+        eventDTO.setCumulativeChargeTime(reader.readInt());
+        reader.readByte();
+        reader.readString(4);
+        eventDTO.setOrderSerialNumber(reader.readString(32));
+        reader.readByte();
+        reader.readString(4);
+        eventDTO.setOrderSerialNumber(reader.readString(17));
+
+        //判断是否还有未读完数据，兼容不同版本协议
+        if(!reader.isEnd()){
+            eventDTO.setStartSoc(reader.readByte());
+        }
+        return eventDTO;
+    }
 
 }
