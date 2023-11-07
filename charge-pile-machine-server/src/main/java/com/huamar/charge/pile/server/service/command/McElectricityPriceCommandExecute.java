@@ -6,13 +6,19 @@ import com.huamar.charge.common.protocol.DataPacketWriter;
 import com.huamar.charge.common.util.JSONParser;
 import com.huamar.charge.pile.entity.dto.command.McCommandDTO;
 import com.huamar.charge.pile.entity.dto.command.McElectricityPriceCommandDTO;
+import com.huamar.charge.pile.entity.dto.command.MessageCommonRespDTO;
+import com.huamar.charge.pile.enums.CacheKeyEnum;
 import com.huamar.charge.pile.enums.McCommandEnum;
 import com.huamar.charge.pile.enums.McTypeEnum;
 import com.huamar.charge.pile.server.session.SessionManager;
 import com.huamar.charge.pile.server.session.SimpleSessionChannel;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.redisson.api.RBucket;
+import org.redisson.api.RedissonClient;
 import org.springframework.stereotype.Component;
+
+import java.util.concurrent.TimeUnit;
 
 /**
  * 远程控制执行-电价下发
@@ -25,6 +31,8 @@ import org.springframework.stereotype.Component;
 @RequiredArgsConstructor
 public class McElectricityPriceCommandExecute implements McCommandExecute<McElectricityPriceCommandDTO> {
 
+
+    private final  RedissonClient redissonClient;
 
     /**
      * 协议编码
@@ -70,13 +78,17 @@ public class McElectricityPriceCommandExecute implements McCommandExecute<McElec
         switch (type) {
             case B:
                 writer.write(command.getGunSort());
-                writer.write(command.getPrice1());
-                writer.write(command.getPrice2());
-                writer.write(command.getPrice3());
-                writer.write(command.getPrice4());
+                writer.write((short)(command.getPrice1()/100));
+                writer.write((short)(command.getPrice2()/100));
+                writer.write((short)(command.getPrice3()/100));
+                writer.write((short)(command.getPrice4()/100));
                 writer.write(command.getTimeStage());
-                writer.write(command.getServicePrice1());
-
+                writer.write((short) (command.getServicePrice1()/100));
+                CacheKeyEnum keyEnum = CacheKeyEnum.MACHINE_SERVICE_PRICE;
+                String key = command.getIdCode();
+                key = keyEnum.joinKey(key);
+                RBucket<McElectricityPriceCommandDTO> bucket = redissonClient.getBucket(key);
+                bucket.set(command, keyEnum.getDuration().toMillis(), TimeUnit.MILLISECONDS);
                 break;
             default:
                 writer.write(command.getGunSort());
