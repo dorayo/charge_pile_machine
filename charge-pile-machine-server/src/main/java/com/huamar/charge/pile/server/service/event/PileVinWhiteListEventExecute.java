@@ -1,5 +1,7 @@
 package com.huamar.charge.pile.server.service.event;
 
+import com.huamar.charge.pile.entity.dto.MachineDataUpItem;
+import com.huamar.charge.pile.entity.dto.event.PileChargeFinishEventDTO;
 import com.huamar.charge.pile.entity.dto.event.PileEventReqDTO;
 import com.huamar.charge.pile.entity.dto.event.PileVinWhiteListEventDTO;
 import com.huamar.charge.pile.enums.PileEventEnum;
@@ -53,6 +55,5 @@ public class PileVinWhiteListEventExecute implements PileEventExecute {
         eventDTO.setGunSort(reader.readByte());
         return eventDTO;
     }
-
 
 }
