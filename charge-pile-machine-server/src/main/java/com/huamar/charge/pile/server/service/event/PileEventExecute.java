@@ -1,5 +1,7 @@
 package com.huamar.charge.pile.server.service.event;
 
+import com.huamar.charge.pile.entity.dto.MachineDataUpItem;
+import com.huamar.charge.pile.entity.dto.event.PileChargeFinishEventDTO;
 import com.huamar.charge.pile.entity.dto.event.PileEventBaseDTO;
 import com.huamar.charge.pile.entity.dto.event.PileEventReqDTO;
 import com.huamar.charge.pile.enums.PileEventEnum;
@@ -33,4 +35,5 @@ public interface PileEventExecute {
      * @return McEventBaseDTO
      */
     PileEventBaseDTO parse(PileEventReqDTO reqDTO);
+
 }
