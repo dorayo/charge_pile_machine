@@ -1,16 +1,22 @@
 package com.huamar.charge.pile.server.service.receiver.execute;
 
+import com.huamar.charge.common.protocol.c.ProtocolCPacket;
 import com.huamar.charge.common.util.JSONParser;
+import com.huamar.charge.common.util.netty.NUtils;
 import com.huamar.charge.pile.entity.dto.command.McChargeCommandDTO;
 import com.huamar.charge.pile.entity.dto.command.MessageCommonRespDTO;
 import com.huamar.charge.pile.entity.dto.mq.MessageData;
 import com.huamar.charge.pile.entity.dto.platform.PileChargeControlDTO;
-import com.huamar.charge.pile.enums.McCommandEnum;
-import com.huamar.charge.pile.enums.MessageCodeEnum;
-import com.huamar.charge.pile.enums.MessageCommonResultEnum;
+import com.huamar.charge.pile.enums.*;
 import com.huamar.charge.pile.server.service.factory.McCommandFactory;
 import com.huamar.charge.pile.server.service.command.MessageCommandRespService;
 import com.huamar.charge.pile.server.service.receiver.PileMessageExecute;
+import com.huamar.charge.pile.server.session.SessionManager;
+import com.huamar.charge.pile.server.session.SimpleSessionChannel;
+import com.huamar.charge.pile.utils.binaryBuilder.BinaryBuilders;
+import com.huamar.charge.pile.utils.views.BinaryViews;
+import io.netty.buffer.ByteBuf;
+import io.netty.buffer.ByteBufAllocator;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j;
 import org.springframework.stereotype.Component;
@@ -44,6 +50,8 @@ public class PileStartChargeExecute implements PileMessageExecute {
         return MessageCodeEnum.PILE_START_CHARGE;
     }
 
+    static public byte[] empty = new byte[16];
+
     /**
      * 充电控制启动
      *
@@ -55,7 +63,6 @@ public class PileStartChargeExecute implements PileMessageExecute {
         PileChargeControlDTO chargeControl = JSONParser.parseObject(body.getData(), PileChargeControlDTO.class);
         log.info("开启充电参数下发：" + chargeControl);
         try {
-
             McChargeCommandDTO chargeCommand = new McChargeCommandDTO();
             chargeCommand.setChargeControl((byte) 1);
             chargeCommand.setChargeEndType(chargeControl.getChargeEndType().byteValue());
@@ -65,6 +72,35 @@ public class PileStartChargeExecute implements PileMessageExecute {
             chargeCommand.setBalance(chargeControl.getBalance().intValue());
             chargeCommand.setIdCode(chargeControl.getIdCode());
             log.info("开启充电参数下发：" + chargeCommand);
+            SimpleSessionChannel session = (SimpleSessionChannel) SessionManager.get(body.getIdCode());
+//        command.getTypeCode()
+            if (session.getType() == McTypeEnum.C) {
+                byte type = 0x34;
+                Integer orderV = session.channel().attr(NAttrKeys.PROTOCOL_C_LATEST_ORDER_V).get();
+                orderV++;
+                session.channel().attr(NAttrKeys.PROTOCOL_C_LATEST_ORDER_V).set(orderV);
+                ProtocolCPacket packet = session.channel().attr(NAttrKeys.PROTOCOL_C_LATEST_PACKET).get();
+                ByteBuf responseBody = ByteBufAllocator.DEFAULT.heapBuffer(16 + 7 + 1 + 8 + 8 + 4);
+                responseBody.writeBytes(BinaryViews.bcdStringToByte(new String(chargeCommand.getOrderSerialNumber()).substring(0, 32)));
+                responseBody.writeBytes(packet.getIdBody());
+                responseBody.writeByte(chargeCommand.getGunSort());
+                responseBody.writeBytes(empty);
+                responseBody.writeIntLE(chargeCommand.getBalance());
+                ByteBuf response = BinaryBuilders.protocolCLeResponseBuilder(NUtils.nBFToBf(responseBody), orderV, type);
+                responseBody.release();
+                session.channel().writeAndFlush(response).addListener((f) -> {
+                    if (f.isSuccess()) {
+                        log.info("0x34 success");
+                    } else {
+                        log.error("0x34 success error");
+                        f.cause().printStackTrace();
+                    }
+                    response.release();
+                });
+                return;
+            }
+
+
             mcCommandFactory.getExecute(McCommandEnum.CHARGE).execute(chargeCommand);
             Boolean commandState = chargeCommand.headCommandState();
 

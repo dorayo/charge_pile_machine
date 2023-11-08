@@ -15,9 +15,15 @@ public class BinaryBuilders {
         bfB.writeByte(0x00);
         bfB.writeByte(type);
         bfB.writeBytes(body);
-        bfB.writeShortLE(ProtocolChecks.modbusCRC(bfB.slice(2, bodyLen)));
+        bfB.writeBytes(ProtocolChecks.modbusCRC(bfB.slice(2, bodyLen)));
         return bfB;
     }
 
+    static public ByteBuf protocolCLeResponseBuilder(byte[] body, int orderV, byte type) {
+        byte[] orderBf = new byte[2];
+        orderBf[0] = (byte) (orderV & 0xff);
+        orderBf[1] = (byte) (orderV & 0xff00 >> 8);
+        return protocolCLeResponseBuilder(body, orderBf, type);
+    }
 
 }

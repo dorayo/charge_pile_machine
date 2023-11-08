@@ -12,6 +12,7 @@ import com.huamar.charge.pile.server.handle.netty.c.SessionManagerForProtocolCNe
 import com.huamar.charge.pile.server.protocol.ProtocolCodecFactory;
 import com.huamar.charge.pile.server.service.factory.b.MachineBPacketFactory;
 import com.huamar.charge.pile.server.session.context.SimpleSessionContext;
+import com.huamar.charge.pile.utils.views.BinaryViews;
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.*;
@@ -202,12 +203,13 @@ public class MachineCNetServer {
      */
     static class MessageHandleDecodeHandler extends ByteToMessageDecoder {
         @Override
-        protected void decode(ChannelHandlerContext channelHandlerContext, ByteBuf byteBuf, List<Object> list) {
+        protected void decode(ChannelHandlerContext ctx, ByteBuf byteBuf, List<Object> list) {
+            log.info(BinaryViews.bfToHexStr(byteBuf));
             ProtocolCPacket p = ProtocolCPacket.createFromNettyBuf(byteBuf);
             //compare low bit only
-            byteBuf.release();
-            if (p.getLocalRealCheckBit() != p.getLocalRealCheckBit()) {
+            if (p.getLocalRealCheckBit()[0] != p.getRemoteFrameCheckBit()[0] || p.getLocalRealCheckBit()[1] != p.getRemoteFrameCheckBit()[1]) {
                 log.error("p.getLocalRealCheckBit() != p.getRemoteFrameCheckBit()");
+                ctx.close();
 //                channelHandlerContext.close();
 //                return;
             }

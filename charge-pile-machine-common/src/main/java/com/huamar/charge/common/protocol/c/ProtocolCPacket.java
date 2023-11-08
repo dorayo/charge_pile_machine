@@ -28,8 +28,10 @@ public class ProtocolCPacket {
     boolean encryptState;
     byte bodyType;
     byte[] body;
-    int remoteFrameCheckBit;
-    int localRealCheckBit;
+    byte[] remoteFrameCheckBit;
+    byte[] localRealCheckBit;
+    byte[] localBitBf;
+    byte[] remoteBitBf;
     byte[] idBody;
 
     private ProtocolCPacket(ByteBuf byteBuf) {
@@ -37,7 +39,8 @@ public class ProtocolCPacket {
         sign = byteBuf.readByte();
         bodyLen = byteBuf.readByte();
         byteBuf.markReaderIndex();
-        localRealCheckBit = ProtocolChecks.modbusCRC(byteBuf.copy(0, bodyLen));
+        int checkLen = byteBuf.readableBytes() - 2;
+        localRealCheckBit = ProtocolChecks.modbusCRC(byteBuf.readBytes(checkLen));
         byteBuf.resetReaderIndex();
         orderVBf = NUtils.nBFToBf(byteBuf.readBytes(2));
         encryptState = byteBuf.readBoolean();
@@ -46,7 +49,10 @@ public class ProtocolCPacket {
         idBody = NUtils.nBFToBf(byteBuf.readBytes(7));
         byteBuf.resetReaderIndex();
         body = NUtils.nBFToBf(byteBuf.readBytes(bodyLen - 4));
-        remoteFrameCheckBit = byteBuf.readUnsignedShortLE();
+        byteBuf.markReaderIndex();
+        remoteBitBf = NUtils.nBFToBf(byteBuf.readBytes(2));
+        byteBuf.resetReaderIndex();
+        remoteFrameCheckBit = NUtils.nBFToBf(byteBuf.readBytes(2));
         orderV = orderVBf[1] << 8 | orderVBf[0];
     }
 
