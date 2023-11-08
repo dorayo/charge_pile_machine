@@ -111,11 +111,13 @@ public class MachineCAuthenticationHandler {
         ByteBuf bfB = ByteBufAllocator.DEFAULT.heapBuffer();
         bfB.writeBytes(BinaryViews.bcdStringToByte(id));
         bfB.writeByte(0x00);
-        channelHandlerContext.channel().writeAndFlush(BinaryBuilders.protocolCLeResponseBuilder(NUtils.nBFToBf(bfB), packet.getOrderVBf(), (byte) 0x02)).addListener((f) -> {
-            bfB.release();
+        ByteBuf responseB = BinaryBuilders.protocolCLeResponseBuilder(NUtils.nBFToBf(bfB), packet.getOrderVBf(), (byte) 0x02);
+        log.info(BinaryViews.bfToHexStr(responseB));
+        //        log.info("write {}", BinaryViews.bfToHexStr(BinaryBuilders.protocolCLeResponseBuilder(NUtils.nBFToBf(bfB), packet.getOrderVBf(), (byte) 0x02)));
+        channelHandlerContext.channel().writeAndFlush(responseB).addListener((f) -> {
             if (f.isSuccess()) {
                 sessionChannel.setAttribute("auth", "ok");
-                log.info("write success");
+                log.info("0x0{}write success", 0x02);
             } else {
                 sessionChannel.close();
                 f.cause().printStackTrace();

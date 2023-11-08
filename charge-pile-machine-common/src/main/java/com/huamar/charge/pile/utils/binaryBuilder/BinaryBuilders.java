@@ -15,7 +15,8 @@ public class BinaryBuilders {
         bfB.writeByte(0x00);
         bfB.writeByte(type);
         bfB.writeBytes(body);
-        bfB.writeBytes(ProtocolChecks.modbusCRC(bfB.slice(2, bodyLen)));
+        bfB.writeBytes(ProtocolChecks.modbusCRC(bfB.readerIndex(2).readBytes(bodyLen)));
+        bfB.resetReaderIndex();
         return bfB;
     }
 

@@ -20,11 +20,11 @@ public class BinaryViews {
     static public byte[] bcdStringToByte(String bcdStr) {
         byte[] chars = bcdStr.getBytes(StandardCharsets.US_ASCII);
         byte[] result = new byte[chars.length / 2];
-        for (int i = 0; i < chars.length; ) {
-            int tens = chars[i++] - 0x30;
-            int b = chars[i++] - 0x30;
-            int v = (tens << 4) + b;
-            result[(chars.length / 2) - (i / 2)] = (byte) v;
+        for (int resultI = result.length - 1, cLen = chars.length - 1; cLen > 0; ) {
+            int b = chars[cLen--] - 0x30;
+            int tens = chars[cLen--] - 0x30;
+            int v = ((tens << 4) | b);
+            result[resultI--] = (byte) v;
         }
         return result;
     }

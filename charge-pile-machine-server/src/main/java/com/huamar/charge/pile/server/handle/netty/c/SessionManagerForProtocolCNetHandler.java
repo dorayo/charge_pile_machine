@@ -88,6 +88,7 @@ public class SessionManagerForProtocolCNetHandler extends SimpleChannelInboundHa
         Thread.currentThread().setName(IdUtil.getSnowflakeNextIdStr());
         ByteBuf body = ByteBufAllocator.DEFAULT.heapBuffer();
         body.writeBytes(packet.getBody());
+        log.info("type=0x{}", Integer.toHexString(packet.getBodyType()));
         if (packet.getBodyType() == 0x01) {
             String id = BinaryViews.bcdViewsLe(NUtils.nBFToBf(body.readBytes(7)));
             AttributeKey<String> machineId = AttributeKey.valueOf(ConstEnum.MACHINE_ID.getCode());

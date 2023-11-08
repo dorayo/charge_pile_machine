@@ -81,7 +81,7 @@ public class PileStopChargeExecute implements PileMessageExecute {
                 responseBody.writeBytes(packet.getIdBody());
                 responseBody.writeByte(chargeCommand.getGunSort());
                 ByteBuf response = BinaryBuilders.protocolCLeResponseBuilder(NUtils.nBFToBf(responseBody), orderV, type);
-                responseBody.release();
+                NUtils.releaseNBF(responseBody);
                 session.channel().writeAndFlush(response).addListener((f) -> {
                     if (f.isSuccess()) {
                         log.info("{} success", type);
@@ -89,7 +89,7 @@ public class PileStopChargeExecute implements PileMessageExecute {
                         log.error("{}success error", type);
                         f.cause().printStackTrace();
                     }
-                    response.release();
+                    NUtils.releaseNBF(response);
                 });
                 return;
             }
@@ -104,7 +104,6 @@ public class PileStopChargeExecute implements PileMessageExecute {
             commonResp.setMsgNumber(chargeCommand.headMessageNum().intValue());
             commonResp.setCommandTypeCode(this.getCode().getCode());
             messageCommandRespService.put(commonResp);
-
             if (!commandState) {
                 messageCommandRespService.sendCommonResp(commonResp);
             }

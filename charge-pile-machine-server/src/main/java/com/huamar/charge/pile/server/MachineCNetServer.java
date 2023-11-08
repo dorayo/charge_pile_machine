@@ -142,9 +142,7 @@ public class MachineCNetServer {
                         ChannelPipeline pipeline = socketChannel.pipeline();
                         pipeline.addLast("splitD", new MessageSplitDecodeHandler());
                         pipeline.addLast("handleD", new MessageHandleDecodeHandler());
-//                        pipeline.addLast("encoder", new MessageEncodeHandler());
-                        // IdleStateHandler 下一个 handler 必须实现 userEventTriggered 方法处理对应事件
-                        pipeline.addLast(new IdleStateHandler(0, 0, properties.getTimeout().getSeconds(), TimeUnit.SECONDS));
+                        pipeline.addLast(new IdleStateHandler(50, 0, properties.getTimeout().getSeconds(), TimeUnit.SECONDS));
                         pipeline.addLast("sessionManager", new SessionManagerForProtocolCNetHandler(McTypeEnum.C));
                         pipeline.addLast("serverNetHandler", applicationContext.getBean(ServerNetHandlerForMC.class));
                     }
@@ -206,12 +204,10 @@ public class MachineCNetServer {
         protected void decode(ChannelHandlerContext ctx, ByteBuf byteBuf, List<Object> list) {
             log.info(BinaryViews.bfToHexStr(byteBuf));
             ProtocolCPacket p = ProtocolCPacket.createFromNettyBuf(byteBuf);
-            //compare low bit only
             if (p.getLocalRealCheckBit()[0] != p.getRemoteFrameCheckBit()[0] || p.getLocalRealCheckBit()[1] != p.getRemoteFrameCheckBit()[1]) {
                 log.error("p.getLocalRealCheckBit() != p.getRemoteFrameCheckBit()");
                 ctx.close();
-//                channelHandlerContext.close();
-//                return;
+                return;
             }
             list.add(p);
         }

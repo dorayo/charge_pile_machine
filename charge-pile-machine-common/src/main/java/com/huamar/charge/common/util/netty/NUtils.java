@@ -15,6 +15,14 @@ public class NUtils {
         while (bf.isReadable()) {
             result[i++] = bf.readByte();
         }
+        NUtils.releaseNBF(bf);
         return result;
+    }
+
+    static public void releaseNBF(ByteBuf bf) {
+        if (bf.refCnt() > 0) {
+            bf.release(bf.refCnt());
+        }
+
     }
 }
