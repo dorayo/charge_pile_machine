@@ -72,6 +72,8 @@ public class McDataUploadStageExecute implements McDataUploadExecute {
         // TODO 业务实现
         ChargeStageDataDTO parse = this.parse(item);
         log.info("充电桩实时状态信息表 data:{}", JSONParser.jsonString(parse));
+        parse.setPileElectricityOutValue((short)(parse.getPileElectricityOutValue()+1600));
+        parse.setBatteryChargeElectricity((short)(parse.getBatteryChargeElectricity()+1600));
         this.sendMessage(parse);
     }
 

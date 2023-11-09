@@ -2,10 +2,12 @@ package com.huamar.charge.pile.server.service.event;
 
 import com.huamar.charge.pile.convert.PileChargeFinishEventConvert;
 import com.huamar.charge.pile.entity.dto.MachineDataUpItem;
+import com.huamar.charge.pile.entity.dto.command.McElectricityPriceCommandDTO;
 import com.huamar.charge.pile.entity.dto.event.PileChargeFinishEventDTO;
 import com.huamar.charge.pile.entity.dto.event.PileEventReqDTO;
 import com.huamar.charge.pile.entity.dto.mq.MessageData;
 import com.huamar.charge.pile.entity.dto.platform.event.PileChargeFinishEventPushDTO;
+import com.huamar.charge.pile.enums.CacheKeyEnum;
 import com.huamar.charge.pile.enums.MessageCodeEnum;
 import com.huamar.charge.pile.enums.PileEventEnum;
 import com.huamar.charge.common.protocol.DataPacketReader;
@@ -13,7 +15,11 @@ import com.huamar.charge.common.util.JSONParser;
 import com.huamar.charge.pile.server.service.produce.PileMessageProduce;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.redisson.api.RBucket;
+import org.redisson.api.RedissonClient;
 import org.springframework.stereotype.Component;
+
+import java.util.concurrent.TimeUnit;
 
 /**
  * 设备端数据汇报接口-充电结束统计
@@ -28,6 +34,8 @@ public class PileChargeFinishEventExecute implements PileEventExecute {
 
 
     private final PileMessageProduce messageProduce;
+
+    private final RedissonClient redissonClient;
 
     /**
      * 协议编码
@@ -102,7 +110,19 @@ public class PileChargeFinishEventExecute implements PileEventExecute {
 
         log.info("事件汇报：{}, data:{}", getCode().getDesc(), JSONParser.jsonString(eventDTO));
 
+
         PileChargeFinishEventPushDTO eventPushDTO = PileChargeFinishEventConvert.INSTANCE.convert(eventDTO);
+        //计算国花服务费
+        CacheKeyEnum keyEnum = CacheKeyEnum.MACHINE_SERVICE_PRICE;
+        String key = reqDTO.getIdCode();
+        key = keyEnum.joinKey(key);
+        RBucket<McElectricityPriceCommandDTO> bucket = redissonClient.getBucket(key);
+        McElectricityPriceCommandDTO mcElectricityPriceCommandDTO = bucket.get();
+        if(mcElectricityPriceCommandDTO != null){
+            int monery = (int)(mcElectricityPriceCommandDTO.getServicePrice1()/10000*(eventDTO.getOutPower()));
+            eventPushDTO.setServiceMoney(monery);
+            eventPushDTO.setChargeMoney(eventPushDTO.getChargeMoney()-monery);
+        }
 
         PileEventReqDTO reqDTOTemp = new  PileEventReqDTO();
         reqDTOTemp.setIdCode(reqDTO.getIdCode());
