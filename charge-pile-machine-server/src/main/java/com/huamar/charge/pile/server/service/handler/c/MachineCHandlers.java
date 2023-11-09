@@ -148,4 +148,13 @@ public class MachineCHandlers {
             log.error("sendMessage send error e:{}", e.getMessage(), e);
         }
     }
+
+    public void handler0x9B(ProtocolCPacket packet, ChannelHandlerContext ctx) {
+        try {
+            byte[] body = packet.getBody();
+            log.info("{} set gun {}={}", packet.getId(), body[7], body[8]);
+        } catch (Exception e) {
+            log.error("sendMessage send error e:{}", e.getMessage(), e);
+        }
+    }
 }

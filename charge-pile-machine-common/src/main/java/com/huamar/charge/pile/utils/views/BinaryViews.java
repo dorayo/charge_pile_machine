@@ -40,7 +40,6 @@ public class BinaryViews {
             }
             b.append(str);
         }
-
         bf.resetReaderIndex();
         return b.toString();
     }

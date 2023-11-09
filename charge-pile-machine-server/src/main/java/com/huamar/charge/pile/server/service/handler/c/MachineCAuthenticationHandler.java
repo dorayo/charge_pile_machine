@@ -41,6 +41,7 @@ import org.springframework.core.task.TaskExecutor;
 import org.springframework.stereotype.Service;
 
 import java.nio.Buffer;
+import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.Map;
@@ -107,6 +108,7 @@ public class MachineCAuthenticationHandler {
         AttributeKey<String> machineId = AttributeKey.valueOf(ConstEnum.MACHINE_ID.getCode());
         final String id = channelHandlerContext.channel().attr(machineId).get();
         Assert.notNull(id, "id ");
+        final int gunCount = packet.getBody()[8];
         log.info("终端鉴权，loginNumber={} time={}", id, LocalDateTime.now());
         ByteBuf bfB = ByteBufAllocator.DEFAULT.heapBuffer();
         bfB.writeBytes(BinaryViews.bcdStringToByte(id));
@@ -158,7 +160,7 @@ public class MachineCAuthenticationHandler {
                 update.setStationId(pile.getStationId());
                 update.setPileCode(pile.getPileCode());
                 pileMessageProduce.send(new MessageData<>(MessageCodeEnum.ELECTRICITY_PRICE, update));
-                sendQrCode(packet, channelHandlerContext);
+                sendQrCode(packet, channelHandlerContext, gunCount);
 
                 // 多次鉴权并发问题，先返回成功，认证失败关闭连接
 //                authResp.setStatus(MachineAuthStatus.SUCCESS.getCode());
@@ -227,9 +229,28 @@ public class MachineCAuthenticationHandler {
     /**
      * 二维码下发
      */
-    private void sendQrCode(ProtocolCPacket packet, ChannelHandlerContext ctx) {
-//        ByteBuf bfB = ByteBufAllocator.DEFAULT.heapBuffer();
-//        bfB.writeBytes(BinaryViews.bcdStringToByte(packet.getG()));
-//        bfB.writeByte(0x00);
+    private void sendQrCode(ProtocolCPacket packet, ChannelHandlerContext ctx, int gunCount) {
+        byte type = (byte) 0x9c;
+        String url = machineService.getQrCode();
+        byte[] urlB = url.getBytes(StandardCharsets.US_ASCII);
+        byte urlLen = (byte) urlB.length;
+        for (int i = 0; i < gunCount; i++) {
+            Integer latestOrderV = ctx.attr(NAttrKeys.PROTOCOL_C_LATEST_ORDER_V).get();
+            latestOrderV++;
+            ctx.attr(NAttrKeys.PROTOCOL_C_LATEST_ORDER_V).set(latestOrderV);
+            ByteBuf bfB = ByteBufAllocator.DEFAULT.heapBuffer();
+            bfB.writeByte(i);
+            bfB.writeByte(urlLen);
+            bfB.writeBytes(urlB);
+            ByteBuf responseB = BinaryBuilders.protocolCLeResponseBuilder(NUtils.nBFToBf(bfB), latestOrderV, type);
+            log.info("write  0x9c {} ", BinaryViews.bfToHexStr(responseB));
+            ctx.writeAndFlush(responseB).addListener((f) -> {
+                if (!f.isSuccess()) {
+                    log.error("write 0x9c error");
+                    f.cause().printStackTrace();
+                }
+            });
+        }
+
     }
 }
