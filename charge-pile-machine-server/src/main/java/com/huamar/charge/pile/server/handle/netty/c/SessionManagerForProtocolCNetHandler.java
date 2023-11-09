@@ -97,8 +97,6 @@ public class SessionManagerForProtocolCNetHandler extends SimpleChannelInboundHa
             sessionChannelNew.setId(id);
             sessionChannelNew.setType(type);
             SessionManager.put(id, sessionChannelNew);
-            //            default:
-//                log.error("unknown type " + packet.getBodyType());
         }
         channelHandlerContext.fireChannelRead(packet);
         log.info("channelRead0 end <<<<<<<<<<<<<<<<<<<");

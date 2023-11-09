@@ -53,7 +53,7 @@ public class ServerNetHandlerForMC extends SimpleChannelInboundHandler<ProtocolC
             latestOrderV = 0;
         }
         int currentPacketOrderV = cPacket.getOrderV();
-        if (latestOrderV < currentPacketOrderV) {
+        if (latestOrderV <= currentPacketOrderV) {
             ctx.attr(NAttrKeys.PROTOCOL_C_LATEST_ORDER_V).set(currentPacketOrderV);
         }
         switch (cPacket.getBodyType()) {
@@ -75,14 +75,6 @@ public class ServerNetHandlerForMC extends SimpleChannelInboundHandler<ProtocolC
                 break;
             //上送充电枪实时数据，周期上送时，待机 5 分钟、充电 15 秒
             case 0x13:
-                machineCHandlers.handler0x13(cPacket, ctx);
-                break;
-            //GBT-27930 充电桩与 BMS 充电握手阶段报文
-            case 0x15:
-                machineCHandlers.handler0x13(cPacket, ctx);
-                break;
-            //GBT-27930 充电桩与 BMS 充电握手阶段报文
-            case 0x19:
                 machineCHandlers.handler0x13(cPacket, ctx);
                 break;
             // start charge response

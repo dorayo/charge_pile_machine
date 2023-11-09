@@ -1,5 +1,6 @@
 package com.huamar.charge.pile.server.service.receiver.execute;
 
+import com.alibaba.druid.sql.visitor.functions.Bin;
 import com.huamar.charge.common.protocol.c.ProtocolCPacket;
 import com.huamar.charge.common.util.JSONParser;
 import com.huamar.charge.common.util.netty.NUtils;
@@ -20,6 +21,8 @@ import io.netty.buffer.ByteBufAllocator;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
+
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * 充电控制
@@ -50,6 +53,33 @@ public class PileStopChargeExecute implements PileMessageExecute {
         return MessageCodeEnum.PILE_STOP_CHARGE;
     }
 
+    public void handleC(String idCode, McChargeCommandDTO chargeCommand) {
+        byte type = 0x36;
+        SimpleSessionChannel session = (SimpleSessionChannel) SessionManager.get(idCode);
+        ConcurrentHashMap<Integer, Integer> orderMap = session.channel().attr(NAttrKeys.GUN_ORDER_MAP).get();
+        if (orderMap == null) {
+            log.error("order not found");
+            return;
+        }
+        int orderV = orderMap.get((int) chargeCommand.getGunSort());
+        ProtocolCPacket packet = session.channel().attr(NAttrKeys.PROTOCOL_C_LATEST_PACKET).get();
+        ByteBuf responseBody = ByteBufAllocator.DEFAULT.heapBuffer(7 + 1);
+        responseBody.writeBytes(BinaryViews.bcdStringToByte(new String(chargeCommand.getOrderSerialNumber()).substring(0, 32)));
+        responseBody.writeBytes(packet.getIdBody());
+        responseBody.writeByte(chargeCommand.getGunSort());
+        ByteBuf response = BinaryBuilders.protocolCLeResponseBuilder(NUtils.nBFToBf(responseBody), orderV, type);
+        log.info("send 停机0x36 body={}", BinaryViews.bfToHexStr(response));
+        session.channel().writeAndFlush(response).addListener((f) -> {
+            if (f.isSuccess()) {
+                log.info("{} success", type);
+            } else {
+                log.error("{}success error", type);
+                f.cause().printStackTrace();
+            }
+        });
+        return;
+    }
+
     /**
      * 充电控制启动
      *
@@ -71,26 +101,7 @@ public class PileStopChargeExecute implements PileMessageExecute {
             SimpleSessionChannel session = (SimpleSessionChannel) SessionManager.get(body.getIdCode());
 
             if (session.getType() == McTypeEnum.C) {
-                byte type = 0x36;
-                Integer orderV = session.channel().attr(NAttrKeys.PROTOCOL_C_LATEST_ORDER_V).get();
-                orderV++;
-                session.channel().attr(NAttrKeys.PROTOCOL_C_LATEST_ORDER_V).set(orderV);
-                ProtocolCPacket packet = session.channel().attr(NAttrKeys.PROTOCOL_C_LATEST_PACKET).get();
-                ByteBuf responseBody = ByteBufAllocator.DEFAULT.heapBuffer(7 + 1);
-                responseBody.writeBytes(BinaryViews.bcdStringToByte(new String(chargeCommand.getOrderSerialNumber()).substring(0, 32)));
-                responseBody.writeBytes(packet.getIdBody());
-                responseBody.writeByte(chargeCommand.getGunSort());
-                ByteBuf response = BinaryBuilders.protocolCLeResponseBuilder(NUtils.nBFToBf(responseBody), orderV, type);
-                NUtils.releaseNBF(responseBody);
-                session.channel().writeAndFlush(response).addListener((f) -> {
-                    if (f.isSuccess()) {
-                        log.info("{} success", type);
-                    } else {
-                        log.error("{}success error", type);
-                        f.cause().printStackTrace();
-                    }
-                    NUtils.releaseNBF(response);
-                });
+                handleC(body.getIdCode(), chargeCommand);
                 return;
             }
 

@@ -54,8 +54,9 @@ public class MachineCHandlers {
             byte requestBodyType = packet.getBodyType();
             byte responseBodyType = (byte) (requestBodyType + 1);
             byte[] responseBody = Arrays.copyOf(packet.getBody(), requestBodyLen + 1);
-            responseBody[requestBodyLen] = 0;
+            responseBody[requestBodyLen] = 1;
             ByteBuf response = BinaryBuilders.protocolCLeResponseBuilder(responseBody, packet.getOrderVBf(), responseBodyType);
+            log.info("response {} type={} ", BinaryViews.bfToHexStr(response), responseBodyType);
             ctx.channel().writeAndFlush(response).addListener((f) -> {
                 if (f.isSuccess()) {
                     log.info("write {}  success", responseBodyType);
@@ -88,6 +89,7 @@ public class MachineCHandlers {
             onlineInfoDto.setIdCode(packet.getId());
             onlineInfoDto.setGunSort(gunShort);
             if (isSuccess == 0) {
+                log.error("start charge failed reason is {}", body[16 + 7 + 2]);
                 return;
             }
             onlineInfoDto.setGunState((byte) 0x04);
@@ -110,6 +112,7 @@ public class MachineCHandlers {
             onlineInfoDto.setIdCode(packet.getId());
             onlineInfoDto.setGunSort(gunShort);
             if (isSuccess == 0) {
+                log.error("stop charge failed reason is {}", body[9]);
                 return;
             }
             onlineInfoDto.setGunState((byte) 0x05);

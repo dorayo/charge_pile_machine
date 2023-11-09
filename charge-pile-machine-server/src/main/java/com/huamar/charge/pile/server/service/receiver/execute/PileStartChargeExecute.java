@@ -21,6 +21,9 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j;
 import org.springframework.stereotype.Component;
 
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+
 /**
  * 充电控制
  * DATE: 2023.08.07
@@ -52,6 +55,36 @@ public class PileStartChargeExecute implements PileMessageExecute {
 
     static public byte[] empty = new byte[16];
 
+    public void handleProtocolC(String idCode, McChargeCommandDTO chargeCommand) {
+        SimpleSessionChannel session = (SimpleSessionChannel) SessionManager.get(idCode);
+        byte type = 0x34;
+        Integer orderV = session.channel().attr(NAttrKeys.PROTOCOL_C_LATEST_ORDER_V).get();
+        orderV++;
+        session.channel().attr(NAttrKeys.PROTOCOL_C_LATEST_ORDER_V).set(orderV);
+        ConcurrentHashMap<Integer, Integer> orderMap = session.channel().attr(NAttrKeys.GUN_ORDER_MAP).get();
+        if (orderMap == null) {
+            orderMap = new ConcurrentHashMap<Integer, Integer>();
+            session.channel().attr(NAttrKeys.GUN_ORDER_MAP).set(orderMap);
+        }
+        orderMap.put((int) chargeCommand.getGunSort(), orderV);
+        ProtocolCPacket packet = session.channel().attr(NAttrKeys.PROTOCOL_C_LATEST_PACKET).get();
+        ByteBuf responseBody = ByteBufAllocator.DEFAULT.heapBuffer(16 + 7 + 1 + 8 + 8 + 4);
+        responseBody.writeBytes(BinaryViews.bcdStringToByte(new String(chargeCommand.getOrderSerialNumber()).substring(0, 32)));
+        responseBody.writeBytes(packet.getIdBody());
+        responseBody.writeByte(chargeCommand.getGunSort());
+        responseBody.writeBytes(empty);
+        responseBody.writeIntLE(chargeCommand.getBalance());
+        ByteBuf response = BinaryBuilders.protocolCLeResponseBuilder(NUtils.nBFToBf(responseBody), orderV, type);
+        session.channel().writeAndFlush(response).addListener((f) -> {
+            if (f.isSuccess()) {
+                log.info("0x34 success");
+            } else {
+                log.error("0x34  error");
+                f.cause().printStackTrace();
+            }
+        });
+    }
+
     /**
      * 充电控制启动
      *
@@ -75,28 +108,7 @@ public class PileStartChargeExecute implements PileMessageExecute {
             SimpleSessionChannel session = (SimpleSessionChannel) SessionManager.get(body.getIdCode());
 //        command.getTypeCode()
             if (session.getType() == McTypeEnum.C) {
-                byte type = 0x34;
-                Integer orderV = session.channel().attr(NAttrKeys.PROTOCOL_C_LATEST_ORDER_V).get();
-                orderV++;
-                session.channel().attr(NAttrKeys.PROTOCOL_C_LATEST_ORDER_V).set(orderV);
-                ProtocolCPacket packet = session.channel().attr(NAttrKeys.PROTOCOL_C_LATEST_PACKET).get();
-                ByteBuf responseBody = ByteBufAllocator.DEFAULT.heapBuffer(16 + 7 + 1 + 8 + 8 + 4);
-                responseBody.writeBytes(BinaryViews.bcdStringToByte(new String(chargeCommand.getOrderSerialNumber()).substring(0, 32)));
-                responseBody.writeBytes(packet.getIdBody());
-                responseBody.writeByte(chargeCommand.getGunSort());
-                responseBody.writeBytes(empty);
-                responseBody.writeIntLE(chargeCommand.getBalance());
-                ByteBuf response = BinaryBuilders.protocolCLeResponseBuilder(NUtils.nBFToBf(responseBody), orderV, type);
-                responseBody.release();
-                session.channel().writeAndFlush(response).addListener((f) -> {
-                    if (f.isSuccess()) {
-                        log.info("0x34 success");
-                    } else {
-                        log.error("0x34 success error");
-                        f.cause().printStackTrace();
-                    }
-                    response.release();
-                });
+                handleProtocolC(body.getIdCode(), chargeCommand);
                 return;
             }
 

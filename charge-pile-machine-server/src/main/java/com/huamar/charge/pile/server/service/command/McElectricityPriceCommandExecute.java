@@ -15,6 +15,7 @@ import com.huamar.charge.pile.enums.NAttrKeys;
 import com.huamar.charge.pile.server.session.SessionManager;
 import com.huamar.charge.pile.server.session.SimpleSessionChannel;
 import com.huamar.charge.pile.utils.binaryBuilder.BinaryBuilders;
+import com.huamar.charge.pile.utils.views.BinaryViews;
 import com.sun.xml.internal.stream.util.BufferAllocator;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.ByteBufAllocator;
@@ -61,7 +62,7 @@ public class McElectricityPriceCommandExecute implements McCommandExecute<McElec
         if (type == McTypeEnum.C) {
             byte[] timeStages = command.getTimeStage().toString().getBytes();
             for (int i = timeStages.length - 1; i >= 0; i--) {
-                timeStages[i] = (byte) (timeStages[i] - 0x31);
+                timeStages[i] = (byte) ((timeStages[i] - 0x30) % 4);
             }
             ProtocolCPacket packet = sessionChannel.channel().attr(NAttrKeys.PROTOCOL_C_0x09_PACKET).get();
             ByteBuf responseBody = ByteBufAllocator.DEFAULT.heapBuffer(59);
@@ -80,7 +81,7 @@ public class McElectricityPriceCommandExecute implements McCommandExecute<McElec
             responseBody.writeByte(0x00);
             responseBody.writeBytes(timeStages);
             ByteBuf response = BinaryBuilders.protocolCLeResponseBuilder(NUtils.nBFToBf(responseBody), packet.getOrderVBf(), (byte) 0x0A);
-            responseBody.release();
+            log.info("response 0x0A={}", BinaryViews.bfToHexStr(response));
             sessionChannel.channel().writeAndFlush(response).addListener((f) -> {
                 if (f.isSuccess()) {
                     log.info("write 0x0A success ");
@@ -88,13 +89,12 @@ public class McElectricityPriceCommandExecute implements McCommandExecute<McElec
                     f.cause().printStackTrace();
                     log.info("write 0x0A error ");
                 }
-                response.release();
             });
             return;
         }
         DataPacket packet = this.packet(command);
         boolean sendCommand = SessionManager.writePacket(packet);
-        log.info("Electricity Price idCode:{} sendCommand:{} msgId:{} ", command.getIdCode(), sendCommand,packet.getMsgNumber());
+        log.info("Electricity Price idCode:{} sendCommand:{} msgId:{} ", command.getIdCode(), sendCommand, packet.getMsgNumber());
     }
 
 
@@ -124,7 +124,6 @@ public class McElectricityPriceCommandExecute implements McCommandExecute<McElec
                 writer.write(command.getPrice4());
                 writer.write(command.getTimeStage());
                 writer.write(command.getServicePrice1());
-
                 break;
             default:
                 writer.write(command.getGunSort());

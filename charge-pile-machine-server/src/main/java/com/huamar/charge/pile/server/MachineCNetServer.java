@@ -3,6 +3,7 @@ package com.huamar.charge.pile.server;
 import com.huamar.charge.common.protocol.BasePacket;
 import com.huamar.charge.common.protocol.c.ProtocolCPacket;
 import com.huamar.charge.pile.config.ServerApplicationProperties;
+import com.huamar.charge.pile.entity.dto.command.McChargeCommandDTO;
 import com.huamar.charge.pile.enums.ConstEnum;
 import com.huamar.charge.pile.enums.McTypeEnum;
 import com.huamar.charge.pile.server.handle.netty.ServerNetHandler;
@@ -11,6 +12,8 @@ import com.huamar.charge.pile.server.handle.netty.c.ServerNetHandlerForMC;
 import com.huamar.charge.pile.server.handle.netty.c.SessionManagerForProtocolCNetHandler;
 import com.huamar.charge.pile.server.protocol.ProtocolCodecFactory;
 import com.huamar.charge.pile.server.service.factory.b.MachineBPacketFactory;
+import com.huamar.charge.pile.server.service.receiver.execute.PileStartChargeExecute;
+import com.huamar.charge.pile.server.service.receiver.execute.PileStopChargeExecute;
 import com.huamar.charge.pile.server.session.context.SimpleSessionContext;
 import com.huamar.charge.pile.utils.views.BinaryViews;
 import io.netty.bootstrap.ServerBootstrap;
@@ -90,6 +93,29 @@ public class MachineCNetServer {
     @Bean
     public ApplicationListener<ApplicationReadyEvent> serverCStart() {
         return event -> {
+//            Thread thread = new Thread() {
+//                @Override
+//                public void run() {
+//                    try {
+//                        sleep(25000);
+//                    } catch (InterruptedException e) {
+//                        throw new RuntimeException(e);
+//                    }
+//                    McChargeCommandDTO a = new McChargeCommandDTO();
+//                    a.setGunSort((byte) 0x01);
+//                    a.setBalance(0xfffffff);
+//                    a.setOrderSerialNumber("1111111111111111111111111111111111111111111111".getBytes());
+//                    event.getApplicationContext().getBean(PileStartChargeExecute.class).handleProtocolC("00220323501003", a);
+//                    try {
+//                        sleep(15000);
+//                    } catch (InterruptedException e) {
+//                        throw new RuntimeException(e);
+//                    }
+//                    event.getApplicationContext().getBean(PileStopChargeExecute.class).handleC("00220323501003", a);
+//
+//                }
+//            };
+//            thread.start();
             MachineCNetServer netServer = event.getApplicationContext().getBean(this.getClass());
             netServer.start(event.getApplicationContext());
             log.info("Server C Net start ...{}", netServer.getClass().getSimpleName());

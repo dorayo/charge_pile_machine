@@ -126,9 +126,43 @@ public class MachineCAuthenticationHandler {
         taskExecutor.execute(() -> {
             try {
                 pileMessageProduce.send(new MessageData<>(MessageCodeEnum.PILE_AUTH, id));
+//                pileMessageProduce.send(new MessageData<>(MessageCodeEnum., id));
+                long startTime = System.currentTimeMillis();
+                long maxWaitTime = Duration.ofSeconds(3).toMillis();
+                PileDTO pile = null;
+                StopWatch stopWatch = new StopWatch("Auth");
+                stopWatch.start("wait pile");
+                while (System.currentTimeMillis() - startTime < maxWaitTime) {
+                    pile = machineService.getCache(id);
+                    if (Objects.isNull(pile)) {
+                        continue;
+                    }
+                    try {
+                        TimeUnit.MILLISECONDS.sleep(500);
+                    } catch (InterruptedException ignored) {
+                    }
+                }
+                stopWatch.stop();
+                log.info("auth pile isSuccess:{}", Optional.ofNullable(pile).isPresent());
+                log.info("auth auth task run time:{} prettyPrint:{}"
+                        , stopWatch.getTotalTimeSeconds()
+                        , stopWatch.prettyPrint(TimeUnit.MILLISECONDS));
+
+                if (Objects.isNull(pile)) {
+                    SessionManager.close(sessionChannel);
+                    return;
+                }
+                PileDTO update = new PileDTO();
+                update.setId(pile.getId());
+                sessionChannel.setAttribute("auth", "ok");
+                update.setStationId(pile.getStationId());
+                update.setPileCode(pile.getPileCode());
+                pileMessageProduce.send(new MessageData<>(MessageCodeEnum.ELECTRICITY_PRICE, update));
+                sendQrCode(packet, channelHandlerContext);
+
                 // 多次鉴权并发问题，先返回成功，认证失败关闭连接
 //                authResp.setStatus(MachineAuthStatus.SUCCESS.getCode());
-//                answerExecute.execute(authResp, sessionChannel);
+                //             answerExecute.execute(authResp, sessionChannel);
 
 //                long startTime = System.currentTimeMillis();
 //                long maxWaitTime = Duration.ofSeconds(3).toMillis();
@@ -136,8 +170,8 @@ public class MachineCAuthenticationHandler {
                 // 多次鉴权并发问题
 
                 // 更新对象
-                PileDTO update = new PileDTO();
-                update.setPileCode(id);
+//                PileDTO update = new PileDTO();
+//                update.setPileCode(id);
 
                 // 标记此连接鉴权成功
 
@@ -155,7 +189,7 @@ public class MachineCAuthenticationHandler {
             } catch (Exception e) {
                 log.error("auth execute error:{}", e.getMessage(), e);
             } finally {
-//                machineService.removeCache(reqDTO.getIdCode());
+                machineService.removeCache(id);
             }
         });
     }
@@ -192,15 +226,10 @@ public class MachineCAuthenticationHandler {
 
     /**
      * 二维码下发
-     *
-     * @param authResp authResp
      */
-    private void sendQrCode(McAuthResp authResp) {
-        McQrCodeCommandDTO qrCodeCommand = new McQrCodeCommandDTO();
-        qrCodeCommand.setIdCode(authResp.getIdCode());
-        qrCodeCommand.setUrl(machineService.getQrCode());
-        qrCodeCommand.setUrlLength((byte) qrCodeCommand.getUrl().length());
-        commandFactory.getExecute(McCommandEnum.QR_CODE).execute(qrCodeCommand);
-        log.info("QrCodeCommand idCode:{} qrCode:{} ", authResp.getIdCode(), machineService.getQrCode());
+    private void sendQrCode(ProtocolCPacket packet, ChannelHandlerContext ctx) {
+//        ByteBuf bfB = ByteBufAllocator.DEFAULT.heapBuffer();
+//        bfB.writeBytes(BinaryViews.bcdStringToByte(packet.getG()));
+//        bfB.writeByte(0x00);
     }
 }
