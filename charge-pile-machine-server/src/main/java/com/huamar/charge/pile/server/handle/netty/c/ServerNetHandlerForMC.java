@@ -88,6 +88,9 @@ public class ServerNetHandlerForMC extends SimpleChannelInboundHandler<ProtocolC
             //  qrcode set response
             case (byte) 0x9B:
                 machineCHandlers.handler0x9B(cPacket, ctx);
+                //  qrcode set response
+            case (byte) 0x55:
+                machineCHandlers.handler0x55(cPacket, ctx);
                 break;
         }
     }

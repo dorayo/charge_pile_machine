@@ -9,6 +9,7 @@ import com.huamar.charge.common.common.BaseResp;
 import com.huamar.charge.common.protocol.DataPacket;
 import com.huamar.charge.common.protocol.FixString;
 import com.huamar.charge.common.protocol.c.ProtocolCPacket;
+import com.huamar.charge.common.util.Cp56Time2aUtil;
 import com.huamar.charge.common.util.HexExtUtil;
 import com.huamar.charge.common.util.netty.NUtils;
 import com.huamar.charge.net.core.SessionChannel;
@@ -44,6 +45,7 @@ import java.nio.Buffer;
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.time.LocalDateTime;
+import java.util.Date;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
@@ -161,7 +163,7 @@ public class MachineCAuthenticationHandler {
                 update.setPileCode(pile.getPileCode());
                 pileMessageProduce.send(new MessageData<>(MessageCodeEnum.ELECTRICITY_PRICE, update));
                 sendQrCode(packet, channelHandlerContext, gunCount);
-
+                syncTime(packet, channelHandlerContext);
                 // 多次鉴权并发问题，先返回成功，认证失败关闭连接
 //                authResp.setStatus(MachineAuthStatus.SUCCESS.getCode());
                 //             answerExecute.execute(authResp, sessionChannel);
@@ -251,6 +253,26 @@ public class MachineCAuthenticationHandler {
                 }
             });
         }
+    }
 
+    /**
+     * syncTime
+     */
+    private void syncTime(ProtocolCPacket packet, ChannelHandlerContext ctx) {
+        byte type = (byte) 0x56;
+        Integer latestOrderV = ctx.attr(NAttrKeys.PROTOCOL_C_LATEST_ORDER_V).get();
+        latestOrderV++;
+        ctx.attr(NAttrKeys.PROTOCOL_C_LATEST_ORDER_V).set(latestOrderV);
+        ByteBuf bfB = ByteBufAllocator.DEFAULT.heapBuffer();
+        bfB.writeBytes(packet.getIdBody());
+        bfB.writeBytes(Cp56Time2aUtil.dateToByte(new Date()));
+        ByteBuf responseB = BinaryBuilders.protocolCLeResponseBuilder(NUtils.nBFToBf(bfB), latestOrderV, type);
+        log.info("write  0x56 {} ", BinaryViews.bfToHexStr(responseB));
+        ctx.writeAndFlush(responseB).addListener((f) -> {
+            if (!f.isSuccess()) {
+                log.error("write 0x56 error");
+                f.cause().printStackTrace();
+            }
+        });
     }
 }

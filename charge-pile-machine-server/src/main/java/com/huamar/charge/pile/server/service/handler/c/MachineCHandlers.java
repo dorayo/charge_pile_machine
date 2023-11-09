@@ -157,4 +157,12 @@ public class MachineCHandlers {
             log.error("sendMessage send error e:{}", e.getMessage(), e);
         }
     }
+
+    public void handler0x55(ProtocolCPacket packet, ChannelHandlerContext ctx) {
+        try {
+            log.info("{} set time success", packet.getId());
+        } catch (Exception e) {
+            log.error("sendMessage send error e:{}", e.getMessage(), e);
+        }
+    }
 }
