@@ -92,6 +92,9 @@ public class ServerNetHandlerForMC extends SimpleChannelInboundHandler<ProtocolC
             case (byte) 0x55:
                 machineCHandlers.handler0x55(cPacket, ctx);
                 break;
+            case (byte) 0x3b:
+                machineCHandlers.handler0x3b(cPacket, ctx);
+                break;
         }
     }
 

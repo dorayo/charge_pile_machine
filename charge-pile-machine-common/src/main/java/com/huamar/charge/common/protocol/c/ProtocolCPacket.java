@@ -22,7 +22,7 @@ public class ProtocolCPacket {
 
     int bufLen;
     byte sign;
-    byte bodyLen;
+    short bodyLen;
     byte[] orderVBf;
     int orderV;
     boolean encryptState;
@@ -37,7 +37,10 @@ public class ProtocolCPacket {
     private ProtocolCPacket(ByteBuf byteBuf) {
         bufLen = byteBuf.readableBytes();
         sign = byteBuf.readByte();
-        bodyLen = byteBuf.readByte();
+        bodyLen = byteBuf.readUnsignedByte();
+        if (bodyLen < 4) {
+            System.out.println(BinaryViews.bfToHexStr(byteBuf) + "error");
+        }
         byteBuf.markReaderIndex();
         int checkLen = byteBuf.readableBytes() - 2;
         localRealCheckBit = ProtocolChecks.modbusCRC(byteBuf.readBytes(checkLen));
@@ -48,7 +51,11 @@ public class ProtocolCPacket {
         byteBuf.markReaderIndex();
         idBody = NUtils.nBFToBf(byteBuf.readBytes(7));
         byteBuf.resetReaderIndex();
-        body = NUtils.nBFToBf(byteBuf.readBytes(bodyLen - 4));
+        if (bodyLen == 0) {
+            body = new byte[]{};
+        } else {
+            body = NUtils.nBFToBf(byteBuf.readBytes(bodyLen - 4));
+        }
         byteBuf.markReaderIndex();
         remoteBitBf = NUtils.nBFToBf(byteBuf.readBytes(2));
         byteBuf.resetReaderIndex();

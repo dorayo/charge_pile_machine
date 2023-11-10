@@ -89,7 +89,13 @@ public class MachineCHandlers {
             onlineInfoDto.setIdCode(packet.getId());
             onlineInfoDto.setGunSort(gunShort);
             if (isSuccess == 0) {
+                MessageData<McChargerOnlineInfoDTO> messageData = new MessageData<>(MessageCodeEnum.PILE_STOP_CHARGE, onlineInfoDto);
+                onlineInfoDto.setGunState((byte) 0x05);
+                messageData.setBusinessId(onlineInfoDto.getIdCode());
+                messageData.setMessageId(IdUtil.simpleUUID());
+                messageData.setRequestId(IdUtil.simpleUUID());
                 log.error("start charge failed reason is {}", body[16 + 7 + 2]);
+                pileMessageProduce.send(messageData);
                 return;
             }
             onlineInfoDto.setGunState((byte) 0x04);
@@ -128,16 +134,31 @@ public class MachineCHandlers {
 
     public void handler0x13(ProtocolCPacket packet, ChannelHandlerContext ctx) {
         try {
+            AttributeKey<String> machineId = AttributeKey.valueOf(ConstEnum.MACHINE_ID.getCode());
             McChargerOnlineInfoDTO onlineInfoDto = new McChargerOnlineInfoDTO();
             byte[] body = packet.getBody();
-            int isSuccess = body[16 + 7 + 1];
             byte gunShort = body[16 + 7];
-            onlineInfoDto.setIdCode(packet.getId());
+            byte state = body[16 + 8];
+            byte isCon = body[16 + 10];
+            onlineInfoDto.setIdCode(ctx.channel().attr(machineId).get());
             onlineInfoDto.setGunSort(gunShort);
-            if (isSuccess == 1) {
-                onlineInfoDto.setGunState((byte) 0x04);
-            } else {
-                onlineInfoDto.setGunState((byte) 0x05);
+            onlineInfoDto.setGunState((byte) 0);
+            log.info("state={} isCon={}", state, isCon);
+            switch (state) {
+                case 0:
+                    break;
+                case 1:
+                    onlineInfoDto.setGunState((byte) 6);
+                    break;
+                case 2:
+                    onlineInfoDto.setGunState((byte) 0);
+                    break;
+                case 3:
+                    onlineInfoDto.setGunState((byte) 4);
+                    break;
+            }
+            if (isCon == 1 && onlineInfoDto.getGunState() == 0) {
+                onlineInfoDto.setGunState((byte) 1);
             }
             MessageData<McChargerOnlineInfoDTO> messageData = new MessageData<>(MessageCodeEnum.PILE_ONLINE, onlineInfoDto);
             messageData.setBusinessId(onlineInfoDto.getIdCode());
@@ -153,6 +174,32 @@ public class MachineCHandlers {
         try {
             byte[] body = packet.getBody();
             log.info("{} set gun {}={}", packet.getId(), body[7], body[8]);
+        } catch (Exception e) {
+            log.error("sendMessage send error e:{}", e.getMessage(), e);
+        }
+    }
+
+    //@todo submit
+    public void handler0x3b(ProtocolCPacket packet, ChannelHandlerContext ctx) {
+        try {
+            byte[] oldBody = packet.getBody();
+            byte[] body = new byte[17];
+            for (int i = 0; i < 16; i++) {
+                body[i] = oldBody[i];
+            }
+            body[16] = 0;
+            ByteBuf response = BinaryBuilders.protocolCLeResponseBuilder(body, packet.getOrderVBf(), (byte) 0x40);
+
+            log.info("response {} type={} ", BinaryViews.bfToHexStr(response), 0x40);
+            ctx.channel().writeAndFlush(response).addListener((f) -> {
+                if (f.isSuccess()) {
+                    log.info("write {}  success", 0x40);
+                } else {
+                    log.error("write {}  error", 0x40);
+                    f.cause().printStackTrace();
+                }
+            });
+            log.info("{} set time success", packet.getId());
         } catch (Exception e) {
             log.error("sendMessage send error e:{}", e.getMessage(), e);
         }

@@ -67,9 +67,20 @@ public class McElectricityPriceCommandExecute implements McCommandExecute<McElec
             for (int i = timeStages.length - 1; i >= 0; i--) {
                 timeStages[i] = (byte) ((timeStages[i] - 0x30) % 4);
             }
+            byte[] idBody = sessionChannel.channel().attr(NAttrKeys.ID_BODY).get();
+            byte[] orderBf;
             ProtocolCPacket packet = sessionChannel.channel().attr(NAttrKeys.PROTOCOL_C_0x09_PACKET).get();
+            if (packet.getOrderVBf() == null) {
+                Integer orderV = sessionChannel.channel().attr(NAttrKeys.PROTOCOL_C_LATEST_ORDER_V).get();
+                orderBf = new byte[]{
+                        (byte) (orderV & 0xff),
+                        (byte) (orderV & 0xff00 >> 8)
+                };
+            } else {
+                orderBf = packet.getOrderVBf();
+            }
             ByteBuf responseBody = ByteBufAllocator.DEFAULT.heapBuffer(59);
-            responseBody.writeBytes(packet.getIdBody());
+            responseBody.writeBytes(idBody);
             responseBody.writeByte(0x01);
             responseBody.writeByte(0x00);
             responseBody.writeByte(command.getPrice1());
@@ -83,7 +94,7 @@ public class McElectricityPriceCommandExecute implements McCommandExecute<McElec
             responseBody.writeByte(command.getServicePrice4());
             responseBody.writeByte(0x00);
             responseBody.writeBytes(timeStages);
-            ByteBuf response = BinaryBuilders.protocolCLeResponseBuilder(NUtils.nBFToBf(responseBody), packet.getOrderVBf(), (byte) 0x0A);
+            ByteBuf response = BinaryBuilders.protocolCLeResponseBuilder(NUtils.nBFToBf(responseBody), orderBf, (byte) 0x0A);
             log.info("response 0x0A={}", BinaryViews.bfToHexStr(response));
             sessionChannel.channel().writeAndFlush(response).addListener((f) -> {
                 if (f.isSuccess()) {

@@ -98,10 +98,10 @@ public class PileStopChargeExecute implements PileMessageExecute {
             chargeCommand.setOrderSerialNumber(chargeControl.getOrderSerialNumber().getBytes());
             chargeCommand.setBalance(chargeControl.getBalance().intValue());
             chargeCommand.setIdCode(chargeControl.getIdCode());
-            SimpleSessionChannel session = (SimpleSessionChannel) SessionManager.get(body.getIdCode());
+            SimpleSessionChannel session = (SimpleSessionChannel) SessionManager.get(chargeCommand.getIdCode());
 
             if (session.getType() == McTypeEnum.C) {
-                handleC(body.getIdCode(), chargeCommand);
+                handleC(chargeCommand.getIdCode(), chargeCommand);
                 return;
             }
 

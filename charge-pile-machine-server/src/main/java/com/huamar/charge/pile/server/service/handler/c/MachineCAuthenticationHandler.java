@@ -236,7 +236,7 @@ public class MachineCAuthenticationHandler {
         String url = machineService.getQrCode();
         byte[] urlB = url.getBytes(StandardCharsets.US_ASCII);
         byte urlLen = (byte) urlB.length;
-        for (int i = 0; i < gunCount; i++) {
+        for (int i = 0; i <= gunCount; i++) {
             Integer latestOrderV = ctx.attr(NAttrKeys.PROTOCOL_C_LATEST_ORDER_V).get();
             latestOrderV++;
             ctx.attr(NAttrKeys.PROTOCOL_C_LATEST_ORDER_V).set(latestOrderV);

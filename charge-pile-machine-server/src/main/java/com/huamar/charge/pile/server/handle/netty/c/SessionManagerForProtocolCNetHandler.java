@@ -11,6 +11,7 @@ import com.huamar.charge.common.util.netty.NUtils;
 import com.huamar.charge.net.core.SessionChannel;
 import com.huamar.charge.pile.enums.ConstEnum;
 import com.huamar.charge.pile.enums.McTypeEnum;
+import com.huamar.charge.pile.enums.NAttrKeys;
 import com.huamar.charge.pile.server.session.SessionManager;
 import com.huamar.charge.pile.server.session.SimpleSessionChannel;
 import com.huamar.charge.pile.utils.views.BinaryViews;
@@ -61,20 +62,20 @@ public class SessionManagerForProtocolCNetHandler extends SimpleChannelInboundHa
     @SuppressWarnings("DuplicatedCode")
     @Override
     public void channelInactive(ChannelHandlerContext ctx) {
-        MDC.clear();
-        log.info("{} 断开了服务器", ctx.channel().remoteAddress());
-        try {
-            AttributeKey<String> machineId = AttributeKey.valueOf(ConstEnum.MACHINE_ID.getCode());
-            String bsId = ctx.channel().attr(machineId).get();
-            if (StringUtils.isNotBlank(bsId)) {
-                MDC.put(ConstEnum.ID_CODE.getCode(), bsId);
-                SessionManager.remove(bsId);
-            }
-        } catch (Exception ignored) {
-            log.info("{} 断开了服务器 error", ctx.channel().remoteAddress());
-        } finally {
-            ctx.close();
-        }
+//        MDC.clear();
+//        log.info("{} 断开了服务器", ctx.channel().remoteAddress());
+//        try {
+////            AttributeKey<String> machineId = AttributeKey.valueOf(ConstEnum.MACHINE_ID.getCode());
+////            String bsId = ctx.channel().attr(machineId).get();
+////            if (StringUtils.isNotBlank(bsId)) {
+////                MDC.put(ConstEnum.ID_CODE.getCode(), bsId);
+////                SessionManager.remove(bsId);
+////            }
+//        } catch (Exception ignored) {
+//            log.info("{} 断开了服务器 error", ctx.channel().remoteAddress());
+//        } finally {
+//            ctx.close();
+//        }
     }
 
     /**
@@ -88,6 +89,7 @@ public class SessionManagerForProtocolCNetHandler extends SimpleChannelInboundHa
         Thread.currentThread().setName(IdUtil.getSnowflakeNextIdStr());
         log.info("type=0x{}", Integer.toHexString(packet.getBodyType()));
         if (packet.getBodyType() == 0x01) {
+            channelHandlerContext.channel().attr(NAttrKeys.ID_BODY).set(packet.getIdBody());
             ByteBuf body = ByteBufAllocator.DEFAULT.heapBuffer();
             body.writeBytes(packet.getBody());
             String id = BinaryViews.bcdViewsLe(NUtils.nBFToBf(body.readBytes(7)));

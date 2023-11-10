@@ -2,6 +2,7 @@ package com.huamar.charge.pile.server.session.context;
 
 import com.huamar.charge.common.protocol.DataPacket;
 import com.huamar.charge.net.core.SessionChannel;
+import com.huamar.charge.pile.enums.McTypeEnum;
 import com.huamar.charge.pile.server.session.MachineSessionContext;
 import com.huamar.charge.pile.server.session.SessionManager;
 import com.huamar.charge.pile.server.session.SimpleSessionChannel;
@@ -49,6 +50,9 @@ public class SimpleSessionContext implements MachineSessionContext {
         try {
             SimpleSessionChannel sessionChannel = (SimpleSessionChannel) SessionManager.get(new String(packet.getIdCode()));
             ChannelHandlerContext channelHandlerContext = sessionChannel.channel();
+            if (sessionChannel.getType() == McTypeEnum.C) {
+                return true;
+            }
             Assert.notNull(sessionChannel, "session is null");
             channelHandlerContext.writeAndFlush(packet);
         } catch (Exception e) {
