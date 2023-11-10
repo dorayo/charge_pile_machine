@@ -75,6 +75,8 @@ public class PileStartChargeExecute implements PileMessageExecute {
         responseBody.writeBytes(empty);
         responseBody.writeIntLE(chargeCommand.getBalance());
         ByteBuf response = BinaryBuilders.protocolCLeResponseBuilder(NUtils.nBFToBf(responseBody), orderV, type);
+        String str = BinaryViews.bfToHexStr(response);
+        log.info(str);
         session.channel().writeAndFlush(response).addListener((f) -> {
             if (f.isSuccess()) {
                 log.info("0x34 success");

@@ -1,7 +1,7 @@
 package com.huamar.charge.pile.utils.views;
 
-import cn.hutool.core.text.StrBuilder;
 import io.netty.buffer.ByteBuf;
+import io.netty.buffer.ByteBufAllocator;
 
 import java.nio.charset.StandardCharsets;
 
@@ -42,5 +42,17 @@ public class BinaryViews {
         }
         bf.resetReaderIndex();
         return b.toString();
+    }
+
+    static public int intViewLe(byte[] bf, int start) {
+        return bf[start++] | bf[start++] << 8 | bf[start++] << 16 | bf[start] << 24;
+    }
+
+    static public String bfToHexStr(byte[] bf) {
+        ByteBuf a = ByteBufAllocator.DEFAULT.heapBuffer();
+        a.writeBytes(bf);
+        String result = bfToHexStr(a);
+        a.release();
+        return result;
     }
 }

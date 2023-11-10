@@ -2,10 +2,16 @@ package com.huamar.charge.pile.server.service.handler.c;
 
 import cn.hutool.core.util.IdUtil;
 import com.alibaba.druid.sql.visitor.functions.Bin;
+import com.huamar.charge.common.common.BCDUtils;
+import com.huamar.charge.common.common.codec.BCD;
 import com.huamar.charge.common.protocol.c.ProtocolCPacket;
+import com.huamar.charge.common.util.Cp56Time2aUtil;
+import com.huamar.charge.common.util.JSONParser;
 import com.huamar.charge.net.core.SessionChannel;
 import com.huamar.charge.pile.api.dto.PileDTO;
+import com.huamar.charge.pile.convert.PileChargeFinishEventConvert;
 import com.huamar.charge.pile.entity.dto.McChargerOnlineInfoDTO;
+import com.huamar.charge.pile.entity.dto.event.PileChargeFinishEventDTO;
 import com.huamar.charge.pile.entity.dto.event.PileEventReqDTO;
 import com.huamar.charge.pile.entity.dto.fault.McHeartbeatReqDTO;
 import com.huamar.charge.pile.entity.dto.mq.MessageData;
@@ -30,8 +36,10 @@ import org.springframework.util.Assert;
 import java.lang.reflect.Array;
 import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Date;
 
 @Slf4j
 @Service
@@ -137,13 +145,16 @@ public class MachineCHandlers {
             AttributeKey<String> machineId = AttributeKey.valueOf(ConstEnum.MACHINE_ID.getCode());
             McChargerOnlineInfoDTO onlineInfoDto = new McChargerOnlineInfoDTO();
             byte[] body = packet.getBody();
+            int bodyLen = body.length;
             byte gunShort = body[16 + 7];
             byte state = body[16 + 8];
             byte isCon = body[16 + 10];
+            int currentMoney = BinaryViews.intViewLe(body, bodyLen - 6);
             onlineInfoDto.setIdCode(ctx.channel().attr(machineId).get());
             onlineInfoDto.setGunSort(gunShort);
             onlineInfoDto.setGunState((byte) 0);
-            log.info("state={} isCon={}", state, isCon);
+            onlineInfoDto.setCurMoney(currentMoney);
+            log.info("state={} isCon={} cMoney = {}", state, isCon, currentMoney);
             switch (state) {
                 case 0:
                     break;
@@ -179,16 +190,56 @@ public class MachineCHandlers {
         }
     }
 
-    //@todo submit
     public void handler0x3b(ProtocolCPacket packet, ChannelHandlerContext ctx) {
         try {
+            AttributeKey<String> machineId = AttributeKey.valueOf(ConstEnum.MACHINE_ID.getCode());
+            String idCode = ctx.channel().attr(machineId).get();
             byte[] oldBody = packet.getBody();
+            int gunShort = oldBody[16 + 7];
             byte[] body = new byte[17];
+            byte[] chargeOrder = new byte[16];
+            byte[] startTimeBt = new byte[7];
+            byte[] endTimeBt = new byte[7];
+            int priceStartIndex = 16 + 7 + 1 + 7 + 7 + 15 * 4 + 18 - 1;
+            long total = BinaryViews.intViewLe(oldBody, priceStartIndex);
             for (int i = 0; i < 16; i++) {
-                body[i] = oldBody[i];
+                chargeOrder[i] = body[i] = oldBody[i];
             }
-            body[16] = 0;
+            for (int i = 0, oldIndex = 16 + 7; i < 7; i++) {
+                startTimeBt[i] = oldBody[i + oldIndex];
+            }
+            for (int i = 0, oldIndex = 16 + 7 + 7; i < 7; i++) {
+                endTimeBt[i] = oldBody[i + oldIndex];
+            }
             ByteBuf response = BinaryBuilders.protocolCLeResponseBuilder(body, packet.getOrderVBf(), (byte) 0x40);
+            log.info("事件汇报：0x3b  消费金额{}", total);
+            BCD startTime = BCDUtils.timeToBCD(LocalDateTime.ofInstant(Cp56Time2aUtil.toDate(startTimeBt).toInstant(), ZoneId.systemDefault()));
+            BCD endTime = BCDUtils.timeToBCD(LocalDateTime.ofInstant(Cp56Time2aUtil.toDate(endTimeBt).toInstant(), ZoneId.systemDefault()));
+            PileChargeFinishEventPushDTO eventPushDTO = new PileChargeFinishEventPushDTO();
+            eventPushDTO.setStartTime(startTime);
+            eventPushDTO.setIdCode(idCode);
+            eventPushDTO.setEventStartTime(startTime.toString());
+            eventPushDTO.setEventEndTime(endTime.toString());
+            eventPushDTO.setEventState(2);
+            eventPushDTO.setOrderSerialNumber(BinaryViews.bfToHexStr(chargeOrder));
+            eventPushDTO.setGunSort(gunShort);
+            eventPushDTO.setServiceMoney((int) total);
+            eventPushDTO.setChargeMoney((int) total);
+            MessageData<PileChargeFinishEventPushDTO> messageData = new MessageData<>(eventPushDTO);
+            messageData.setBusinessCode(MessageCodeEnum.EVENT_CHARGE_FINISH.getCode());
+            messageData.setBusinessId(idCode);
+            pileMessageProduce.send(messageData);
+//            PileChargeFinishEventDTO eventDTO = this.parse(reqDTO);
+//            log.info("事件汇报：{}, data:{}", getCode().getDesc(), JSONParser.jsonString(eventDTO));
+//
+//
+//            PileChargeFinishEventPushDTO eventPushDTO = PileChargeFinishEventConvert.INSTANCE.convert(eventDTO);
+//            PileChargeFinishEventConvert.INSTANCE.copyBaseField(eventPushDTO, reqDTO);
+//
+//            MessageData<PileChargeFinishEventPushDTO> messageData = new MessageData<>(eventPushDTO);
+//            messageData.setBusinessCode(MessageCodeEnum.EVENT_CHARGE_FINISH.getCode());
+//            messageData.setBusinessId(reqDTO.getIdCode());
+//            pileMessageProduce.send(messageData);
 
             log.info("response {} type={} ", BinaryViews.bfToHexStr(response), 0x40);
             ctx.channel().writeAndFlush(response).addListener((f) -> {

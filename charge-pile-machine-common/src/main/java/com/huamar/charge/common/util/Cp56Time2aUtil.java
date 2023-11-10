@@ -22,6 +22,7 @@ public class Cp56Time2aUtil {
      * @return 时间字符串
      */
     public static String toDateString(byte[] bytes) {
+
         int milliseconds1 = bytes[0] < 0 ? 256 + bytes[0] : bytes[0];
         int milliseconds2 = bytes[1] < 0 ? 256 + bytes[1] : bytes[1];
         int milliseconds = milliseconds2 * 256 + milliseconds1;
@@ -36,7 +37,7 @@ public class Cp56Time2aUtil {
         // 位于 0111 1111
         int years = bytes[6] & 0x7F;
         return "20" + String.format("%02d", years) + "-" + String.format("%02d", months) + "-" + String.format("%02d", days) +
-                " " + String.format("%02d", hours) + ":" + String.format("%02d", minutes) + ":" +
+                " " + String.format("%02d", hours) + ":" + String.format("%02d", minutes % 59) + ":" +
                 String.format("%02d", milliseconds / 1000);
     }
 

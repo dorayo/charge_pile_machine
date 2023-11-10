@@ -56,7 +56,7 @@ public class MachineNetServer implements NetServer {
     /**
      * 工作线程
      */
-    private NioEventLoopGroup  workerGroup;
+    private NioEventLoopGroup workerGroup;
 
     /**
      * 服务端
@@ -82,7 +82,7 @@ public class MachineNetServer implements NetServer {
     }
 
     @Bean
-    public ApplicationListener<ApplicationReadyEvent> serverStart(){
+    public ApplicationListener<ApplicationReadyEvent> serverStart() {
         return event -> {
             MachineNetServer netServer = event.getApplicationContext().getBean(this.getClass());
             netServer.start();
@@ -91,7 +91,7 @@ public class MachineNetServer implements NetServer {
     }
 
     @Bean
-    public ApplicationListener<ContextClosedEvent> stopApplicationListener(){
+    public ApplicationListener<ContextClosedEvent> stopApplicationListener() {
         return event -> {
             event.getApplicationContext().getBean(this.getClass()).close();
             log.info("MachineNetServer close ...");
@@ -104,8 +104,8 @@ public class MachineNetServer implements NetServer {
      */
     @SneakyThrows
     @Override
-    public void start(){
-        if(isRun.get()){
+    public void start() {
+        if (isRun.get()) {
             return;
         }
         this.init();
@@ -119,8 +119,8 @@ public class MachineNetServer implements NetServer {
     /**
      * 初始化
      */
-    private void init(){
-        if(isRun.get()){
+    private void init() {
+        if (isRun.get()) {
             return;
         }
         boosGroup = new NioEventLoopGroup(properties.getBoss());
@@ -134,7 +134,6 @@ public class MachineNetServer implements NetServer {
                     @Override
                     protected void initChannel(SocketChannel socketChannel) {
                         ServerNetHandler serverNetHandler = new ServerNetHandler(machinePacketFactory);
-
                         ChannelPipeline pipeline = socketChannel.pipeline();
                         pipeline.addLast("decoder", new MessageDecodeHandler());
                         pipeline.addLast("encoder", new MessageEncodeHandler());
@@ -151,7 +150,7 @@ public class MachineNetServer implements NetServer {
      */
     @Override
     public void close() {
-        if(!isRun.get()){
+        if (!isRun.get()) {
             return;
         }
         log.info("MachineNetServer start close...");
@@ -194,7 +193,7 @@ public class MachineNetServer implements NetServer {
         protected void decode(ChannelHandlerContext channelHandlerContext, ByteBuf byteBuf, List<Object> list) {
             //byteBuf.order(byteOrder); 不推荐使用，已经废弃
             BasePacket basePacket = ProtocolCodecFactory.decode(byteBuf);
-            if(Objects.isNull(basePacket)){
+            if (Objects.isNull(basePacket)) {
                 return;
             }
             list.add(basePacket);
