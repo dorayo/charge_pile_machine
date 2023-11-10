@@ -51,7 +51,7 @@ public class SessionManagerForProtocolCNetHandler extends SimpleChannelInboundHa
     @Override
     public void channelActive(ChannelHandlerContext ctx) {
         MDC.clear();
-        log.info("{} 连上了服务器", ctx.channel().remoteAddress());
+        log.info("{} active", ctx.channel().remoteAddress());
     }
 
     /**
