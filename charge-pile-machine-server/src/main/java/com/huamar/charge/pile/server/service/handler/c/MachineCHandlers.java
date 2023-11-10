@@ -65,6 +65,10 @@ public class MachineCHandlers {
             responseBody[requestBodyLen] = 1;
             ByteBuf response = BinaryBuilders.protocolCLeResponseBuilder(responseBody, packet.getOrderVBf(), responseBodyType);
             log.info("response {} type={} ", BinaryViews.bfToHexStr(response), responseBodyType);
+
+//            PileDTO update = new PileDTO();
+//            update.setPileCode(packet.getId());
+//            pileMessageProduce.send(new MessageData<>(MessageCodeEnum.ELECTRICITY_PRICE, update));
             ctx.channel().writeAndFlush(response).addListener((f) -> {
                 if (f.isSuccess()) {
                     log.info("write {}  success", responseBodyType);
@@ -149,11 +153,11 @@ public class MachineCHandlers {
             byte gunShort = body[16 + 7];
             byte state = body[16 + 8];
             byte isCon = body[16 + 10];
-            int currentMoney = BinaryViews.intViewLe(body, bodyLen - 6);
+            long currentMoney = BinaryViews.intViewLe(body, bodyLen - 6);
             onlineInfoDto.setIdCode(ctx.channel().attr(machineId).get());
             onlineInfoDto.setGunSort(gunShort);
             onlineInfoDto.setGunState((byte) 0);
-            onlineInfoDto.setCurMoney(currentMoney);
+            onlineInfoDto.setCurMoney((int) (currentMoney / 100));
             log.info("state={} isCon={} cMoney = {}", state, isCon, currentMoney);
             switch (state) {
                 case 0:

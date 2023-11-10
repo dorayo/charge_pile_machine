@@ -74,6 +74,7 @@ public class PileStartChargeExecute implements PileMessageExecute {
         responseBody.writeByte(chargeCommand.getGunSort());
         responseBody.writeBytes(empty);
         responseBody.writeIntLE(chargeCommand.getBalance());
+//        responseBody.writeIntLE(3000);
         ByteBuf response = BinaryBuilders.protocolCLeResponseBuilder(NUtils.nBFToBf(responseBody), orderV, type);
         String str = BinaryViews.bfToHexStr(response);
         log.info(str);

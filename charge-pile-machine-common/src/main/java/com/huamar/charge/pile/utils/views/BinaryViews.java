@@ -44,8 +44,8 @@ public class BinaryViews {
         return b.toString();
     }
 
-    static public int intViewLe(byte[] bf, int start) {
-        return bf[start++] | bf[start++] << 8 | bf[start++] << 16 | bf[start] << 24;
+    static public long intViewLe(byte[] bf, int start) {
+        return bf[start++] | bf[start++] << 8 | bf[start++] << 16 | ((long) bf[start] << 24);
     }
 
     static public String bfToHexStr(byte[] bf) {
