@@ -217,22 +217,22 @@ public class MachineCHandlers {
             }
             ByteBuf response = BinaryBuilders.protocolCLeResponseBuilder(body, packet.getOrderVBf(), (byte) 0x40);
             log.info("事件汇报：0x3b  消费金额{}", total);
-            BCD startTime = BCDUtils.timeToBCD(LocalDateTime.ofInstant(Cp56Time2aUtil.toDate(startTimeBt).toInstant(), ZoneId.systemDefault()));
-            BCD endTime = BCDUtils.timeToBCD(LocalDateTime.ofInstant(Cp56Time2aUtil.toDate(endTimeBt).toInstant(), ZoneId.systemDefault()));
-            PileChargeFinishEventPushDTO eventPushDTO = new PileChargeFinishEventPushDTO();
-            eventPushDTO.setStartTime(startTime);
-            eventPushDTO.setIdCode(idCode);
-            eventPushDTO.setEventStartTime(startTime.toString());
-            eventPushDTO.setEventEndTime(endTime.toString());
-            eventPushDTO.setEventState(2);
-            eventPushDTO.setOrderSerialNumber(BinaryViews.bfToHexStr(chargeOrder));
-            eventPushDTO.setGunSort(gunShort);
-            eventPushDTO.setServiceMoney((int) total);
-            eventPushDTO.setChargeMoney((int) total);
-            MessageData<PileChargeFinishEventPushDTO> messageData = new MessageData<>(eventPushDTO);
-            messageData.setBusinessCode(MessageCodeEnum.EVENT_CHARGE_FINISH.getCode());
-            messageData.setBusinessId(idCode);
-            pileMessageProduce.send(messageData);
+//            BCD startTime = BCDUtils.timeToBCD(LocalDateTime.ofInstant(Cp56Time2aUtil.toDate(startTimeBt).toInstant(), ZoneId.systemDefault()));
+//            BCD endTime = BCDUtils.timeToBCD(LocalDateTime.ofInstant(Cp56Time2aUtil.toDate(endTimeBt).toInstant(), ZoneId.systemDefault()));
+//            PileChargeFinishEventPushDTO eventPushDTO = new PileChargeFinishEventPushDTO();
+//            eventPushDTO.setStartTime(startTime);
+//            eventPushDTO.setIdCode(idCode);
+//            eventPushDTO.setEventStartTime(startTime.toString());
+//            eventPushDTO.setEventEndTime(endTime.toString());
+//            eventPushDTO.setEventState(2);
+//            eventPushDTO.setOrderSerialNumber(BinaryViews.bfToHexStr(chargeOrder));
+//            eventPushDTO.setGunSort(gunShort);
+//            eventPushDTO.setServiceMoney((int) total);
+//            eventPushDTO.setChargeMoney((int) total);
+//            MessageData<PileChargeFinishEventPushDTO> messageData = new MessageData<>(eventPushDTO);
+//            messageData.setBusinessCode(MessageCodeEnum.EVENT_CHARGE_FINISH.getCode());
+//            messageData.setBusinessId(idCode);
+//            pileMessageProduce.send(messageData);
 //            PileChargeFinishEventDTO eventDTO = this.parse(reqDTO);
 //            log.info("事件汇报：{}, data:{}", getCode().getDesc(), JSONParser.jsonString(eventDTO));
 //

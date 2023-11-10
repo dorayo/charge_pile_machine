@@ -58,10 +58,12 @@ public class PileStartChargeExecute implements PileMessageExecute {
     public void handleProtocolC(String idCode, McChargeCommandDTO chargeCommand) {
         SimpleSessionChannel session = (SimpleSessionChannel) SessionManager.get(idCode);
         byte type = 0x34;
+
         Integer orderV = session.channel().attr(NAttrKeys.PROTOCOL_C_LATEST_ORDER_V).get();
         orderV++;
         session.channel().attr(NAttrKeys.PROTOCOL_C_LATEST_ORDER_V).set(orderV);
         ConcurrentHashMap<Integer, Integer> orderMap = session.channel().attr(NAttrKeys.GUN_ORDER_MAP).get();
+        byte[] idBody = session.channel().attr(NAttrKeys.ID_BODY).get();
         if (orderMap == null) {
             orderMap = new ConcurrentHashMap<Integer, Integer>();
             session.channel().attr(NAttrKeys.GUN_ORDER_MAP).set(orderMap);
@@ -69,8 +71,15 @@ public class PileStartChargeExecute implements PileMessageExecute {
         orderMap.put((int) chargeCommand.getGunSort(), orderV);
         ProtocolCPacket packet = session.channel().attr(NAttrKeys.PROTOCOL_C_LATEST_PACKET).get();
         ByteBuf responseBody = ByteBufAllocator.DEFAULT.heapBuffer(16 + 7 + 1 + 8 + 8 + 4);
-        responseBody.writeBytes(BinaryViews.bcdStringToByte(new String(chargeCommand.getOrderSerialNumber()).substring(0, 32)));
-        responseBody.writeBytes(packet.getIdBody());
+        byte[] orderBytes = new byte[16];
+        byte[] serialN = chargeCommand.getOrderSerialNumber();
+        for (int i = 0; i < 16; i++) {
+            byte a = (byte) (serialN[i * 2] - 0x30);
+            byte b = (byte) (serialN[i * 2 + 1] - 0x30);
+            orderBytes[i] = (byte) (a << 4 | b);
+        }
+        responseBody.writeBytes(orderBytes);
+        responseBody.writeBytes(idBody);
         responseBody.writeByte(chargeCommand.getGunSort());
         responseBody.writeBytes(empty);
         responseBody.writeIntLE(chargeCommand.getBalance());
