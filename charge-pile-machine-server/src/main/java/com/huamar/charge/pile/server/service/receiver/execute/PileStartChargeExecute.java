@@ -78,7 +78,6 @@ public class PileStartChargeExecute implements PileMessageExecute {
             messageCommandRespService.put(commonResp);
 
             if (!commandState) {
-
                 messageCommandRespService.sendCommonResp(commonResp);
             }
 

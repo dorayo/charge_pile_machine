@@ -2,26 +2,26 @@
 
 # 必须在当前目录下执行脚本
 # 环境
-profile=dev
+profile=prod
 ## build
 mvn -DskipTests=true clean package -P ${profile} -f ../pom.xml
 
 # >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 # build 服务器
-#host_name=root@120.46.55.96
-#identity_file=~/.ssh/kube-prod-key.pem
-#ssh_port=1022
+host_name=root@120.46.55.96
+identity_file=~/.ssh/kube-prod-key.pem
+ssh_port=1022
 
-host_name=root@192.168.10.14
-identity_file=~/.ssh/id_rsa
-ssh_port=22
+#host_name=root@192.168.10.14
+#identity_file=~/.ssh/id_rsa
+#ssh_port=22
 
 # <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
 
 # 服务名字
 service_name=charge_pile_machine
 # 容器镜像版本
-container_tag=latest
+container_tag=1.0.1
 
 
 tmp_dir=/tmp/tmp-devops-$(openssl rand -hex 8)

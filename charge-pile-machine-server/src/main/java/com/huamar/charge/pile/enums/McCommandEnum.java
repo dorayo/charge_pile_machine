@@ -14,10 +14,15 @@ import java.util.Objects;
 public enum McCommandEnum {
 
     CHARGE("0002", "充电控制 (0x0002)"),
+
     QR_CODE("0006", "二维码下发 (0x0006)"),
+
     VIN_QUERY("0007", "vin白名单 (0x0007)"),
+
     ELECTRICITY_PRICE("0003", "电价下发 (0x0003)"),
+
     ORDER_APPOINTMENT("0005", "充电预约 (0x0005)"),
+
     CARD_QUERY("0004", "卡查询结果 (0x0004)"),
     ;
     private final String code;

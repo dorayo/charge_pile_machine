@@ -130,32 +130,36 @@ public class SessionManagerNetHandler extends SimpleChannelInboundHandler<BasePa
      *
      * @param ctx ctx
      * @param evt evt
-     * @throws Exception Exception
      */
     @SuppressWarnings("DuplicatedCode")
     @Override
     public void userEventTriggered(ChannelHandlerContext ctx, Object evt) throws Exception {
-        // 入站的消息就是 IdleStateEvent 具体的事件
-        IdleStateEvent event = (IdleStateEvent) evt;
-        AttributeKey<String> machineId = AttributeKey.valueOf(ConstEnum.MACHINE_ID.getCode());
-        String bsId = ctx.channel().attr(machineId).get();
-        if (StringUtils.isNotBlank(bsId)) {
-            MDC.put(ConstEnum.ID_CODE.getCode(), bsId);
-        }
-        switch (event.state()) {
-            case READER_IDLE:
-                log.info("读取数据空闲");
-                break;
-            case WRITER_IDLE:
-                // 不处理
-                break;
-            case ALL_IDLE:
-                log.warn("IdCode:{} ALL_IDLE 心跳链接超时，关闭连接", bsId);
-                if (StringUtils.isNotBlank(bsId)) {
-                    SessionManager.remove(bsId);
-                }
-                ctx.close();
-                break;
+        log.info("userEventTriggered evt class:{}", evt.getClass().getSimpleName());
+        if(evt instanceof IdleStateEvent){
+            // 入站的消息就是 IdleStateEvent 具体的事件
+            IdleStateEvent event = (IdleStateEvent) evt;
+            AttributeKey<String> machineId = AttributeKey.valueOf(ConstEnum.MACHINE_ID.getCode());
+            String bsId = ctx.channel().attr(machineId).get();
+            if (StringUtils.isNotBlank(bsId)) {
+                MDC.put(ConstEnum.ID_CODE.getCode(), bsId);
+            }
+            switch (event.state()) {
+                case READER_IDLE:
+                    log.info("读取数据空闲");
+                    break;
+                case WRITER_IDLE:
+                    // 不处理
+                    break;
+                case ALL_IDLE:
+                    log.warn("IdCode:{} ALL_IDLE 心跳链接超时，关闭连接", bsId);
+                    if (StringUtils.isNotBlank(bsId)) {
+                        SessionManager.remove(bsId);
+                    }
+                    ctx.close();
+                    break;
+            }
+        }else {
+            super.userEventTriggered(ctx, evt);
         }
     }
 }

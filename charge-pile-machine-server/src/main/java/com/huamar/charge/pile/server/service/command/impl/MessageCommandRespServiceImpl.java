@@ -3,7 +3,6 @@ package com.huamar.charge.pile.server.service.command.impl;
 import cn.hutool.core.lang.Snowflake;
 import cn.hutool.core.util.IdUtil;
 import com.huamar.charge.common.util.JSONParser;
-import com.huamar.charge.pile.config.PileMachineProperties;
 import com.huamar.charge.pile.entity.dto.command.MessageCommonRespDTO;
 import com.huamar.charge.pile.entity.dto.mq.MessageData;
 import com.huamar.charge.pile.enums.CacheKeyEnum;

@@ -70,7 +70,7 @@ public class MachineClient implements InitializingBean, ApplicationContextAware 
         clientTioConfig.setName("T-io Client");
 
         // 心跳超时时间
-        clientTioConfig.setHeartbeatTimeout(TimeUnit.MINUTES.toMillis(10));
+        clientTioConfig.setHeartbeatTimeout(TimeUnit.SECONDS.toMillis(5));
 
         tioClient = new TioClient(clientTioConfig);
     }
