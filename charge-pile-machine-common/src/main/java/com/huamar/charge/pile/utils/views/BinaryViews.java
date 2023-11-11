@@ -48,6 +48,28 @@ public class BinaryViews {
         return bf[start++] | bf[start++] << 8 | bf[start++] << 16 | ((long) bf[start] << 24);
     }
 
+    static public byte[] numberStrToBcd(byte[] bf) {
+        int resultLen = bf.length / 2;
+        byte[] result = new byte[resultLen];
+        for (int i = 0; i < resultLen; i++) {
+            byte a = (byte) (bf[i * 2] - 0x30);
+            byte b = (byte) (bf[i * 2 + 1] - 0x30);
+            result[i] = (byte) (a << 4 | b);
+        }
+        return result;
+    }
+
+    static public byte[] bcdToNumberStr(byte[] bf) {
+        int resultLen = bf.length * 2;
+        byte[] result = new byte[resultLen];
+        for (int i = 0; i < resultLen; i++) {
+            int v = bf[i];
+            result[i * 2] = (byte) (v & 0xf);
+            result[i * 2 + 1] = (byte) ((v & 0xf0 >> 4) + 3);
+        }
+        return result;
+    }
+
     static public String bfToHexStr(byte[] bf) {
         ByteBuf a = ByteBufAllocator.DEFAULT.heapBuffer();
         a.writeBytes(bf);

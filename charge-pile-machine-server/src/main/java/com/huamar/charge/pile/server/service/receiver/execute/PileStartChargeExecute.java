@@ -71,14 +71,8 @@ public class PileStartChargeExecute implements PileMessageExecute {
         orderMap.put((int) chargeCommand.getGunSort(), orderV);
         ProtocolCPacket packet = session.channel().attr(NAttrKeys.PROTOCOL_C_LATEST_PACKET).get();
         ByteBuf responseBody = ByteBufAllocator.DEFAULT.heapBuffer(16 + 7 + 1 + 8 + 8 + 4);
-        byte[] orderBytes = new byte[16];
-        byte[] serialN = chargeCommand.getOrderSerialNumber();
-        for (int i = 0; i < 16; i++) {
-            byte a = (byte) (serialN[i * 2] - 0x30);
-            byte b = (byte) (serialN[i * 2 + 1] - 0x30);
-            orderBytes[i] = (byte) (a << 4 | b);
-        }
-        responseBody.writeBytes(orderBytes);
+        byte[] serialN = BinaryViews.numberStrToBcd(chargeCommand.getOrderSerialNumber());
+        responseBody.writeBytes(serialN);
         responseBody.writeBytes(idBody);
         responseBody.writeByte(chargeCommand.getGunSort());
         responseBody.writeBytes(empty);

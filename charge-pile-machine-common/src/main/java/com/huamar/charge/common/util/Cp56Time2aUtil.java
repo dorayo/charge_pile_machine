@@ -21,36 +21,41 @@ public class Cp56Time2aUtil {
      * @param bytes 字符数组
      * @return 时间字符串
      */
-    public static String toDateString(byte[] bytes) {
+    public static Date toDate(byte[] bytes) {
 
         int milliseconds1 = bytes[0] < 0 ? 256 + bytes[0] : bytes[0];
         int milliseconds2 = bytes[1] < 0 ? 256 + bytes[1] : bytes[1];
-        int milliseconds = milliseconds2 * 256 + milliseconds1;
+        int milliseconds = milliseconds1 + milliseconds2 * 256;
         // 位于 0011 1111
-        int minutes = bytes[2] & 0x3F;
+        int minutes = bytes[2] & 0x3f;
         // 位于 0001 1111
-        int hours = bytes[3] & 0x1F;
-        // 位于 0001 1111
-        int days = bytes[4] & 0x1F;
+        int hours = bytes[3] & 0x1f;
         // 位于 0000 1111
-        int months = bytes[5] & 0x0F;
+        int days = bytes[4] & 0x0f;
+        // 位于 0001 1111
+        int months = bytes[5] & 0x0f;
         // 位于 0111 1111
-        int years = bytes[6] & 0x7F;
-        return "20" + String.format("%02d", years) + "-" + String.format("%02d", months) + "-" + String.format("%02d", days) +
-                " " + String.format("%02d", hours) + ":" + String.format("%02d", minutes % 59) + ":" +
-                String.format("%02d", milliseconds / 1000);
+        int years = bytes[6] & 0x7f;
+        final Calendar aTime = Calendar.getInstance();
+        aTime.set(Calendar.MILLISECOND, milliseconds);
+        aTime.set(Calendar.MINUTE, minutes);
+        aTime.set(Calendar.HOUR_OF_DAY, hours);
+        aTime.set(Calendar.DAY_OF_MONTH, days);
+        aTime.set(Calendar.MONTH, months);
+        aTime.set(Calendar.YEAR, years + 2000);
+        return aTime.getTime();
     }
 
-    /**
-     * 转为时间格式
-     *
-     * @param bytes 字符数组
-     * @return 时间
-     */
-    public static Date toDate(byte[] bytes) {
-        String dateString = toDateString(bytes);
-        return DateUtil.parse(dateString, "yyyy-MM-dd HH:mm:ss");
-    }
+//    /**
+//     * 转为时间格式
+//     *
+//     * @param bytes 字符数组
+//     * @return 时间
+//     */
+//    public static Date toDate(byte[] bytes) {
+//        String dateString = toDateString(bytes);
+//        return DateUtil.parse(dateString, "yyyy-MM-dd HH:mm:ss");
+//    }
 
     /**
      * 时间转16进制字符串

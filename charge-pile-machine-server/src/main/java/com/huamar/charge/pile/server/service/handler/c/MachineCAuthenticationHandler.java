@@ -260,11 +260,12 @@ public class MachineCAuthenticationHandler {
      */
     private void syncTime(ProtocolCPacket packet, ChannelHandlerContext ctx) {
         byte type = (byte) 0x56;
+        byte[] idBody = ctx.attr(NAttrKeys.ID_BODY).get();
         Integer latestOrderV = ctx.attr(NAttrKeys.PROTOCOL_C_LATEST_ORDER_V).get();
         latestOrderV++;
         ctx.attr(NAttrKeys.PROTOCOL_C_LATEST_ORDER_V).set(latestOrderV);
         ByteBuf bfB = ByteBufAllocator.DEFAULT.heapBuffer();
-        bfB.writeBytes(packet.getIdBody());
+        bfB.writeBytes(idBody);
         bfB.writeBytes(Cp56Time2aUtil.dateToByte(new Date()));
         ByteBuf responseB = BinaryBuilders.protocolCLeResponseBuilder(NUtils.nBFToBf(bfB), latestOrderV, type);
         log.info("write  0x56 {} ", BinaryViews.bfToHexStr(responseB));

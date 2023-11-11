@@ -56,18 +56,15 @@ public class PileStopChargeExecute implements PileMessageExecute {
     public void handleC(String idCode, McChargeCommandDTO chargeCommand) {
         byte type = 0x36;
         SimpleSessionChannel session = (SimpleSessionChannel) SessionManager.get(idCode);
-        ConcurrentHashMap<Integer, Integer> orderMap = session.channel().attr(NAttrKeys.GUN_ORDER_MAP).get();
-        if (orderMap == null) {
-            log.error("order not found");
-            return;
-        }
-        int orderV = orderMap.get((int) chargeCommand.getGunSort());
-        ProtocolCPacket packet = session.channel().attr(NAttrKeys.PROTOCOL_C_LATEST_PACKET).get();
+        Integer latestOrderV = session.channel().attr(NAttrKeys.PROTOCOL_C_LATEST_ORDER_V).get();
+        latestOrderV++;
+        session.channel().attr(NAttrKeys.PROTOCOL_C_LATEST_ORDER_V).set(latestOrderV);
+        byte[] idBody = session.channel().attr(NAttrKeys.ID_BODY).get();
         ByteBuf responseBody = ByteBufAllocator.DEFAULT.heapBuffer(7 + 1);
-        responseBody.writeBytes(BinaryViews.bcdStringToByte(new String(chargeCommand.getOrderSerialNumber()).substring(0, 32)));
-        responseBody.writeBytes(packet.getIdBody());
+        responseBody.writeBytes(BinaryViews.numberStrToBcd(chargeCommand.getOrderSerialNumber()));
+        responseBody.writeBytes(idBody);
         responseBody.writeByte(chargeCommand.getGunSort());
-        ByteBuf response = BinaryBuilders.protocolCLeResponseBuilder(NUtils.nBFToBf(responseBody), orderV, type);
+        ByteBuf response = BinaryBuilders.protocolCLeResponseBuilder(NUtils.nBFToBf(responseBody), latestOrderV, type);
         log.info("send 停机0x36 body={}", BinaryViews.bfToHexStr(response));
         session.channel().writeAndFlush(response).addListener((f) -> {
             if (f.isSuccess()) {
@@ -77,7 +74,6 @@ public class PileStopChargeExecute implements PileMessageExecute {
                 f.cause().printStackTrace();
             }
         });
-        return;
     }
 
     /**
