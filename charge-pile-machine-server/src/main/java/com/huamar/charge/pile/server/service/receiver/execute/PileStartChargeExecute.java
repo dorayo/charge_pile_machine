@@ -7,6 +7,7 @@ import com.huamar.charge.pile.entity.dto.command.McChargeCommandDTO;
 import com.huamar.charge.pile.entity.dto.command.MessageCommonRespDTO;
 import com.huamar.charge.pile.entity.dto.mq.MessageData;
 import com.huamar.charge.pile.entity.dto.platform.PileChargeControlDTO;
+import com.huamar.charge.pile.entity.dto.platform.event.PileChargeFinishEventPushDTO;
 import com.huamar.charge.pile.enums.*;
 import com.huamar.charge.pile.server.service.factory.McCommandFactory;
 import com.huamar.charge.pile.server.service.command.MessageCommandRespService;
@@ -57,8 +58,7 @@ public class PileStartChargeExecute implements PileMessageExecute {
 
     public void handleProtocolC(String idCode, McChargeCommandDTO chargeCommand) {
         SimpleSessionChannel session = (SimpleSessionChannel) SessionManager.get(idCode);
-        byte type = 0x34;
-
+        final byte type = 0x34;
         Integer orderV = session.channel().attr(NAttrKeys.PROTOCOL_C_LATEST_ORDER_V).get();
         orderV++;
         session.channel().attr(NAttrKeys.PROTOCOL_C_LATEST_ORDER_V).set(orderV);
@@ -69,7 +69,6 @@ public class PileStartChargeExecute implements PileMessageExecute {
             session.channel().attr(NAttrKeys.GUN_ORDER_MAP).set(orderMap);
         }
         orderMap.put((int) chargeCommand.getGunSort(), orderV);
-        ProtocolCPacket packet = session.channel().attr(NAttrKeys.PROTOCOL_C_LATEST_PACKET).get();
         ByteBuf responseBody = ByteBufAllocator.DEFAULT.heapBuffer(16 + 7 + 1 + 8 + 8 + 4);
         byte[] serialN = BinaryViews.numberStrToBcd(chargeCommand.getOrderSerialNumber());
         responseBody.writeBytes(serialN);

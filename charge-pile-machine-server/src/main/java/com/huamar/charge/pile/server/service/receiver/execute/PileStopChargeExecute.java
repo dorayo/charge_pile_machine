@@ -61,7 +61,6 @@ public class PileStopChargeExecute implements PileMessageExecute {
         session.channel().attr(NAttrKeys.PROTOCOL_C_LATEST_ORDER_V).set(latestOrderV);
         byte[] idBody = session.channel().attr(NAttrKeys.ID_BODY).get();
         ByteBuf responseBody = ByteBufAllocator.DEFAULT.heapBuffer(7 + 1);
-        responseBody.writeBytes(BinaryViews.numberStrToBcd(chargeCommand.getOrderSerialNumber()));
         responseBody.writeBytes(idBody);
         responseBody.writeByte(chargeCommand.getGunSort());
         ByteBuf response = BinaryBuilders.protocolCLeResponseBuilder(NUtils.nBFToBf(responseBody), latestOrderV, type);
