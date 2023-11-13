@@ -161,8 +161,8 @@ public class MachineCHandlers {
             byte isCon = body[16 + 10];
             int cVoltage = (int) BinaryViews.shortViewLe(body, 16 + 10 + 1);
             int cStream = (int) BinaryViews.shortViewLe(body, 16 + 10 + 1 + 2);
-            long currentMoney = BinaryViews.intViewLe(body, bodyLen - 6);
-            int powerCount = (int) BinaryViews.intViewLe(body, bodyLen - 14);
+            int currentMoney = BinaryViews.intViewLe(body, bodyLen - 6);
+            int powerCount = BinaryViews.intViewLe(body, bodyLen - 14);
             int resetTime = (int) BinaryViews.shortViewLe(body, bodyLen - 16);
             int useTime = (int) BinaryViews.shortViewLe(body, bodyLen - 18);
             if (currentMoney < 0) {
@@ -172,17 +172,16 @@ public class MachineCHandlers {
             onlineInfoDto.setIdCode(ctx.channel().attr(machineId).get());
             onlineInfoDto.setGunSort(gunShort);
             onlineInfoDto.setGunState((byte) 0);
-            onlineInfoDto.setCurMoney((int) (currentMoney));
-            onlineInfoDto.setCumulativeTime(useTime);
+            onlineInfoDto.setCurMoney((currentMoney));
+            onlineInfoDto.setCumulativeTime(useTime * 60);
             onlineInfoDto.setCurChargeQuantity(powerCount);
             if (useTime != 0) {
                 onlineInfoDto.setStartTime(BCDUtils.timeToBCD(LocalDateTime.now().minus(useTime, ChronoUnit.MINUTES)));
             }
-
             ChargeStageDataDTO chargeStageDataDTO = new ChargeStageDataDTO();
             chargeStageDataDTO.setGunSort(gunShort);
             chargeStageDataDTO.setIdCode(onlineInfoDto.getIdCode());
-            chargeStageDataDTO.setRemainChargeTime((short) resetTime);
+            chargeStageDataDTO.setRemainChargeTime((short) (resetTime * 60));
             chargeStageDataDTO.setPileElectricityOutValue((short) cStream);
             chargeStageDataDTO.setPileVoltageOutValue((short) cVoltage);
             log.info("state={} isCon={} cMoney = {}", state, isCon, currentMoney);

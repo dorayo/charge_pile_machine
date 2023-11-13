@@ -44,12 +44,12 @@ public class BinaryViews {
         return b.toString();
     }
 
-    static public long intViewLe(byte[] bf, int start) {
-        return bf[start++] | bf[start++] << 8 | bf[start++] << 16 | ((long) bf[start] << 24);
+    static public int intViewLe(byte[] bf, int start) {
+        return (bf[start++] & 0xff) | ((bf[start++] & 0xff) << 8) | ((bf[start++] & 0xff) << 16) | ((bf[start] & 0xff) << 24);
     }
 
     static public long shortViewLe(byte[] bf, int start) {
-        return bf[start++] | bf[start] << 8;
+        return (bf[start++] & 0xff) | ((bf[start] & 0xff) << 8);
     }
 
     static public byte[] numberStrToBcd(byte[] bf) {

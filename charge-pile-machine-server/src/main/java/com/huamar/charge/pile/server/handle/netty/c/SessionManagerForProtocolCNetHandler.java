@@ -101,7 +101,6 @@ public class SessionManagerForProtocolCNetHandler extends SimpleChannelInboundHa
             SessionManager.put(id, sessionChannelNew);
         }
         channelHandlerContext.fireChannelRead(packet);
-        log.info("channelRead0 end <<<<<<<<<<<<<<<<<<<");
         MDC.clear();
     }
 
