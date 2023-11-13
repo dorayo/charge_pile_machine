@@ -5,7 +5,16 @@ import io.netty.buffer.ByteBufAllocator;
 
 import java.nio.charset.StandardCharsets;
 
+/**
+ * The type Binary views.
+ */
 public class BinaryViews {
+    /**
+     * Bcd views le string.
+     *
+     * @param bf the bf
+     * @return the string
+     */
     static public String bcdViewsLe(byte[] bf) {
         int resultLen = bf.length * 2;
         byte[] s = new byte[resultLen];
@@ -17,6 +26,12 @@ public class BinaryViews {
         return new String(s);
     }
 
+    /**
+     * Bcd string to byte byte [ ].
+     *
+     * @param bcdStr the bcd str
+     * @return the byte [ ]
+     */
     static public byte[] bcdStringToByte(String bcdStr) {
         byte[] chars = bcdStr.getBytes(StandardCharsets.US_ASCII);
         byte[] result = new byte[chars.length / 2];
@@ -29,6 +44,12 @@ public class BinaryViews {
         return result;
     }
 
+    /**
+     * Bf to hex str string.
+     *
+     * @param bf the bf
+     * @return the string
+     */
     static public String bfToHexStr(ByteBuf bf) {
         bf.markReaderIndex();
         StringBuilder b = new StringBuilder(bf.readableBytes() * 2);
@@ -44,14 +65,34 @@ public class BinaryViews {
         return b.toString();
     }
 
+    /**
+     * Int view le int.
+     *
+     * @param bf    the bf
+     * @param start the start
+     * @return the int
+     */
     static public int intViewLe(byte[] bf, int start) {
         return (bf[start++] & 0xff) | ((bf[start++] & 0xff) << 8) | ((bf[start++] & 0xff) << 16) | ((bf[start] & 0xff) << 24);
     }
 
+    /**
+     * Short view le long.
+     *
+     * @param bf    the bf
+     * @param start the start
+     * @return the long
+     */
     static public long shortViewLe(byte[] bf, int start) {
         return (bf[start++] & 0xff) | ((bf[start] & 0xff) << 8);
     }
 
+    /**
+     * Number str to bcd byte [ ].
+     *
+     * @param bf the bf
+     * @return the byte [ ]
+     */
     static public byte[] numberStrToBcd(byte[] bf) {
         int resultLen = bf.length / 2;
         byte[] result = new byte[resultLen];
@@ -63,6 +104,12 @@ public class BinaryViews {
         return result;
     }
 
+    /**
+     * Bcd to number str byte [ ].
+     *
+     * @param bf the bf
+     * @return the byte [ ]
+     */
     static public byte[] bcdToNumberStr(byte[] bf) {
         int resultLen = bf.length * 2;
         byte[] result = new byte[resultLen];
@@ -74,6 +121,12 @@ public class BinaryViews {
         return result;
     }
 
+    /**
+     * Bf to hex str string.
+     *
+     * @param bf the bf
+     * @return the string
+     */
     static public String bfToHexStr(byte[] bf) {
         ByteBuf a = ByteBufAllocator.DEFAULT.heapBuffer();
         a.writeBytes(bf);

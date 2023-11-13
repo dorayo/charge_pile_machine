@@ -47,6 +47,9 @@ import java.util.Date;
 
 import static com.huamar.charge.pile.enums.NAttrKeys.SERVICE_PRICE_RATIOS;
 
+/**
+ * The type Machine c handlers.
+ */
 @Slf4j
 @Service
 @RequiredArgsConstructor
@@ -61,6 +64,12 @@ public class MachineCHandlers {
      */
     private final PileMessageProduce pileMessageProduce;
 
+    /**
+     * Handler 0 x 05.
+     *
+     * @param packet the packet
+     * @param ctx    the ctx
+     */
     public void handler0x05(ProtocolCPacket packet, ChannelHandlerContext ctx) {
         McHeartbeatReqDTO reqDTO = null;
         try {
@@ -87,6 +96,12 @@ public class MachineCHandlers {
         }
     }
 
+    /**
+     * Handler 0 x 09.
+     *
+     * @param packet the packet
+     * @param ctx    the ctx
+     */
     public void handler0x09(ProtocolCPacket packet, ChannelHandlerContext ctx) {
         McHeartbeatReqDTO reqDTO = null;
         try {
@@ -98,6 +113,12 @@ public class MachineCHandlers {
         }
     }
 
+    /**
+     * Handler 0 x 33.
+     *
+     * @param packet the packet
+     * @param ctx    the ctx
+     */
     public void handler0x33(ProtocolCPacket packet, ChannelHandlerContext ctx) {
         try {
             McChargerOnlineInfoDTO onlineInfoDto = new McChargerOnlineInfoDTO();
@@ -127,6 +148,12 @@ public class MachineCHandlers {
         }
     }
 
+    /**
+     * Handler 0 x 35.
+     *
+     * @param packet the packet
+     * @param ctx    the ctx
+     */
     public void handler0x35(ProtocolCPacket packet, ChannelHandlerContext ctx) {
         try {
             McChargerOnlineInfoDTO onlineInfoDto = new McChargerOnlineInfoDTO();
@@ -150,6 +177,12 @@ public class MachineCHandlers {
         }
     }
 
+    /**
+     * Handler 0 x 13.
+     *
+     * @param packet the packet
+     * @param ctx    the ctx
+     */
     public void handler0x13(ProtocolCPacket packet, ChannelHandlerContext ctx) {
         try {
             AttributeKey<String> machineId = AttributeKey.valueOf(ConstEnum.MACHINE_ID.getCode());
@@ -218,6 +251,12 @@ public class MachineCHandlers {
         }
     }
 
+    /**
+     * Handler 0 x 9 b.
+     *
+     * @param packet the packet
+     * @param ctx    the ctx
+     */
     public void handler0x9B(ProtocolCPacket packet, ChannelHandlerContext ctx) {
         try {
             byte[] body = packet.getBody();
@@ -227,6 +266,12 @@ public class MachineCHandlers {
         }
     }
 
+    /**
+     * Handler 0 x 3 b.
+     *
+     * @param packet the packet
+     * @param ctx    the ctx
+     */
     public void handler0x3b(ProtocolCPacket packet, ChannelHandlerContext ctx) {
         try {
             float[] ratios = ctx.channel().attr(SERVICE_PRICE_RATIOS).get();
@@ -314,6 +359,12 @@ public class MachineCHandlers {
         }
     }
 
+    /**
+     * Handler 0 x 55.
+     *
+     * @param packet the packet
+     * @param ctx    the ctx
+     */
     public void handler0x55(ProtocolCPacket packet, ChannelHandlerContext ctx) {
         try {
             log.info("{} set time success", packet.getId());

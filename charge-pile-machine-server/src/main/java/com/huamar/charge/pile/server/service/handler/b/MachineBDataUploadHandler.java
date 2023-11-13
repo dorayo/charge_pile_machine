@@ -53,7 +53,7 @@ public class MachineBDataUploadHandler implements MachinePacketHandler<DataPacke
     /**
      * 处理国花0x02
      */
-    private final PileChargeFinishEventExecute pileChargeFinishEventExecute  ;
+    private final PileChargeFinishEventExecute pileChargeFinishEventExecute;
 
     /**
      * 执行器
