@@ -90,7 +90,7 @@ public class MachineBDataUploadHandler implements MachinePacketHandler<DataPacke
                     break;
                 // 充电阶段信息
                 case 0x0A:
-                    mcDataUploadStageExecute.execute(dataUploadReqDTO.getTime(), item);
+                    mcDataUploadStageExecute.executeB(dataUploadReqDTO.getTime(), item);
                     break;
                 default:
                     log.error("MachineDataUpItem unKnown unitId " + item.getUnitId());
