@@ -119,7 +119,7 @@ public class PileChargeFinishEventExecute implements PileEventExecute {
         RBucket<McElectricityPriceCommandDTO> bucket = redissonClient.getBucket(key);
         McElectricityPriceCommandDTO mcElectricityPriceCommandDTO = bucket.get();
         if(mcElectricityPriceCommandDTO != null){
-            int monery = (int)(mcElectricityPriceCommandDTO.getServicePrice1()/10000*(eventDTO.getOutPower()));
+            int monery = (int)(mcElectricityPriceCommandDTO.getServicePrice1()/10000*(eventDTO.getOutPower())*100);
             eventPushDTO.setServiceMoney(monery);
             eventPushDTO.setChargeMoney(eventPushDTO.getChargeMoney()-monery);
         }
