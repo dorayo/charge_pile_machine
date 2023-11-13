@@ -147,7 +147,7 @@ public class PileChargeFinishEventExecute implements PileEventExecute {
         DataPacketReader reader = new DataPacketReader(reqDTO.getData());
         PileChargeFinishEventDTO eventDTO = new PileChargeFinishEventDTO();
         eventDTO.setGunSort(reader.readByte());
-        eventDTO.setOutPower(reader.readInt());
+        eventDTO.setOutPower(reader.readInt()*100);
         eventDTO.setChargeMoney(reader.readInt()*100);
         eventDTO.setEndReason(reader.readShort());
         eventDTO.setStartTime(reader.readBCD());
