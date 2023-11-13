@@ -10,6 +10,7 @@ import com.huamar.charge.pile.entity.dto.mq.MessageData;
 import com.huamar.charge.pile.entity.dto.platform.PileHeartbeatDTO;
 import com.huamar.charge.pile.enums.McDataUploadEnum;
 import com.huamar.charge.common.protocol.DataPacketReader;
+import com.huamar.charge.pile.enums.McTypeEnum;
 import com.huamar.charge.pile.enums.MessageCodeEnum;
 import com.huamar.charge.pile.server.service.produce.PileMessageProduce;
 import lombok.RequiredArgsConstructor;
@@ -107,7 +108,7 @@ public class McDataUploadOnlineExecute implements McDataUploadExecute {
         DataPacketReader reader = new DataPacketReader(data.getData());
         if (reader.getBuffer().array().length == 56) {
             //adopte machine b
-            this.parse(onlineInfoDto, reader);
+            this.parse(onlineInfoDto, reader, McTypeEnum.B);
             return onlineInfoDto;
         }
         if (reader.getBuffer().array().length == 24) {
@@ -157,23 +158,51 @@ public class McDataUploadOnlineExecute implements McDataUploadExecute {
     }
 
     /**
+     * 解析对象
+     *
+     * @param onlineInfoDto onlineInfoDto
+     * @param reader        reader
+     */
+    private void parse(McChargerOnlineInfoDTO onlineInfoDto, DataPacketReader reader, McTypeEnum type) {
+        if (type == McTypeEnum.B) {
+            onlineInfoDto.setGunSort(reader.readByte());
+            onlineInfoDto.setGunState(reader.readByte());
+            onlineInfoDto.setStartTime(reader.readBCD());
+            onlineInfoDto.setCumulativeTime(reader.readInt());
+            onlineInfoDto.setCurMoney(reader.readInt() * 100);
+            onlineInfoDto.setServiceMoney(reader.readInt() * 100);
+            onlineInfoDto.setCurChargeQuantity(reader.readInt() * 100);
+        } else {
+            onlineInfoDto.setGunSort(reader.readByte());
+            onlineInfoDto.setGunState(reader.readByte());
+            onlineInfoDto.setStartTime(reader.readBCD());
+            onlineInfoDto.setCumulativeTime(reader.readInt());
+            onlineInfoDto.setCurMoney(reader.readInt());
+            onlineInfoDto.setServiceMoney(reader.readInt());
+            onlineInfoDto.setCurChargeQuantity(reader.readInt());
+        }
+
+    }
+
+    /**
      * 兼容国华协议
+     *
      * @param time
      * @param item
      */
     public void chargerExecute(BCD time, MachineDataUpItem item) {
-       if(item.getData().length > 2 &&  (item.getData().length-2)%56 == 0){
-           byte data[] =  Arrays.copyOfRange(item.getData(), 2,item.getData().length);
-           int num = (item.getData().length-2)/56;
-           for (int i =0 ;i<num ; i++){
-               byte newScores[] =  Arrays.copyOfRange(data, i*56, (i+1)*56);
-               item.setData(newScores);
-               McChargerOnlineInfoDTO parse = this.parse(item);
-               log.info("充电桩实时状态信息 data:{}", parse);
-               this.sendMessage(parse);
-               this.sendHeart(parse);
-           }
-       }
+        if (item.getData().length > 2 && (item.getData().length - 2) % 56 == 0) {
+            byte data[] = Arrays.copyOfRange(item.getData(), 2, item.getData().length);
+            int num = (item.getData().length - 2) / 56;
+            for (int i = 0; i < num; i++) {
+                byte newScores[] = Arrays.copyOfRange(data, i * 56, (i + 1) * 56);
+                item.setData(newScores);
+                McChargerOnlineInfoDTO parse = this.parse(item);
+                log.info("充电桩实时状态信息 data:{}", parse);
+                this.sendMessage(parse);
+                this.sendHeart(parse);
+            }
+        }
     }
 
     private void sendHeart(McChargerOnlineInfoDTO reqDTO) {

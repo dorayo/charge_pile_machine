@@ -25,7 +25,7 @@ import java.util.concurrent.TimeUnit;
  * 设备端数据汇报接口-充电结束统计
  * 2023/07/24
  *
- * @author TiAmo(13721682347@163.com)
+ * @author TiAmo(13721682347 @ 163.com)
  */
 @Slf4j
 @Component
@@ -93,7 +93,7 @@ public class PileChargeFinishEventExecute implements PileEventExecute {
         eventDTO.setOrderSerialNumber(reader.readString(32));
         eventDTO.setEndReason(reader.readShort());
         //判断是否还有未读完数据，兼容不同版本协议
-        if(!reader.isEnd()){
+        if (!reader.isEnd()) {
             eventDTO.setStartSoc(reader.readByte());
         }
         return eventDTO;
@@ -118,17 +118,17 @@ public class PileChargeFinishEventExecute implements PileEventExecute {
         key = keyEnum.joinKey(key);
         RBucket<McElectricityPriceCommandDTO> bucket = redissonClient.getBucket(key);
         McElectricityPriceCommandDTO mcElectricityPriceCommandDTO = bucket.get();
-        if(mcElectricityPriceCommandDTO != null){
-            int monery = (int)(mcElectricityPriceCommandDTO.getServicePrice1()/10000*(eventDTO.getOutPower()))*100;
+        if (mcElectricityPriceCommandDTO != null) {
+            int monery = (int) (mcElectricityPriceCommandDTO.getServicePrice1() / 10000 * (eventDTO.getOutPower()));
             eventPushDTO.setServiceMoney(monery);
-            eventPushDTO.setChargeMoney(eventPushDTO.getChargeMoney()-monery);
+            eventPushDTO.setChargeMoney(eventPushDTO.getChargeMoney() - monery);
         }
 
-        PileEventReqDTO reqDTOTemp = new  PileEventReqDTO();
+        PileEventReqDTO reqDTOTemp = new PileEventReqDTO();
         reqDTOTemp.setIdCode(reqDTO.getIdCode());
         reqDTOTemp.setEventStartTime(eventDTO.getStartTime());
         reqDTOTemp.setEventEndTime(eventDTO.getEndTime());
-        reqDTOTemp.setEventState((byte)2);
+        reqDTOTemp.setEventState((byte) 2);
         PileChargeFinishEventConvert.INSTANCE.copyBaseField(eventPushDTO, reqDTOTemp);
 
         MessageData<PileChargeFinishEventPushDTO> messageData = new MessageData<>(eventPushDTO);
@@ -147,8 +147,8 @@ public class PileChargeFinishEventExecute implements PileEventExecute {
         DataPacketReader reader = new DataPacketReader(reqDTO.getData());
         PileChargeFinishEventDTO eventDTO = new PileChargeFinishEventDTO();
         eventDTO.setGunSort(reader.readByte());
-        eventDTO.setOutPower(reader.readInt()*100);
-        eventDTO.setChargeMoney(reader.readInt()*100);
+        eventDTO.setOutPower(reader.readInt() * 100);
+        eventDTO.setChargeMoney(reader.readInt() * 100);
         eventDTO.setEndReason(reader.readShort());
         eventDTO.setStartTime(reader.readBCD());
         eventDTO.setEndTime(reader.readBCD());
@@ -161,7 +161,7 @@ public class PileChargeFinishEventExecute implements PileEventExecute {
         eventDTO.setOrderSerialNumber(reader.readString(17));
 
         //判断是否还有未读完数据，兼容不同版本协议
-        if(!reader.isEnd()){
+        if (!reader.isEnd()) {
             eventDTO.setStartSoc(reader.readByte());
         }
         return eventDTO;
