@@ -18,10 +18,10 @@ services:
     restart: always
     privileged: true
     extra_hosts:
-      - "dev.charge-pile-nacos-internal.huamar.com:192.168.0.179"
+      - "dev.charge-pile-nacos-internal.huamar.com:192.168.10.14"
     ports:
       - "8886:8886"
       - "8881:8881"
     environment:
       TZ: Asia/Shanghai
-      JAVA_OPTS: -Xms128m -Xmx1024m -Dspring.profiles.active=default,prod,linux -Dspring.devtools.restart.enabled=false
+      JAVA_OPTS: -Xms128m -Xmx1024m -Dspring.profiles.active=default,dev,linux -Dspring.devtools.restart.enabled=false

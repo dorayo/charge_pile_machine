@@ -2,10 +2,11 @@ package com.huamar.charge.pile.server;
 
 import com.huamar.charge.common.protocol.BasePacket;
 import com.huamar.charge.pile.config.ServerApplicationProperties;
+import com.huamar.charge.pile.enums.McTypeEnum;
 import com.huamar.charge.pile.server.handle.netty.ServerNetHandler;
 import com.huamar.charge.pile.server.handle.netty.SessionManagerNetHandler;
 import com.huamar.charge.pile.server.protocol.ProtocolCodecFactory;
-import com.huamar.charge.pile.server.service.factory.MachinePacketFactory;
+import com.huamar.charge.pile.server.service.factory.b.MachineBPacketFactory;
 import com.huamar.charge.pile.server.session.context.SimpleSessionContext;
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.buffer.ByteBuf;
@@ -36,17 +37,17 @@ import java.util.concurrent.atomic.AtomicBoolean;
  * netty 服务端
  */
 @Slf4j
-@ConditionalOnProperty(name = "machine.server.net-socket-model", havingValue = "netty")
+@ConditionalOnProperty(name = "machine.server.enable-b-server", havingValue = "true")
 @Configuration
 @Import(SimpleSessionContext.class)
-public class MachineNetServer implements NetServer {
+public class MachineBNetServer implements NetServer {
 
     /**
      * 设备端通信配置
      */
     private final ServerApplicationProperties properties;
 
-    private final MachinePacketFactory machinePacketFactory;
+    private final MachineBPacketFactory machinePacketFactory;
 
     /**
      * 接收线程
@@ -76,22 +77,22 @@ public class MachineNetServer implements NetServer {
      * @param properties           properties
      * @param machinePacketFactory machinePacketFactory
      */
-    public MachineNetServer(ServerApplicationProperties properties, MachinePacketFactory machinePacketFactory) {
+    public MachineBNetServer(ServerApplicationProperties properties, MachineBPacketFactory machinePacketFactory) {
         this.properties = properties;
         this.machinePacketFactory = machinePacketFactory;
     }
 
     @Bean
-    public ApplicationListener<ApplicationReadyEvent> serverStart() {
+    public ApplicationListener<ApplicationReadyEvent> serverBStart() {
         return event -> {
-            MachineNetServer netServer = event.getApplicationContext().getBean(this.getClass());
+            MachineBNetServer netServer = event.getApplicationContext().getBean(this.getClass());
             netServer.start();
             log.info("Server Net start ...{}", netServer.getClass().getSimpleName());
         };
     }
 
     @Bean
-    public ApplicationListener<ContextClosedEvent> stopApplicationListener() {
+    public ApplicationListener<ContextClosedEvent> stopBApplicationListener() {
         return event -> {
             event.getApplicationContext().getBean(this.getClass()).close();
             log.info("MachineNetServer close ...");
@@ -110,7 +111,7 @@ public class MachineNetServer implements NetServer {
         }
         this.init();
         isRun.getAndSet(Boolean.TRUE);
-        channelFuture = serverBootstrap.bind(properties.getPort()).sync();
+        channelFuture = serverBootstrap.bind(properties.getPortB()).sync();
         //serverBootstrap.bind(properties.getPortSalve()).sync();
         //channelFuture.channel().closeFuture().sync(); 阻塞等待服务器 socket 关闭
     }
@@ -138,8 +139,8 @@ public class MachineNetServer implements NetServer {
                         pipeline.addLast("decoder", new MessageDecodeHandler());
                         pipeline.addLast("encoder", new MessageEncodeHandler());
                         // IdleStateHandler 下一个 handler 必须实现 userEventTriggered 方法处理对应事件
-                        pipeline.addLast(new IdleStateHandler(properties.getTimeout().getSeconds(), 0, 0, TimeUnit.SECONDS));
-                        pipeline.addLast("sessionManager", new SessionManagerNetHandler());
+                        pipeline.addLast(new IdleStateHandler(0, 0, properties.getTimeout().getSeconds(), TimeUnit.SECONDS));
+                        pipeline.addLast("sessionManager", new SessionManagerNetHandler(McTypeEnum.B));
                         pipeline.addLast("serverNetHandler", serverNetHandler);
                     }
                 });

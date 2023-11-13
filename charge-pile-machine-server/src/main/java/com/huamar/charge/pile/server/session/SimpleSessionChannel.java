@@ -1,6 +1,7 @@
 package com.huamar.charge.pile.server.session;
 
 import com.huamar.charge.net.core.SessionChannel;
+import com.huamar.charge.pile.enums.McTypeEnum;
 import io.netty.channel.ChannelHandlerContext;
 import lombok.Setter;
 
@@ -14,7 +15,7 @@ import java.util.concurrent.ConcurrentHashMap;
  * 默认的 SessionChannel
  * Date: 2023/07/24
  *
- * @author TiAmo(13721682347@163.com)
+ * @author TiAmo(13721682347 @ 163.com)
  */
 public class SimpleSessionChannel implements SessionChannel {
 
@@ -23,6 +24,16 @@ public class SimpleSessionChannel implements SessionChannel {
 
     private final Date startDate = new Date();
 
+
+    public McTypeEnum getType() {
+        return type;
+    }
+
+    public void setType(McTypeEnum type) {
+        this.type = type;
+    }
+
+    private McTypeEnum type = McTypeEnum.A;
 
     private final ConcurrentHashMap<Object, Object> attribute = new ConcurrentHashMap<>();
 

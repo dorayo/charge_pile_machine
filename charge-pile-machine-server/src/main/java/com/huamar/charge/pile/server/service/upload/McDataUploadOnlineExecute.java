@@ -1,11 +1,13 @@
 package com.huamar.charge.pile.server.service.upload;
 
+import cn.hutool.core.date.DateUtil;
 import cn.hutool.core.util.IdUtil;
 import com.huamar.charge.common.common.codec.BCD;
 import com.huamar.charge.pile.config.PileMachineProperties;
 import com.huamar.charge.pile.entity.dto.MachineDataUpItem;
 import com.huamar.charge.pile.entity.dto.McChargerOnlineInfoDTO;
 import com.huamar.charge.pile.entity.dto.mq.MessageData;
+import com.huamar.charge.pile.entity.dto.platform.PileHeartbeatDTO;
 import com.huamar.charge.pile.enums.McDataUploadEnum;
 import com.huamar.charge.common.protocol.DataPacketReader;
 import com.huamar.charge.pile.enums.MessageCodeEnum;
@@ -15,6 +17,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import org.springframework.util.Assert;
 
+import java.time.LocalDateTime;
+import java.util.Arrays;
 import java.util.List;
 
 
@@ -22,7 +26,7 @@ import java.util.List;
  * 充电桩实时状态信息 One
  * 2023/07/24
  *
- * @author TiAmo(13721682347@163.com)
+ * @author TiAmo(13721682347 @ 163.com)
  */
 @Slf4j
 @Component
@@ -56,18 +60,28 @@ public class McDataUploadOnlineExecute implements McDataUploadExecute {
     @Override
     public void execute(BCD time, List<MachineDataUpItem> list) {
         list.forEach(item -> {
-            McChargerOnlineInfoDTO parse = this.parse(item);
-            log.info("充电桩实时状态信息 data:{}", parse);
-            this.sendMessage(parse);
+            execute(time, item);
         });
     }
 
+    /**
+     * Execute.
+     *
+     * @param time time
+     * @param item the item
+     */
+    public void execute(BCD time, MachineDataUpItem item) {
+        McChargerOnlineInfoDTO parse = this.parse(item);
+        log.info("充电桩实时状态信息 data:{}", parse);
+        this.sendMessage(parse);
+    }
 
     /**
      * 发送设备端消息
+     *
      * @param onlineInfoDTO onlineInfoDTO
      */
-    private void sendMessage(McChargerOnlineInfoDTO onlineInfoDTO){
+    private void sendMessage(McChargerOnlineInfoDTO onlineInfoDTO) {
         try {
             Assert.notNull(onlineInfoDTO, "McChargerOnlineInfoDTO noNull");
             MessageData<McChargerOnlineInfoDTO> messageData = new MessageData<>(MessageCodeEnum.PILE_ONLINE, onlineInfoDTO);
@@ -75,32 +89,38 @@ public class McDataUploadOnlineExecute implements McDataUploadExecute {
             messageData.setMessageId(IdUtil.simpleUUID());
             messageData.setRequestId(IdUtil.simpleUUID());
             pileMessageProduce.send(messageData);
-        }catch (Exception e){
+        } catch (Exception e) {
             log.error("sendMessage send error e:{}", e.getMessage(), e);
         }
     }
 
     /**
      * 解析对象
+     *
      * @param data data
      * @return McChargerOnlineInfoDto
      */
     @SuppressWarnings("DuplicatedCode")
-    private McChargerOnlineInfoDTO parse(MachineDataUpItem data){
+    private McChargerOnlineInfoDTO parse(MachineDataUpItem data) {
         McChargerOnlineInfoDTO onlineInfoDto = new McChargerOnlineInfoDTO();
         onlineInfoDto.setIdCode(data.getIdCode());
         DataPacketReader reader = new DataPacketReader(data.getData());
-        if(reader.getBuffer().array().length == 24){
+        if (reader.getBuffer().array().length == 56) {
+            //adopte machine b
             this.parse(onlineInfoDto, reader);
             return onlineInfoDto;
         }
-        if(reader.getBuffer().array().length == 32){
+        if (reader.getBuffer().array().length == 24) {
+            this.parse(onlineInfoDto, reader);
+            return onlineInfoDto;
+        }
+        if (reader.getBuffer().array().length == 32) {
             this.parse(onlineInfoDto, reader);
             onlineInfoDto.setFaultCode1(reader.readInt());
             onlineInfoDto.setFaultCode2(reader.readInt());
             return onlineInfoDto;
         }
-        if(onlineInfoDto.getGunNum() == 0){
+        if (onlineInfoDto.getGunNum() == 0) {
             return onlineInfoDto;
         }
 
@@ -122,10 +142,11 @@ public class McDataUploadOnlineExecute implements McDataUploadExecute {
 
     /**
      * 解析对象
+     *
      * @param onlineInfoDto onlineInfoDto
-     * @param reader reader
+     * @param reader        reader
      */
-    private void parse(McChargerOnlineInfoDTO onlineInfoDto, DataPacketReader reader){
+    private void parse(McChargerOnlineInfoDTO onlineInfoDto, DataPacketReader reader) {
         onlineInfoDto.setGunSort(reader.readByte());
         onlineInfoDto.setGunState(reader.readByte());
         onlineInfoDto.setStartTime(reader.readBCD());
@@ -133,5 +154,35 @@ public class McDataUploadOnlineExecute implements McDataUploadExecute {
         onlineInfoDto.setCurMoney(reader.readInt());
         onlineInfoDto.setServiceMoney(reader.readInt());
         onlineInfoDto.setCurChargeQuantity(reader.readInt());
+    }
+
+    /**
+     * 兼容国华协议
+     * @param time
+     * @param item
+     */
+    public void chargerExecute(BCD time, MachineDataUpItem item) {
+       if(item.getData().length > 2 &&  (item.getData().length-2)%56 == 0){
+           byte data[] =  Arrays.copyOfRange(item.getData(), 2,item.getData().length);
+           int num = (item.getData().length-2)/56;
+           for (int i =0 ;i<num ; i++){
+               byte newScores[] =  Arrays.copyOfRange(data, i*56, (i+1)*56);
+               item.setData(newScores);
+               McChargerOnlineInfoDTO parse = this.parse(item);
+               log.info("充电桩实时状态信息 data:{}", parse);
+               this.sendMessage(parse);
+               this.sendHeart(parse);
+           }
+       }
+    }
+
+    private void sendHeart(McChargerOnlineInfoDTO reqDTO) {
+        PileHeartbeatDTO pileHeartbeatDTO = new PileHeartbeatDTO();
+        pileHeartbeatDTO.setProtocolNumber(null);
+        pileHeartbeatDTO.setIdCode(reqDTO.getIdCode());
+        pileHeartbeatDTO.setDateTime(LocalDateTime.now());
+        pileHeartbeatDTO.setTime(DateUtil.now());
+        MessageData<PileHeartbeatDTO> messageData = new MessageData<>(MessageCodeEnum.PILE_HEART_BEAT, pileHeartbeatDTO);
+        pileMessageProduce.send(messageData);
     }
 }

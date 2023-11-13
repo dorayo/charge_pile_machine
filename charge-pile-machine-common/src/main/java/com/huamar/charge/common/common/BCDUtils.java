@@ -9,7 +9,7 @@ import java.time.format.DateTimeFormatter;
  * BCD
  * 2023/07/24
  *
- * @author TiAmo(13721682347@163.com)
+ * @author TiAmo(13721682347 @ 163.com)
  */
 public class BCDUtils {
 
@@ -30,6 +30,17 @@ public class BCDUtils {
         return new BCD(b);
     }
 
+    public static BCD timeToBCD(LocalDateTime time) {
+        DateTimeFormatter fmt = DateTimeFormatter.ofPattern("yy,MM,dd,HH,mm,ss");
+        String text = fmt.format(time);
+        byte[] b = new byte[6];
+        String[] c = text.split(StringPool.COMMA);
+        for (int i = 0; i < c.length; i++) {
+            int dd = Integer.parseInt(c[i]);
+            b[i] = (byte) ((dd / 10) * 16 + dd % 10);
+        }
+        return new BCD(b);
+    }
     //	/**
 //	 * bcdTime
 //	 * @return byte[]

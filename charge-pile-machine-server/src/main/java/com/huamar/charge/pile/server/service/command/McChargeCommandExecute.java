@@ -15,7 +15,7 @@ import org.springframework.stereotype.Component;
  * 远程控制执行-充电控制
  * 2023/07/24
  *
- * @author TiAmo(13721682347@163.com)
+ * @author TiAmo(13721682347 @ 163.com)
  */
 @Slf4j
 @Component
@@ -57,6 +57,7 @@ public class McChargeCommandExecute implements McCommandExecute<McChargeCommandD
      */
     @Override
     public McCommandDTO convert(McChargeCommandDTO command) {
+        //cover a b
         DataPacketWriter writer = new DataPacketWriter();
         writer.write(command.getChargeControl());
         writer.write(command.getGunSort());
