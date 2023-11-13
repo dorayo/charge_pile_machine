@@ -1,26 +1,24 @@
-package com.huamar.charge.pile.server.service.handler;
+package com.huamar.charge.pile.server.service.handler.b;
 
+import com.huamar.charge.common.protocol.DataPacket;
 import com.huamar.charge.net.core.SessionChannel;
 import com.huamar.charge.pile.convert.MachineDataUploadConvert;
 import com.huamar.charge.pile.entity.dto.MachineDataUpItem;
 import com.huamar.charge.pile.entity.dto.MachineDataUploadReqDTO;
-import com.huamar.charge.pile.entity.dto.event.PileEventReqDTO;
 import com.huamar.charge.pile.entity.dto.resp.McCommonResp;
 import com.huamar.charge.pile.enums.ProtocolCodeEnum;
-import com.huamar.charge.common.protocol.DataPacket;
 import com.huamar.charge.pile.server.service.answer.b.McBCommonAnswerExecute;
 import com.huamar.charge.pile.server.service.event.PileChargeFinishEventExecute;
-import com.huamar.charge.pile.server.service.event.PileEventExecute;
 import com.huamar.charge.pile.server.service.factory.McAnswerFactory;
 import com.huamar.charge.pile.server.service.factory.McDataUploadFactory;
+import com.huamar.charge.pile.server.service.handler.MachinePacketHandler;
 import com.huamar.charge.pile.server.service.upload.McDataUploadOnlineExecute;
 import com.huamar.charge.pile.server.service.upload.McDataUploadStageExecute;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.stereotype.Service;
 
-import java.util.*;
+import java.util.List;
 
 /**
  * 终端数据汇报拦截器
@@ -90,7 +88,7 @@ public class MachineBDataUploadHandler implements MachinePacketHandler<DataPacke
                     break;
                 // 充电阶段信息
                 case 0x0A:
-                    mcDataUploadStageExecute.execute(dataUploadReqDTO.getTime(), item);
+                    mcDataUploadStageExecute.executeB(dataUploadReqDTO.getTime(), item);
                     break;
                 default:
                     log.error("MachineDataUpItem unKnown unitId " + item.getUnitId());
