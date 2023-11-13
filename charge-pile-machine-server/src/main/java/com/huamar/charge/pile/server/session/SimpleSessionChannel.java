@@ -105,6 +105,7 @@ public class SimpleSessionChannel implements SessionChannel {
      */
     @Override
     public void close() {
+        channelContext.channel().close();
         channelContext.close();
     }
 }

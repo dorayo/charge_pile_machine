@@ -49,18 +49,18 @@ public class SessionManagerNetHandler extends SimpleChannelInboundHandler<BasePa
     public void channelInactive(ChannelHandlerContext ctx) {
         MDC.clear();
         log.info("{} 断开了服务器", ctx.channel().remoteAddress());
-        try {
-            AttributeKey<String> machineId = AttributeKey.valueOf(ConstEnum.MACHINE_ID.getCode());
-            String bsId = ctx.channel().attr(machineId).get();
-            if (StringUtils.isNotBlank(bsId)) {
-                MDC.put(ConstEnum.ID_CODE.getCode(), bsId);
-                SessionManager.remove(bsId);
-            }
-        } catch (Exception ignored) {
-            log.info("{} 断开了服务器 error", ctx.channel().remoteAddress());
-        } finally {
-            ctx.close();
-        }
+//        try {
+//            AttributeKey<String> machineId = AttributeKey.valueOf(ConstEnum.MACHINE_ID.getCode());
+//            String bsId = ctx.channel().attr(machineId).get();
+//            if (StringUtils.isNotBlank(bsId)) {
+//                MDC.put(ConstEnum.ID_CODE.getCode(), bsId);
+//                SessionManager.remove(bsId);
+//            }
+//        } catch (Exception ignored) {
+//            log.info("{} 断开了服务器 error", ctx.channel().remoteAddress());
+//        } finally {
+//            ctx.close();
+//        }
     }
 
     /**
@@ -72,12 +72,14 @@ public class SessionManagerNetHandler extends SimpleChannelInboundHandler<BasePa
     @Override
     protected void channelRead0(ChannelHandlerContext channelHandlerContext, BasePacket packet) {
         Thread.currentThread().setName(IdUtil.getSnowflakeNextIdStr());
+        String idCode = "";
         if (packet instanceof DataPacket) {
             DataPacket dataPacket = (DataPacket) packet;
             String bsId = new String((dataPacket).getIdCode());
+            idCode = bsId;
             MDC.put(ConstEnum.ID_CODE.getCode(), new String((dataPacket).getIdCode()));
             SessionChannel session = SessionManager.get(bsId);
-            log.info("channelRead0 start >>>>>>>>>>>>>>>>>>");
+            log.info("channelRead0 start idCode:{} >>>>>>>>>>>>>>>>>>", idCode);
             if (Objects.isNull(session)) {
                 SimpleSessionChannel sessionChannelNew = new SimpleSessionChannel(channelHandlerContext);
                 sessionChannelNew.setId(bsId);
@@ -95,8 +97,9 @@ public class SessionManagerNetHandler extends SimpleChannelInboundHandler<BasePa
             MDC.clear();
             return;
         }
+
         channelHandlerContext.fireChannelRead(packet);
-        log.info("channelRead0 end <<<<<<<<<<<<<<<<<<<");
+        log.info("channelRead0 end idCode:{} <<<<<<<<<<<<<<<<<<<", idCode);
         MDC.clear();
     }
 
@@ -121,7 +124,13 @@ public class SessionManagerNetHandler extends SimpleChannelInboundHandler<BasePa
         } catch (Exception ignored) {
             log.error("{} exceptionCaught error,{}", ctx.channel().remoteAddress(), cause.getMessage(), cause);
         } finally {
-            ctx.close();
+//            ctx.channel().close().addListener(future -> {
+//                log.error("ctx channel close:{} ", future.isSuccess(), future.cause());
+//            });
+
+            ctx.close().addListener(future -> {
+                log.error("ctx close:{} ", future.isSuccess(), future.cause());
+            });
         }
     }
 
@@ -135,7 +144,7 @@ public class SessionManagerNetHandler extends SimpleChannelInboundHandler<BasePa
     @Override
     public void userEventTriggered(ChannelHandlerContext ctx, Object evt) throws Exception {
         log.info("userEventTriggered evt class:{}", evt.getClass().getSimpleName());
-        if(evt instanceof IdleStateEvent){
+        if (evt instanceof IdleStateEvent) {
             // 入站的消息就是 IdleStateEvent 具体的事件
             IdleStateEvent event = (IdleStateEvent) evt;
             AttributeKey<String> machineId = AttributeKey.valueOf(ConstEnum.MACHINE_ID.getCode());
@@ -144,22 +153,40 @@ public class SessionManagerNetHandler extends SimpleChannelInboundHandler<BasePa
                 MDC.put(ConstEnum.ID_CODE.getCode(), bsId);
             }
             switch (event.state()) {
+
                 case READER_IDLE:
-                    log.info("读取数据空闲");
+                    log.warn("IdCode:{} READER_IDLE 读取数据空闲", bsId);
+                    this.close(ctx);
                     break;
+
                 case WRITER_IDLE:
-                    // 不处理
+                    log.warn("IdCode:{} WRITER_IDLE 读取数据空闲", bsId);
                     break;
+
                 case ALL_IDLE:
                     log.warn("IdCode:{} ALL_IDLE 心跳链接超时，关闭连接", bsId);
                     if (StringUtils.isNotBlank(bsId)) {
                         SessionManager.remove(bsId);
                     }
-                    ctx.close();
+                    this.close(ctx);
                     break;
             }
-        }else {
+        } else {
             super.userEventTriggered(ctx, evt);
         }
+    }
+
+    /**
+     * 关闭连接
+     * @param ctx ctx
+     */
+    private void close(ChannelHandlerContext ctx) {
+        ctx.channel().close().addListener(future -> {
+            log.error("ctx channel close:{} ", future.isSuccess(), future.cause());
+        });
+
+        ctx.close().addListener(future -> {
+            log.error("ctx close:{} ", future.isSuccess(), future.cause());
+        });
     }
 }

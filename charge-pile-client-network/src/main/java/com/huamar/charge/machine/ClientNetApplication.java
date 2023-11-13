@@ -40,7 +40,7 @@ public class ClientNetApplication {
     @Order(0)
     public void listen(ApplicationReadyEvent event) throws Exception {
         MachineClient machineClient = event.getApplicationContext().getBean(MachineClient.class);
-        machineClient.connect(new Node("120.46.55.96", 8886));
+        machineClient.connect(new Node("127.0.0.1", 8886));
 
         //Tio.close(machineClient.clientChannelContext, "close");
     }

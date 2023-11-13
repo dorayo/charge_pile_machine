@@ -139,7 +139,7 @@ public class MachineNetServer implements NetServer {
                         pipeline.addLast("decoder", new MessageDecodeHandler());
                         pipeline.addLast("encoder", new MessageEncodeHandler());
                         // IdleStateHandler 下一个 handler 必须实现 userEventTriggered 方法处理对应事件
-                        pipeline.addLast(new IdleStateHandler(0, 0, properties.getTimeout().getSeconds(), TimeUnit.SECONDS));
+                        pipeline.addLast(new IdleStateHandler(properties.getTimeout().getSeconds(), 0, 0, TimeUnit.SECONDS));
                         pipeline.addLast("sessionManager", new SessionManagerNetHandler());
                         pipeline.addLast("serverNetHandler", serverNetHandler);
                     }
