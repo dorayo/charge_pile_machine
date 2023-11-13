@@ -51,7 +51,6 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 
-import static sun.security.util.KnownOIDs.Data;
 
 /**
  * 终端鉴权
