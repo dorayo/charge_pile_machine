@@ -12,4 +12,5 @@ public class NAttrKeys {
     static final public AttributeKey<Integer> PROTOCOL_C_LATEST_ORDER_V = AttributeKey.valueOf("PROTOCOL_C_LATEST_ORDER_V");
     static final public AttributeKey<ConcurrentHashMap<Integer, Integer>> GUN_ORDER_MAP = AttributeKey.valueOf("GUN_ORDER_MAP");
     static final public AttributeKey<byte[]> ID_BODY = AttributeKey.valueOf("ID_BODY");
+    static final public AttributeKey<float[]> SERVICE_PRICE_RATIOS = AttributeKey.valueOf("SERVICE_PRICE_RATIOS");
 }

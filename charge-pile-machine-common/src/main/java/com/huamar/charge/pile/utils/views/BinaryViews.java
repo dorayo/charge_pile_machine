@@ -48,6 +48,10 @@ public class BinaryViews {
         return bf[start++] | bf[start++] << 8 | bf[start++] << 16 | ((long) bf[start] << 24);
     }
 
+    static public long shortViewLe(byte[] bf, int start) {
+        return bf[start++] | bf[start] << 8;
+    }
+
     static public byte[] numberStrToBcd(byte[] bf) {
         int resultLen = bf.length / 2;
         byte[] result = new byte[resultLen];

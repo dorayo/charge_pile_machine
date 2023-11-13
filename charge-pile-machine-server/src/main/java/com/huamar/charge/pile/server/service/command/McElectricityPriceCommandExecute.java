@@ -70,6 +70,8 @@ public class McElectricityPriceCommandExecute implements McCommandExecute<McElec
             byte[] idBody = sessionChannel.channel().attr(NAttrKeys.ID_BODY).get();
             byte[] orderBf;
             ProtocolCPacket packet = sessionChannel.channel().attr(NAttrKeys.PROTOCOL_C_0x09_PACKET).get();
+            float[] SERVICE_PRICE_RATIOS = new float[4];
+            sessionChannel.channel().attr(NAttrKeys.SERVICE_PRICE_RATIOS).set(SERVICE_PRICE_RATIOS);
             if (packet.getOrderVBf() == null) {
                 Integer orderV = sessionChannel.channel().attr(NAttrKeys.PROTOCOL_C_LATEST_ORDER_V).get();
                 orderBf = new byte[]{
@@ -79,18 +81,22 @@ public class McElectricityPriceCommandExecute implements McCommandExecute<McElec
             } else {
                 orderBf = packet.getOrderVBf();
             }
+            SERVICE_PRICE_RATIOS[0] = (float) command.getServicePrice1() / ((float) command.getPrice1() + (float) command.getServicePrice1());
+            SERVICE_PRICE_RATIOS[1] = (float) command.getServicePrice2() / ((float) command.getPrice2() + (float) command.getServicePrice2());
+            SERVICE_PRICE_RATIOS[2] = (float) command.getServicePrice3() / ((float) command.getPrice3() + (float) command.getServicePrice3());
+            SERVICE_PRICE_RATIOS[3] = (float) command.getServicePrice4() / ((float) command.getPrice4() + (float) command.getServicePrice4());
             ByteBuf responseBody = ByteBufAllocator.DEFAULT.heapBuffer(59);
             responseBody.writeBytes(idBody);
             responseBody.writeByte(0x01);
             responseBody.writeByte(0x00);
-            responseBody.writeIntLE(command.getPrice1());
-            responseBody.writeIntLE(command.getServicePrice1());
-            responseBody.writeIntLE(command.getPrice2());
-            responseBody.writeIntLE(command.getServicePrice2());
-            responseBody.writeIntLE(command.getPrice3());
-            responseBody.writeIntLE(command.getServicePrice3());
-            responseBody.writeIntLE(command.getPrice4());
-            responseBody.writeIntLE(command.getServicePrice4());
+            responseBody.writeIntLE(command.getPrice1() * 10);
+            responseBody.writeIntLE(command.getServicePrice1() * 10);
+            responseBody.writeIntLE(command.getPrice2() * 10);
+            responseBody.writeIntLE(command.getServicePrice2() * 10);
+            responseBody.writeIntLE(command.getPrice3() * 10);
+            responseBody.writeIntLE(command.getServicePrice3() * 10);
+            responseBody.writeIntLE(command.getPrice4() * 10);
+            responseBody.writeIntLE(command.getServicePrice4() * 10);
             responseBody.writeByte(0x00);
             responseBody.writeBytes(timeStages);
             ByteBuf response = BinaryBuilders.protocolCLeResponseBuilder(NUtils.nBFToBf(responseBody), orderBf, (byte) 0x0A);
