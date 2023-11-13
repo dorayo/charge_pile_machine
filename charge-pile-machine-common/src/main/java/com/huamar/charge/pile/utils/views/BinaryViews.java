@@ -49,7 +49,7 @@ public class BinaryViews {
     }
 
     static public long shortViewLe(byte[] bf, int start) {
-        return bf[start++] | bf[start++] << 8;
+        return bf[start++] | bf[start] << 8;
     }
 
     static public byte[] numberStrToBcd(byte[] bf) {

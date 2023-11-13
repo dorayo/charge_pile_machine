@@ -162,15 +162,19 @@ public class MachineCHandlers {
             int cVoltage = (int) BinaryViews.shortViewLe(body, 16 + 10 + 1);
             int cStream = (int) BinaryViews.shortViewLe(body, 16 + 10 + 1 + 2);
             long currentMoney = BinaryViews.intViewLe(body, bodyLen - 6);
-            int powerCount = (int) BinaryViews.intViewLe(body, bodyLen - 6 - 4 - 4);
-            int resetTime = (int) BinaryViews.shortViewLe(body, bodyLen - 6 - 4 - 4 - 2);
-            int useTime = (int) BinaryViews.shortViewLe(body, bodyLen - 6 - 4 - 4 - 2 - 2);
-
+            int powerCount = (int) BinaryViews.intViewLe(body, bodyLen - 14);
+            int resetTime = (int) BinaryViews.shortViewLe(body, bodyLen - 16);
+            int useTime = (int) BinaryViews.shortViewLe(body, bodyLen - 18);
+            if (currentMoney < 0) {
+                log.info("error negative{}", currentMoney);
+                return;
+            }
             onlineInfoDto.setIdCode(ctx.channel().attr(machineId).get());
             onlineInfoDto.setGunSort(gunShort);
             onlineInfoDto.setGunState((byte) 0);
             onlineInfoDto.setCurMoney((int) (currentMoney));
             onlineInfoDto.setCumulativeTime(useTime);
+            onlineInfoDto.setCurChargeQuantity(powerCount);
             if (useTime != 0) {
                 onlineInfoDto.setStartTime(BCDUtils.timeToBCD(LocalDateTime.now().minus(useTime, ChronoUnit.MINUTES)));
             }
@@ -181,8 +185,8 @@ public class MachineCHandlers {
             chargeStageDataDTO.setRemainChargeTime((short) resetTime);
             chargeStageDataDTO.setPileElectricityOutValue((short) cStream);
             chargeStageDataDTO.setPileVoltageOutValue((short) cVoltage);
-
             log.info("state={} isCon={} cMoney = {}", state, isCon, currentMoney);
+
             switch (state) {
                 case 0:
                     break;
@@ -208,7 +212,6 @@ public class MachineCHandlers {
             messageData1.setBusinessId(onlineInfoDto.getIdCode());
             messageData1.setMessageId(IdUtil.simpleUUID());
             messageData1.setRequestId(IdUtil.simpleUUID());
-
             pileMessageProduce.send(messageData);
             pileMessageProduce.send(messageData1);
         } catch (Exception e) {
@@ -228,6 +231,9 @@ public class MachineCHandlers {
     public void handler0x3b(ProtocolCPacket packet, ChannelHandlerContext ctx) {
         try {
             float[] ratios = ctx.channel().attr(SERVICE_PRICE_RATIOS).get();
+            if (ratios == null) {
+                return;
+            }
             int currenServiceRatioI = 0;
             AttributeKey<String> machineId = AttributeKey.valueOf(ConstEnum.MACHINE_ID.getCode());
             String idCode = ctx.channel().attr(machineId).get();
@@ -288,8 +294,8 @@ public class MachineCHandlers {
             eventPushDTO.setEndReason(endReason);
             eventPushDTO.setCumulativeChargeTime((int) (endTD.getTime() / 60000 - startTD.getTime() / 60000));
             eventPushDTO.setGunSort(gunShort);
-            eventPushDTO.setServiceMoney((int) (total * (1 - ratios[currenServiceRatioI])));
-            eventPushDTO.setChargeMoney((int) (total * (ratios[currenServiceRatioI])));
+            eventPushDTO.setServiceMoney((int) (total * (ratios[currenServiceRatioI])));
+            eventPushDTO.setChargeMoney((int) (total - eventPushDTO.getServiceMoney()));
             MessageData<PileChargeFinishEventPushDTO> messageData = new MessageData<>(eventPushDTO);
             messageData.setBusinessCode(MessageCodeEnum.EVENT_CHARGE_FINISH.getCode());
             messageData.setBusinessId(idCode);
