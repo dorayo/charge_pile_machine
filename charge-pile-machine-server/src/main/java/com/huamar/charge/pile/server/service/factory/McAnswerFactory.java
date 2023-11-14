@@ -40,7 +40,12 @@ public class McAnswerFactory implements InitializingBean, ApplicationContextAwar
     public void afterPropertiesSet() {
         applicationContext
                 .getBeansOfType(McAnswerExecute.class).values()
-                .forEach(exec -> EXECUTE_MAP.put(exec.getCode(), exec));
+                .forEach(exec -> {
+                    if(EXECUTE_MAP.containsKey(exec.getCode())){
+                        throw new RuntimeException("不允许覆盖相同执行器" + exec.getCode());
+                    }
+                    EXECUTE_MAP.put(exec.getCode(), exec);
+                });
     }
 
 

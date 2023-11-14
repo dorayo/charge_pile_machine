@@ -2,12 +2,14 @@ package com.huamar.charge.pile.server.service.answer;
 
 import com.huamar.charge.common.protocol.DataPacketWriter;
 import com.huamar.charge.common.protocol.PacketBuilder;
+import com.huamar.charge.common.util.JSONParser;
 import com.huamar.charge.net.core.SessionChannel;
 import com.huamar.charge.pile.entity.dto.resp.McCommonResp;
 import com.huamar.charge.pile.enums.McAnswerEnum;
 import com.huamar.charge.pile.enums.ProtocolCodeEnum;
 import com.huamar.charge.pile.server.session.SessionManager;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 /**
@@ -16,6 +18,7 @@ import org.springframework.stereotype.Service;
  *
  * @author TiAmo(13721682347@163.com)
  */
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class McCommonAnswerExecute implements McAnswerExecute<McCommonResp> {
@@ -39,6 +42,7 @@ public class McCommonAnswerExecute implements McAnswerExecute<McCommonResp> {
      */
     @Override
     public void execute(McCommonResp resp, SessionChannel channelContext) {
+        log.info("设备通用应答：idCode:{} resp：{}", resp.getIdCode(), JSONParser.jsonString(resp));
         DataPacketWriter writer = this.writer(resp);
         PacketBuilder builder = PacketBuilder.builder();
         builder.body(writer)

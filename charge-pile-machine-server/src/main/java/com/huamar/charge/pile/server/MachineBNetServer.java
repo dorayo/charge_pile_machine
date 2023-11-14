@@ -5,6 +5,7 @@ import com.huamar.charge.pile.config.ServerApplicationProperties;
 import com.huamar.charge.pile.enums.McTypeEnum;
 import com.huamar.charge.pile.server.handle.netty.ServerNetHandler;
 import com.huamar.charge.pile.server.handle.netty.SessionManagerNetHandler;
+import com.huamar.charge.pile.server.handle.netty.b.ServerNetBHandler;
 import com.huamar.charge.pile.server.protocol.ProtocolCodecFactory;
 import com.huamar.charge.pile.server.service.factory.b.MachineBPacketFactory;
 import com.huamar.charge.pile.server.session.context.SimpleSessionContext;
@@ -135,12 +136,12 @@ public class MachineBNetServer implements NetServer {
                 .childHandler(new ChannelInitializer<SocketChannel>() {
                     @Override
                     protected void initChannel(SocketChannel socketChannel) {
-                        ServerNetHandler serverNetHandler = new ServerNetHandler(machinePacketFactory);
+                        ServerNetBHandler serverNetHandler = new ServerNetBHandler(machinePacketFactory);
                         ChannelPipeline pipeline = socketChannel.pipeline();
                         pipeline.addLast("decoder", new MessageDecodeHandler());
                         pipeline.addLast("encoder", new MessageEncodeHandler());
                         // IdleStateHandler 下一个 handler 必须实现 userEventTriggered 方法处理对应事件
-                        pipeline.addLast(new IdleStateHandler(0, 0, properties.getTimeout().getSeconds(), TimeUnit.SECONDS));
+                        pipeline.addLast(new IdleStateHandler(properties.getTimeout().getSeconds(), 0, 0, TimeUnit.SECONDS));
                         pipeline.addLast("sessionManager", new SessionManagerNetHandler(McTypeEnum.B));
                         pipeline.addLast("serverNetHandler", serverNetHandler);
                     }

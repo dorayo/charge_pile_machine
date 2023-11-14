@@ -105,6 +105,6 @@ public class MachineBDataUploadHandler implements MachinePacketHandler<DataPacke
      */
     @Override
     public ProtocolCodeEnum getCode() {
-        return ProtocolCodeEnum.DATA_UPLOAD;
+        return ProtocolCodeEnum.DATA_UPLOAD_B;
     }
 }

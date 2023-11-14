@@ -4,8 +4,6 @@ import cn.hutool.core.date.StopWatch;
 import cn.hutool.core.lang.Assert;
 import cn.hutool.crypto.digest.HMac;
 import cn.hutool.crypto.digest.HmacAlgorithm;
-import com.huamar.charge.common.common.BCDUtils;
-import com.huamar.charge.common.common.BaseResp;
 import com.huamar.charge.common.protocol.DataPacket;
 import com.huamar.charge.common.protocol.FixString;
 import com.huamar.charge.common.protocol.c.ProtocolCPacket;
@@ -16,14 +14,14 @@ import com.huamar.charge.net.core.SessionChannel;
 import com.huamar.charge.pile.api.dto.PileDTO;
 import com.huamar.charge.pile.convert.MachineAuthenticationConvert;
 import com.huamar.charge.pile.entity.dto.MachineAuthenticationReqDTO;
-import com.huamar.charge.pile.entity.dto.command.McQrCodeCommandDTO;
 import com.huamar.charge.pile.entity.dto.mq.MessageData;
 import com.huamar.charge.pile.entity.dto.resp.McAuthResp;
-import com.huamar.charge.pile.enums.*;
-import com.huamar.charge.pile.server.service.answer.McAnswerExecute;
+import com.huamar.charge.pile.enums.ConstEnum;
+import com.huamar.charge.pile.enums.MessageCodeEnum;
+import com.huamar.charge.pile.enums.NAttrKeys;
+import com.huamar.charge.pile.enums.ProtocolCodeEnum;
 import com.huamar.charge.pile.server.service.factory.McAnswerFactory;
 import com.huamar.charge.pile.server.service.factory.McCommandFactory;
-import com.huamar.charge.pile.server.service.handler.MachinePacketHandler;
 import com.huamar.charge.pile.server.service.machine.MachineService;
 import com.huamar.charge.pile.server.service.produce.PileMessageProduce;
 import com.huamar.charge.pile.server.session.SessionManager;
@@ -35,23 +33,17 @@ import io.netty.channel.ChannelHandlerContext;
 import io.netty.util.AttributeKey;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.StringUtils;
-import org.slf4j.MDC;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.task.TaskExecutor;
 import org.springframework.stereotype.Service;
 
-import java.nio.Buffer;
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.Date;
-import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
-
-import static sun.security.util.KnownOIDs.Data;
 
 /**
  * 终端鉴权
