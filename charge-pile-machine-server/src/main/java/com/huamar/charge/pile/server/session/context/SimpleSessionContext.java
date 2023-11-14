@@ -31,7 +31,9 @@ public class SimpleSessionContext implements MachineSessionContext {
         try {
             SimpleSessionChannel sessionChannel = (SimpleSessionChannel) channel;
             Assert.notNull(sessionChannel, "session is null");
-            sessionChannel.channel().writeAndFlush(packet);
+            sessionChannel.channel().writeAndFlush(packet).addListener(future -> {
+                log.info("ctx writePacket success:{} ", future.isSuccess(), future.cause());
+            });
         } catch (Exception e) {
             log.error("writePacket error", e);
             return false;
@@ -54,7 +56,9 @@ public class SimpleSessionContext implements MachineSessionContext {
                 return true;
             }
             Assert.notNull(sessionChannel, "session is null");
-            channelHandlerContext.writeAndFlush(packet);
+            channelHandlerContext.writeAndFlush(packet).addListener(future -> {
+                log.info("ctx writePacket success:{} ", future.isSuccess(), future.cause());
+            });
         } catch (Exception e) {
             log.error("writePacket error", e);
             return false;

@@ -7,7 +7,7 @@ import com.huamar.charge.common.protocol.PacketBuilder;
 import com.huamar.charge.common.util.HexExtUtil;
 import com.huamar.charge.machine.client.protocol.PacketCodec;
 import com.huamar.charge.machine.client.protocol.TioPacket;
-import com.huamar.charge.machine.client.MachineClient;
+import com.huamar.charge.machine.client.MachineAClient;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import lombok.RequiredArgsConstructor;
@@ -35,7 +35,7 @@ import org.tio.core.Tio;
 @RequiredArgsConstructor
 public class ServerController {
 
-    private final MachineClient machineClient;
+    private final MachineAClient machineAClient;
 
     private final TaskExecutor taskExecutor;
 
@@ -47,7 +47,7 @@ public class ServerController {
             @RequestParam String id,
             @RequestParam String body
     ) {
-        ClientChannelContext channelContext = machineClient.getClientChannelContext();
+        ClientChannelContext channelContext = machineAClient.getClientChannelContext();
         PacketCodec protocolCodec = new PacketCodec();
 
         // 转码翻译数据包
@@ -61,7 +61,7 @@ public class ServerController {
         writer.write(dataPacket.getMsgBody());
 
         DataPacket packet = PacketBuilder.builder()
-                .messageNumber(machineClient.getMessageNumber())
+                .messageNumber(machineAClient.getMessageNumber())
                 .messageId("34")
                 .idCode(id)
                 .body(writer)

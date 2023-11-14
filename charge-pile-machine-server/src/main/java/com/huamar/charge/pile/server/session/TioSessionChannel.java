@@ -5,6 +5,7 @@ import lombok.Data;
 import org.tio.core.ChannelContext;
 
 import java.io.Serializable;
+import java.net.InetSocketAddress;
 import java.util.Collection;
 import java.util.Date;
 
@@ -51,7 +52,17 @@ public class TioSessionChannel implements SessionChannel {
      */
     @Override
     public String getIp() {
-        return null;
+        return channel.getClientNode().getIp();
+    }
+
+    /**
+     * 获取客户端地址
+     *
+     * @return InetSocketAddress
+     */
+    @Override
+    public InetSocketAddress remoteAddress() {
+        return new InetSocketAddress(channel.getClientNode().getIp(), channel.getClientNode().getPort());
     }
 
     @Override

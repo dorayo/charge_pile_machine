@@ -28,6 +28,7 @@ import org.springframework.context.annotation.Import;
 import org.springframework.context.event.ContextClosedEvent;
 
 import java.nio.ByteOrder;
+import java.time.Duration;
 import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.TimeUnit;
@@ -128,7 +129,7 @@ public class MachineBNetServer implements NetServer {
         workerGroup = new NioEventLoopGroup(properties.getWorker());
         serverBootstrap.group(boosGroup, workerGroup)
                 .channel(NioServerSocketChannel.class)
-                .option(ChannelOption.CONNECT_TIMEOUT_MILLIS, (int) properties.getTimeout().getSeconds())
+                .option(ChannelOption.CONNECT_TIMEOUT_MILLIS, (int) Duration.ofSeconds(60).toMillis())
                 // 没有空闲链接将请求暂存在缓冲队列
                 .option(ChannelOption.SO_BACKLOG, 1024)
                 .childHandler(new ChannelInitializer<SocketChannel>() {

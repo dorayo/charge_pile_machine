@@ -30,6 +30,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.task.TaskExecutor;
 import org.springframework.stereotype.Service;
 
+import java.net.InetSocketAddress;
 import java.time.Duration;
 import java.util.Map;
 import java.util.Objects;
@@ -46,7 +47,6 @@ import java.util.concurrent.TimeUnit;
 @Service
 @RequiredArgsConstructor
 public class MachineAuthenticationHandler implements MachinePacketHandler<DataPacket> {
-
 
     /**
      * 设备接口
@@ -93,21 +93,25 @@ public class MachineAuthenticationHandler implements MachinePacketHandler<DataPa
     @Override
     public void handler(DataPacket packet, SessionChannel sessionChannel) {
 
+        InetSocketAddress remoteAddress = sessionChannel.remoteAddress();
         MachineAuthenticationReqDTO reqDTO = this.reader(packet);
-        log.info("终端鉴权，loginNumber={} time={} ip={}", reqDTO.getLoginNumber(), reqDTO.getTerminalTime(), sessionChannel.getIp());
+        String idCode = reqDTO.getIdCode();
+        log.info("终端鉴权（SLX） idCode:{}, remoteAddress:{}, loginNumber={}, time={}", idCode, remoteAddress, reqDTO.getLoginNumber(), reqDTO.getTerminalTime());
+
         McAuthResp authResp = new McAuthResp();
         authResp.setTime(BCDUtils.bcdTime());
         authResp.setEncryptionType((byte) 0);
         authResp.setSecretKeyLength((short) 0);
-        authResp.setIdCode(reqDTO.getIdCode());
+        authResp.setIdCode(idCode);
         authResp.setSecretKey(new FixString(new byte[0]));
+
         // 应答实现
         McAnswerExecute<BaseResp> answerExecute = answerFactory.getExecute(McAnswerEnum.AUTH);
         Map<String, String> mdcMap = MDC.getCopyOfContextMap();
         taskExecutor.execute(() -> {
             try {
                 MDC.setContextMap(mdcMap);
-                pileMessageProduce.send(new MessageData<>(MessageCodeEnum.PILE_AUTH, reqDTO.getIdCode()));
+                pileMessageProduce.send(new MessageData<>(MessageCodeEnum.PILE_AUTH, idCode));
 
                 // 多次鉴权并发问题，先返回成功，认证失败关闭连接
                 authResp.setStatus(MachineAuthStatus.SUCCESS.getCode());
@@ -117,33 +121,26 @@ public class MachineAuthenticationHandler implements MachinePacketHandler<DataPa
                 long maxWaitTime = Duration.ofSeconds(3).toMillis();
 
                 PileDTO pile = null;
-                StopWatch stopWatch = new StopWatch("Auth");
+                StopWatch stopWatch = new StopWatch("Pile Auth");
                 stopWatch.start("wait pile");
                 while (System.currentTimeMillis() - startTime < maxWaitTime) {
-                    pile = machineService.getCache(reqDTO.getIdCode());
-                    if (Objects.isNull(pile)) {
-                        continue;
+                    pile = machineService.getCache(idCode);
+                    if (Objects.nonNull(pile)) {
+                        break;
                     }
-                    try {
-                        TimeUnit.MILLISECONDS.sleep(500);
-                    } catch (InterruptedException ignored) {
-                    }
+                    log.warn("终端鉴权 （SLX） auth wait pile time await:{}", System.currentTimeMillis() - startTime);
+                    TimeUnit.MILLISECONDS.sleep(500);
                 }
                 stopWatch.stop();
-                log.info("auth pile isSuccess:{}", Optional.ofNullable(pile).isPresent());
-                log.info("auth auth task run time:{} prettyPrint:{}"
-                        , stopWatch.getTotalTimeSeconds()
-                        ,stopWatch.prettyPrint(TimeUnit.MILLISECONDS));
+                log.info("终端鉴权 （SLX）auth pile isSuccess:{}, time:{}", Optional.ofNullable(pile).isPresent(), stopWatch.getTotalTimeSeconds());
 
                 // 多次鉴权并发问题
                 Object auth = sessionChannel.getAttribute("auth");
-                if(Objects.nonNull(auth)){
-                    log.info("pile auth:{}", auth);
-                    authResp.setStatus(MachineAuthStatus.SUCCESS.getCode());
-                    answerExecute.execute(authResp, sessionChannel);
-                    return;
+                if (Objects.nonNull(auth)) {
+                    log.info("终端鉴权 （SLX） pile auth session attribute:{}", auth);
                 }
 
+                // 认证失败
                 if (Objects.isNull(pile)) {
                     authResp.setStatus(MachineAuthStatus.TERMINAL_NOT_REGISTER.getCode());
                     answerExecute.execute(authResp, sessionChannel);
@@ -177,22 +174,22 @@ public class MachineAuthenticationHandler implements MachinePacketHandler<DataPa
                 authResp.setStatus(MachineAuthStatus.SUCCESS.getCode());
                 answerExecute.execute(authResp, sessionChannel);
                 // 标记此连接鉴权成功
-                sessionChannel.setAttribute("auth","ok");
+                sessionChannel.setAttribute("auth", "ok");
+
+                update.setStationId(pile.getStationId());
+                update.setPileCode(pile.getPileCode());
 
                 // 二维码下发
                 this.sendQrCode(authResp);
+
+                //电价更新
+                pileMessageProduce.send(new MessageData<>(MessageCodeEnum.ELECTRICITY_PRICE, update));
+
                 // 设备更新
                 pileMessageProduce.send(new MessageData<>(MessageCodeEnum.PILE_UPDATE, update));
 
-                //电价更新
-                update.setStationId(pile.getStationId());
-                update.setPileCode(pile.getPileCode());
-                pileMessageProduce.send(new MessageData<>(MessageCodeEnum.ELECTRICITY_PRICE, update));
-
-            }catch (Exception e){
-                log.error("auth execute error:{}", e.getMessage(), e);
-            }finally {
-                machineService.removeCache(reqDTO.getIdCode());
+            } catch (Exception e) {
+                log.error("终端鉴权 （SLX）auth execute error:{}", e.getMessage(), e);
             }
         });
     }
@@ -216,6 +213,7 @@ public class MachineAuthenticationHandler implements MachinePacketHandler<DataPa
      */
     private void encryptionSecretKey(MachineAuthenticationReqDTO reqDTO, McAuthResp authResp) {
         if ((reqDTO.getBoardNum() & 0xff) != 160) {
+            log.info("encryptionSecretKey isEncrypt :{}", false);
             return;
         }
         authResp.setEncryptionType((byte) 1);

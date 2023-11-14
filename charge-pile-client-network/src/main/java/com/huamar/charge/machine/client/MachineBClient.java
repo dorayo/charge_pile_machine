@@ -7,14 +7,12 @@ import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
-import org.springframework.context.annotation.Configuration;
 import org.springframework.lang.NonNull;
 import org.springframework.stereotype.Component;
 import org.tio.client.ClientChannelContext;
 import org.tio.client.ClientTioConfig;
 import org.tio.client.ReconnConf;
 import org.tio.client.TioClient;
-import org.tio.client.intf.ClientAioHandler;
 import org.tio.client.intf.ClientAioListener;
 import org.tio.core.ChannelContext;
 import org.tio.core.Node;
@@ -32,7 +30,7 @@ import java.util.concurrent.atomic.AtomicInteger;
  */
 @Data
 @Component
-public class MachineClient implements InitializingBean, ApplicationContextAware {
+public class MachineBClient implements InitializingBean, ApplicationContextAware {
 
     private ApplicationContext applicationContext;
 
@@ -64,13 +62,13 @@ public class MachineClient implements InitializingBean, ApplicationContextAware 
     public void afterPropertiesSet() throws IOException {
 
         // 一组连接共用的上下文对象
-        ClientTioConfig clientTioConfig = new ClientTioConfig(new MachineHandler(), new ClientListener(), new ReconnConf(5 * 1000, 5));
+        ClientTioConfig clientTioConfig = new ClientTioConfig(new MachineBHandler(), new ClientListener(), null);
 
         // 服务名称
         clientTioConfig.setName("T-io Client");
 
         // 心跳超时时间
-        clientTioConfig.setHeartbeatTimeout(TimeUnit.SECONDS.toMillis(15));
+        clientTioConfig.setHeartbeatTimeout(TimeUnit.SECONDS.toMillis(30));
 
         tioClient = new TioClient(clientTioConfig);
     }
@@ -97,7 +95,7 @@ public class MachineClient implements InitializingBean, ApplicationContextAware 
 
 
     @Slf4j
-    static class ClientListener implements org.tio.client.intf.ClientAioListener{
+    static class ClientListener implements ClientAioListener{
         /**
          * 建链后触发本方法，注：建链不一定成功，需要关注参数isConnected
          *

@@ -1,7 +1,8 @@
 package com.huamar.charge.machine;
 
 
-import com.huamar.charge.machine.client.MachineClient;
+import com.huamar.charge.machine.client.MachineAClient;
+import com.huamar.charge.machine.client.MachineBClient;
 import de.vandermeer.asciitable.AsciiTable;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
@@ -17,6 +18,7 @@ import org.tio.core.Node;
 import org.tio.core.Tio;
 
 import java.net.InetAddress;
+import java.util.concurrent.TimeUnit;
 
 /**
  * 服务端程序入口
@@ -39,10 +41,14 @@ public class ClientNetApplication {
     @EventListener(ApplicationReadyEvent.class)
     @Order(0)
     public void listen(ApplicationReadyEvent event) throws Exception {
-        MachineClient machineClient = event.getApplicationContext().getBean(MachineClient.class);
-        machineClient.connect(new Node("127.0.0.1", 8886));
+        MachineAClient a = event.getApplicationContext().getBean(MachineAClient.class);
+        a.connect(new Node("127.0.0.1", 8886));
 
-        //Tio.close(machineClient.clientChannelContext, "close");
+        MachineBClient b = event.getApplicationContext().getBean(MachineBClient.class);
+        b.connect(new Node("127.0.0.1", 8886));
+
+        TimeUnit.SECONDS.sleep(60);
+        Tio.close(b.getClientChannelContext(), "close");
     }
 
     @EventListener(ApplicationReadyEvent.class)

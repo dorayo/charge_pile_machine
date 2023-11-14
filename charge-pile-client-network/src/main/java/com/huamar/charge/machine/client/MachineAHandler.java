@@ -26,7 +26,7 @@ import java.nio.ByteOrder;
  * @author TiAmo(13721682347@163.com)
  */
 @Slf4j
-public class MachineHandler implements ClientAioHandler {
+public class MachineAHandler implements ClientAioHandler {
 
 
     /**

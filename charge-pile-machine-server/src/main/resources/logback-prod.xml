@@ -15,9 +15,9 @@
 	<property name="LOG_PATTERN"
 			  value="%clr(%d{yyyy-MM-dd HH:mm:ss.SSS}){faint} %clr(${LOG_LEVEL_PATTERN:-%5p}) %clr(${PID:- }){magenta} %clr(---){faint} %clr([%t]){faint} %clr(%-40.40logger{39}){cyan} %clr(:){faint} %m%n${LOG_EXCEPTION_CONVERSION_WORD:-%wEx}"/>
 	
-	<!--	<property name="CONSOLE_LOG_PATTERN"-->
-	<!--			  value="-%clr(%d{${LOG_DATEFORMAT_PATTERN:-yyyy-MM-dd HH:mm:ss.SSS}}){faint} %clr(${LOG_LEVEL_PATTERN:-%5p}) %clr(${PID:- }){magenta} %clr(-&#45;&#45;){faint} %clr([%15.15t]){faint} %clr(%X{thread_id: -}){cyan} %clr(%-40.40logger{39}){cyan} %clr(:){faint} %m%n${LOG_EXCEPTION_CONVERSION_WORD:-%wEx}"/>-->
-	<!--	-->
+<!--	<property name="CONSOLE_LOG_PATTERN"-->
+<!--			  value="-%clr(%d{${LOG_DATEFORMAT_PATTERN:-yyyy-MM-dd HH:mm:ss.SSS}}){faint} %clr(${LOG_LEVEL_PATTERN:-%5p}) %clr(${PID:- }){magenta} %clr(-&#45;&#45;){faint} %clr([%15.15t]){faint} %clr(%X{thread_id: -}){cyan} %clr(%-40.40logger{39}){cyan} %clr(:){faint} %m%n${LOG_EXCEPTION_CONVERSION_WORD:-%wEx}"/>-->
+<!--	-->
 	<property name="CONSOLE_LOG_CHARSET"
 			  value="${CONSOLE_LOG_CHARSET:-${file.encoding:-UTF-8}}"/>
 	
@@ -46,8 +46,8 @@
 	<logger name="org.springframework.web.filter" level="DEBUG"/>
 	<logger name="org.springframework.jdbc.core.JdbcTemplate" level="DEBUG"/>
 	<logger name="feign.Logger" level="DEBUG"/>
-	
-	
+
+
 	
 	<!--1. 输出到控制台-->
 	<appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
@@ -173,12 +173,11 @@
 	<!-- 心跳包日志输出 -->
 	<logger name="MachineHeartbeatLogger" level="OFF"/>
 	<logger name="MachinePacketLogger" level="OFF"/>
-	<logger name="PileAuthLogger" level="OFF"/>
 	<logger name="com.huamar.charge.pile" level="OFF"/>
-	
+	<logger level="DEBUG" name="PileAuthLogger" additivity="true"/>
 	
 	<!-- 设备心业务日志 -->
-	<logger level="INFO" name="com.huamar.charge.pile" additivity="true">
+	<logger level="INFO" name="com.huamar.charge.pile" additivity="false">
 		<appender-ref ref="PILE_SIFT_FILE"/>
 	</logger>
 	
@@ -191,5 +190,12 @@
 	<logger level="INFO" name="MachinePacketLogger" additivity="false">
 		<appender-ref ref="PILE_PACKET_SIFT_FILE"/>
 	</logger>
+	
+	<logger level="DEBUG" name="PileAuthLogger" additivity="true">
+	</logger>
+	
+	<logger level="DEBUG" name="com.huamar.charge.pile.ServerApplication" additivity="true">
+	</logger>
+	
 	
 </configuration>

@@ -8,7 +8,7 @@ mvn -DskipTests=true clean package -P ${profile} -f ../pom.xml
 
 # >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 # build 服务器
-host_name=root@120.46.55.96
+host_name=root@121.36.36.155
 identity_file=~/.ssh/kube-prod-key.pem
 ssh_port=1022
 
@@ -21,7 +21,7 @@ ssh_port=1022
 # 服务名字
 service_name=charge_pile_machine
 # 容器镜像版本
-container_tag=1.0.1
+container_tag=latest
 
 
 tmp_dir=/tmp/tmp-devops-$(openssl rand -hex 8)

@@ -4,6 +4,7 @@ import com.huamar.charge.net.core.SessionChannel;
 import com.huamar.charge.pile.enums.McTypeEnum;
 import io.netty.channel.ChannelHandlerContext;
 import lombok.Setter;
+import lombok.extern.slf4j.Slf4j;
 
 import java.io.Serializable;
 import java.net.InetSocketAddress;
@@ -17,6 +18,7 @@ import java.util.concurrent.ConcurrentHashMap;
  *
  * @author TiAmo(13721682347 @ 163.com)
  */
+@Slf4j
 public class SimpleSessionChannel implements SessionChannel {
 
     @Setter
@@ -81,6 +83,16 @@ public class SimpleSessionChannel implements SessionChannel {
         return remoteAddress.getAddress().getHostAddress();
     }
 
+    /**
+     * 获取客户端地址
+     *
+     * @return InetSocketAddress
+     */
+    @Override
+    public InetSocketAddress remoteAddress() {
+        return (InetSocketAddress) channelContext.channel().remoteAddress();
+    }
+
     @Override
     public Collection<Object> getAttributeKeys() {
         return attribute.keySet();
@@ -116,7 +128,14 @@ public class SimpleSessionChannel implements SessionChannel {
      */
     @Override
     public void close() {
-        channelContext.channel().close();
-        channelContext.close();
+
+        channelContext.channel().close().addListener(future -> {
+            log.error("ctx channel close:{} ", future.isSuccess(), future.cause());
+        });
+
+        channelContext.close().addListener(future -> {
+            log.error("ctx channel close:{} ", future.isSuccess(), future.cause());
+        });
+
     }
 }
