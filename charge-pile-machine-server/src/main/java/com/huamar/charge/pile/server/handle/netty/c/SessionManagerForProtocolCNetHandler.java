@@ -94,11 +94,11 @@ public class SessionManagerForProtocolCNetHandler extends SimpleChannelInboundHa
             body.writeBytes(packet.getBody());
             String id = BinaryViews.bcdViewsLe(NUtils.nBFToBf(body.readBytes(7)));
             AttributeKey<String> machineId = AttributeKey.valueOf(ConstEnum.MACHINE_ID.getCode());
-            channelHandlerContext.channel().attr(machineId).set(id);
+            channelHandlerContext.channel().attr(machineId).set("4710" + id);
             SimpleSessionChannel sessionChannelNew = new SimpleSessionChannel(channelHandlerContext);
             sessionChannelNew.setId("4710" + id);
             sessionChannelNew.setType(type);
-            SessionManager.put(id, sessionChannelNew);
+            SessionManager.put("4710" + id, sessionChannelNew);
         }
         channelHandlerContext.fireChannelRead(packet);
         MDC.clear();

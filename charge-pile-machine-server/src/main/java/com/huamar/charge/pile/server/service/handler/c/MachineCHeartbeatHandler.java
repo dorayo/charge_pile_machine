@@ -128,7 +128,7 @@ public class MachineCHeartbeatHandler {
 //            Assert.notNull(reqDTO, "McHeartbeatReqDTO noNull");
             PileHeartbeatDTO pileHeartbeatDTO = new PileHeartbeatDTO();
 //            pileHeartbeatDTO.setProtocolNumber(reqDTO.getProtocolNumber());
-            pileHeartbeatDTO.setIdCode(packet.getId());
+            pileHeartbeatDTO.setIdCode("4710" + packet.getId());
             pileHeartbeatDTO.setDateTime(LocalDateTime.now());
 //            pileHeartbeatDTO.setTime(reqDTO.getTime().toString());
             MessageData<PileHeartbeatDTO> messageData = new MessageData<>(MessageCodeEnum.PILE_HEART_BEAT, pileHeartbeatDTO);

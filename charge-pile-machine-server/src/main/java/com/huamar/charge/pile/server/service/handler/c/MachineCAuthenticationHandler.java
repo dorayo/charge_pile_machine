@@ -100,12 +100,12 @@ public class MachineCAuthenticationHandler {
      */
     public void handler(ProtocolCPacket packet, SessionChannel sessionChannel, ChannelHandlerContext channelHandlerContext) {
         AttributeKey<String> machineId = AttributeKey.valueOf(ConstEnum.MACHINE_ID.getCode());
-        final String id = channelHandlerContext.channel().attr(machineId).get();
-        Assert.notNull(id, "id ");
+        byte[] idBody = channelHandlerContext.channel().attr(NAttrKeys.ID_BODY).get();
+        String mId = channelHandlerContext.channel().attr(machineId).get();
         final int gunCount = packet.getBody()[8];
-        log.info("终端鉴权，loginNumber={} time={}", id, LocalDateTime.now());
+        log.info("终端鉴权，loginNumber={} time={}", idBody, LocalDateTime.now());
         ByteBuf bfB = ByteBufAllocator.DEFAULT.heapBuffer();
-        bfB.writeBytes(BinaryViews.bcdStringToByte(id));
+        bfB.writeBytes(idBody);
         bfB.writeByte(0x00);
         ByteBuf responseB = BinaryBuilders.protocolCLeResponseBuilder(NUtils.nBFToBf(bfB), packet.getOrderVBf(), (byte) 0x02);
         log.info(BinaryViews.bfToHexStr(responseB));
@@ -121,7 +121,7 @@ public class MachineCAuthenticationHandler {
         });
         taskExecutor.execute(() -> {
             try {
-                pileMessageProduce.send(new MessageData<>(MessageCodeEnum.PILE_AUTH, id));
+                pileMessageProduce.send(new MessageData<>(MessageCodeEnum.PILE_AUTH, mId));
 //                pileMessageProduce.send(new MessageData<>(MessageCodeEnum., id));
                 long startTime = System.currentTimeMillis();
                 long maxWaitTime = Duration.ofSeconds(3).toMillis();
@@ -129,7 +129,7 @@ public class MachineCAuthenticationHandler {
                 StopWatch stopWatch = new StopWatch("Auth");
                 stopWatch.start("wait pile");
                 while (System.currentTimeMillis() - startTime < maxWaitTime) {
-                    pile = machineService.getCache(id);
+                    pile = machineService.getCache(mId);
                     if (Objects.isNull(pile)) {
                         continue;
                     }
@@ -185,7 +185,7 @@ public class MachineCAuthenticationHandler {
             } catch (Exception e) {
                 log.error("auth execute error:{}", e.getMessage(), e);
             } finally {
-                machineService.removeCache(id);
+                machineService.removeCache(mId);
             }
         });
     }

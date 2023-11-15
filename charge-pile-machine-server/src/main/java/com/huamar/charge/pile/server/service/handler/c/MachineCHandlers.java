@@ -105,9 +105,13 @@ public class MachineCHandlers {
     public void handler0x09(ProtocolCPacket packet, ChannelHandlerContext ctx) {
         McHeartbeatReqDTO reqDTO = null;
         try {
+            AttributeKey<String> machineId = AttributeKey.valueOf(ConstEnum.MACHINE_ID.getCode());
+            String bsId = ctx.channel().attr(machineId).get();
+
             PileDTO update = new PileDTO();
+
             ctx.channel().attr(NAttrKeys.PROTOCOL_C_0x09_PACKET).set(packet);
-            update.setPileCode(BinaryViews.bcdViewsLe(packet.getIdBody()));
+            update.setPileCode(bsId);
             pileMessageProduce.send(new MessageData<>(MessageCodeEnum.ELECTRICITY_PRICE, update));
         } catch (Exception e) {
         }
@@ -157,10 +161,12 @@ public class MachineCHandlers {
     public void handler0x35(ProtocolCPacket packet, ChannelHandlerContext ctx) {
         try {
             McChargerOnlineInfoDTO onlineInfoDto = new McChargerOnlineInfoDTO();
+            AttributeKey<String> machineId = AttributeKey.valueOf(ConstEnum.MACHINE_ID.getCode());
+            String bsId = ctx.channel().attr(machineId).get();
             byte[] body = packet.getBody();
             byte gunShort = body[8];
             int isSuccess = body[9];
-            onlineInfoDto.setIdCode(packet.getId());
+            onlineInfoDto.setIdCode(bsId);
             onlineInfoDto.setGunSort(gunShort);
             if (isSuccess == 0) {
                 log.error("stop charge failed reason is {}", body[9]);
@@ -168,7 +174,7 @@ public class MachineCHandlers {
             }
             onlineInfoDto.setGunState((byte) 0x05);
             MessageData<McChargerOnlineInfoDTO> messageData = new MessageData<>(MessageCodeEnum.PILE_ONLINE, onlineInfoDto);
-            messageData.setBusinessId(onlineInfoDto.getIdCode());
+            messageData.setBusinessId(bsId);
             messageData.setMessageId(IdUtil.simpleUUID());
             messageData.setRequestId(IdUtil.simpleUUID());
             pileMessageProduce.send(messageData);
