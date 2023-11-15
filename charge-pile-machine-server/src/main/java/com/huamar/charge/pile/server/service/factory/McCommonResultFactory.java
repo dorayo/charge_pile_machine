@@ -3,6 +3,7 @@ package com.huamar.charge.pile.server.service.factory;
 import com.huamar.charge.pile.entity.dto.McCommonReq;
 import com.huamar.charge.pile.enums.PileCommonResultEnum;
 import com.huamar.charge.pile.server.service.common.McCommonResultExecute;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
@@ -18,6 +19,7 @@ import java.util.Map;
  *
  * @author TiAmo(13721682347@163.com)
  */
+@Slf4j
 @Component
 public class McCommonResultFactory implements InitializingBean, ApplicationContextAware {
 
@@ -40,7 +42,13 @@ public class McCommonResultFactory implements InitializingBean, ApplicationConte
     @Override
     public void afterPropertiesSet() {
        applicationContext.getBeansOfType(McCommonResultExecute.class)
-               .values().forEach(exec -> EXECUTE_MAP.put(exec.getCode(), exec));
+               .values().forEach(exec -> {
+                   if(EXECUTE_MAP.containsKey(exec.getCode())){
+                       log.error("不允许覆盖相同执行器, {}", exec.getCode());
+                       throw new RuntimeException("不允许覆盖相同执行器" + exec.getCode());
+                   }
+                   EXECUTE_MAP.put(exec.getCode(), exec);
+               });
     }
 
 

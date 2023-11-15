@@ -38,6 +38,16 @@ public enum ProtocolCodeEnum {
 
     UPGRADE("37", "远程升级 (0x37)"),
 
+
+    // 国花协议 >>>>>>>>>>>>>>>>>>>
+    AUTH_B("b:32", "终端鉴权 (0x33)"),
+
+    HEART_BEAT_B("b:31", "终端心跳 (0x31)"),
+
+    DATA_UPLOAD_B("b:34", "数据汇报 (0x34)"),
+    // 国花协议 <<<<<<<<<<<<<<<<<<<<
+
+
     ;
     private final String code;
     private final String desc;

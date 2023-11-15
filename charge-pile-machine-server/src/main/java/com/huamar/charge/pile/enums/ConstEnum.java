@@ -14,6 +14,9 @@ import java.util.Objects;
 public enum ConstEnum {
 
     MACHINE_ID("MACHINE_ID", "设备ID"),
+
+    X_SESSION_ID("X_SESSION_ID", "会话ID"),
+
     PROTOCOL_C_PRICE_ORDER_ID("PROTOCOL_C_PRICE_ORDER_ID", "电价单号"),
 
     // MDC log使用

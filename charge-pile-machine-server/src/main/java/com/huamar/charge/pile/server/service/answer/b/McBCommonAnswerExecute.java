@@ -28,7 +28,7 @@ public class McBCommonAnswerExecute implements McAnswerExecute<McCommonResp> {
      */
     @Override
     public McAnswerEnum getCode() {
-        return McAnswerEnum.COMMON;
+        return McAnswerEnum.COMMON_B;
     }
 
 

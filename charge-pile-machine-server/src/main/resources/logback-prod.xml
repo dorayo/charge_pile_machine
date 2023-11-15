@@ -13,7 +13,7 @@
 	
 	<!-- 彩色日志格式 -->
 	<property name="LOG_PATTERN"
-			  value="%clr(%d{yyyy-MM-dd HH:mm:ss.SSS}){faint} %clr(${LOG_LEVEL_PATTERN:-%5p}) %clr(${PID:- }){magenta} %clr(---){faint} %clr(%-40.40logger{39}){cyan} %clr(:){faint} %clr([%t]){faint} [%X{X_SESSION_ID}] %m%n${LOG_EXCEPTION_CONVERSION_WORD:-%wEx}"/>
+			  value="%clr(%d{yyyy-MM-dd HH:mm:ss.SSS}){faint} %clr(${LOG_LEVEL_PATTERN:-%5p}) %clr(${PID:- }){magenta} %clr(---){faint} %clr([%t]){faint} %clr(%-40.40logger{39}){cyan} %clr(:){faint} [%X{X_SESSION_ID}] %m%n${LOG_EXCEPTION_CONVERSION_WORD:-%wEx}"/>
 	
 	<!--	<property name="CONSOLE_LOG_PATTERN"-->
 	<!--			  value="-%clr(%d{${LOG_DATEFORMAT_PATTERN:-yyyy-MM-dd HH:mm:ss.SSS}}){faint} %clr(${LOG_LEVEL_PATTERN:-%5p}) %clr(${PID:- }){magenta} %clr(-&#45;&#45;){faint} %clr([%15.15t]){faint} %clr(%X{thread_id: -}){cyan} %clr(%-40.40logger{39}){cyan} %clr(:){faint} %m%n${LOG_EXCEPTION_CONVERSION_WORD:-%wEx}"/>-->
@@ -22,7 +22,7 @@
 			  value="${CONSOLE_LOG_CHARSET:-${file.encoding:-UTF-8}}"/>
 	
 	<property name="FILE_LOG_PATTERN"
-			  value="%d{${LOG_DATEFORMAT_PATTERN:-yyyy-MM-dd HH:mm:ss.SSS}} ${LOG_LEVEL_PATTERN:-%5p} ${PID:- } --- %-40.40logger{39} : [%t] [%X{X_SESSION_ID}] %m%n${LOG_EXCEPTION_CONVERSION_WORD:-%wEx}"/>
+			  value="%d{${LOG_DATEFORMAT_PATTERN:-yyyy-MM-dd HH:mm:ss.SSS}} ${LOG_LEVEL_PATTERN:-%5p} ${PID:- } --- [%t] %-40.40logger{39} : [%X{X_SESSION_ID}] %m%n${LOG_EXCEPTION_CONVERSION_WORD:-%wEx}"/>
 	
 	<property name="FILE_LOG_CHARSET"
 			  value="${FILE_LOG_CHARSET:-${file.encoding:-UTF-8}}"/>
@@ -177,7 +177,7 @@
 	
 	
 	<!-- 设备心业务日志 -->
-	<logger level="INFO" name="com.huamar.charge.pile" additivity="false">
+	<logger level="INFO" name="com.huamar.charge.pile" additivity="true">
 		<appender-ref ref="PILE_SIFT_FILE"/>
 	</logger>
 	

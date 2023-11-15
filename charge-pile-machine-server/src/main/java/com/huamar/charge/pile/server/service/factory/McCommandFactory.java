@@ -40,7 +40,12 @@ public class McCommandFactory implements InitializingBean, ApplicationContextAwa
     @Override
     public void afterPropertiesSet() {
        applicationContext.getBeansOfType(McCommandExecute.class)
-               .values().forEach(exec -> EXECUTE_MAP.put(exec.getCode(), exec));
+               .values().forEach(exec -> {
+                   if(EXECUTE_MAP.containsKey(exec.getCode())){
+                       throw new RuntimeException("不允许覆盖相同执行器" + exec.getCode());
+                   }
+                   EXECUTE_MAP.put(exec.getCode(), exec);
+               });
     }
 
 

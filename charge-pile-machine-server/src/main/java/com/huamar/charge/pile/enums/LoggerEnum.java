@@ -6,6 +6,7 @@ import java.util.Objects;
 
 /**
  * 日志枚举，根据不同的logger 分割log文件存储
+ * 减少控制台输出压力
  * 2023/07/24
  *
  * @author TiAmo(13721682347@163.com)
@@ -13,7 +14,11 @@ import java.util.Objects;
 @Getter
 public enum LoggerEnum {
 
+    APPLICATION_MAIN_LOGGER("ApplicationMainLogger", "主程序日志"),
+
     HEARTBEAT_LOGGER("MachineHeartbeatLogger", "设备心跳日志"),
+
+    PILE_AUTH_LOGGER("PileAuthLogger", "设备认证日志打印"),
 
     MACHINE_PACKET_LOGGER("MachinePacketLogger", "设备数据包日志"),
 

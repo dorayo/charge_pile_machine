@@ -62,7 +62,7 @@ public class MachineBHeartbeatHandler implements MachinePacketHandler<DataPacket
      */
     @Override
     public ProtocolCodeEnum getCode() {
-        return ProtocolCodeEnum.HEART_BEAT;
+        return ProtocolCodeEnum.HEART_BEAT_B;
     }
 
     /**

@@ -40,7 +40,12 @@ public class McParameterFactory implements InitializingBean, ApplicationContextA
     @Override
     public void afterPropertiesSet() {
         Map<String, PileParameterExecute> beans = applicationContext.getBeansOfType(PileParameterExecute.class);
-        beans.values().forEach(exec -> EXECUTE_MAP.put(exec.getCode(), exec));
+        beans.values().forEach(exec -> {
+            if(EXECUTE_MAP.containsKey(exec.getCode())){
+                throw new RuntimeException("不允许覆盖相同执行器" + exec.getCode());
+            }
+            EXECUTE_MAP.put(exec.getCode(), exec);
+        });
     }
 
 

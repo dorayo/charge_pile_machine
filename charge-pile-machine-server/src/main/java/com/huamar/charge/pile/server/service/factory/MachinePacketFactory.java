@@ -40,7 +40,12 @@ public class MachinePacketFactory implements InitializingBean, ApplicationContex
     public void afterPropertiesSet() {
         applicationContext
                 .getBeansOfType(MachinePacketHandler.class).values()
-                .forEach(exec -> HANDLER_MAP.put(exec.getCode(), exec));
+                .forEach(exec -> {
+                    if(HANDLER_MAP.containsKey(exec.getCode())){
+                        throw new RuntimeException("不允许覆盖相同执行器" + exec.getCode());
+                    }
+                    HANDLER_MAP.put(exec.getCode(), exec);
+                });
     }
 
 

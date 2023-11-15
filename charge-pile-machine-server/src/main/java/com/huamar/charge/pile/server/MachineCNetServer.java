@@ -1,19 +1,11 @@
 package com.huamar.charge.pile.server;
 
-import com.huamar.charge.common.protocol.BasePacket;
 import com.huamar.charge.common.protocol.c.ProtocolCPacket;
 import com.huamar.charge.pile.config.ServerApplicationProperties;
-import com.huamar.charge.pile.entity.dto.command.McChargeCommandDTO;
-import com.huamar.charge.pile.enums.ConstEnum;
 import com.huamar.charge.pile.enums.McTypeEnum;
-import com.huamar.charge.pile.server.handle.netty.ServerNetHandler;
-import com.huamar.charge.pile.server.handle.netty.SessionManagerNetHandler;
 import com.huamar.charge.pile.server.handle.netty.c.ServerNetHandlerForMC;
 import com.huamar.charge.pile.server.handle.netty.c.SessionManagerForProtocolCNetHandler;
-import com.huamar.charge.pile.server.protocol.ProtocolCodecFactory;
 import com.huamar.charge.pile.server.service.factory.b.MachineBPacketFactory;
-import com.huamar.charge.pile.server.service.receiver.execute.PileStartChargeExecute;
-import com.huamar.charge.pile.server.service.receiver.execute.PileStopChargeExecute;
 import com.huamar.charge.pile.server.session.context.SimpleSessionContext;
 import com.huamar.charge.pile.utils.views.BinaryViews;
 import io.netty.bootstrap.ServerBootstrap;
@@ -23,10 +15,7 @@ import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
 import io.netty.handler.codec.ByteToMessageDecoder;
-import io.netty.handler.codec.MessageToByteEncoder;
 import io.netty.handler.timeout.IdleStateHandler;
-import io.netty.util.AttributeKey;
-import io.netty.util.AttributeMap;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
@@ -38,9 +27,8 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
 import org.springframework.context.event.ContextClosedEvent;
 
-import java.nio.ByteOrder;
+import java.time.Duration;
 import java.util.List;
-import java.util.Objects;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 
@@ -158,7 +146,7 @@ public class MachineCNetServer {
         workerGroup = new NioEventLoopGroup(properties.getWorker());
         serverBootstrap.group(boosGroup, workerGroup)
                 .channel(NioServerSocketChannel.class)
-                .option(ChannelOption.CONNECT_TIMEOUT_MILLIS, (int) properties.getTimeout().getSeconds())
+                .option(ChannelOption.CONNECT_TIMEOUT_MILLIS, (int) Duration.ofSeconds(60).toMillis())
                 // 没有空闲链接将请求暂存在缓冲队列
                 .option(ChannelOption.SO_BACKLOG, 1024)
                 .childHandler(new ChannelInitializer<SocketChannel>() {

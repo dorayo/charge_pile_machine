@@ -1,6 +1,7 @@
 package com.huamar.charge.net.core;
 
 import java.io.Serializable;
+import java.net.InetSocketAddress;
 import java.util.Collection;
 import java.util.Date;
 
@@ -36,6 +37,11 @@ public interface SessionChannel {
      */
     String getIp();
 
+    /**
+     * 获取客户端地址
+     * @return InetSocketAddress
+     */
+    InetSocketAddress remoteAddress();
 
     /**
      * getAttributeKeys

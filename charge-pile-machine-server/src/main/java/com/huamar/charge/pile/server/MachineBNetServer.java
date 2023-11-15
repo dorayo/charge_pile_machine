@@ -5,6 +5,7 @@ import com.huamar.charge.pile.config.ServerApplicationProperties;
 import com.huamar.charge.pile.enums.McTypeEnum;
 import com.huamar.charge.pile.server.handle.netty.ServerNetHandler;
 import com.huamar.charge.pile.server.handle.netty.SessionManagerNetHandler;
+import com.huamar.charge.pile.server.handle.netty.b.ServerNetBHandler;
 import com.huamar.charge.pile.server.protocol.ProtocolCodecFactory;
 import com.huamar.charge.pile.server.service.factory.b.MachineBPacketFactory;
 import com.huamar.charge.pile.server.session.context.SimpleSessionContext;
@@ -28,6 +29,7 @@ import org.springframework.context.annotation.Import;
 import org.springframework.context.event.ContextClosedEvent;
 
 import java.nio.ByteOrder;
+import java.time.Duration;
 import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.TimeUnit;
@@ -128,18 +130,18 @@ public class MachineBNetServer implements NetServer {
         workerGroup = new NioEventLoopGroup(properties.getWorker());
         serverBootstrap.group(boosGroup, workerGroup)
                 .channel(NioServerSocketChannel.class)
-                .option(ChannelOption.CONNECT_TIMEOUT_MILLIS, (int) properties.getTimeout().getSeconds())
+                .option(ChannelOption.CONNECT_TIMEOUT_MILLIS, (int) Duration.ofSeconds(60).toMillis())
                 // 没有空闲链接将请求暂存在缓冲队列
                 .option(ChannelOption.SO_BACKLOG, 1024)
                 .childHandler(new ChannelInitializer<SocketChannel>() {
                     @Override
                     protected void initChannel(SocketChannel socketChannel) {
-                        ServerNetHandler serverNetHandler = new ServerNetHandler(machinePacketFactory);
+                        ServerNetBHandler serverNetHandler = new ServerNetBHandler(machinePacketFactory);
                         ChannelPipeline pipeline = socketChannel.pipeline();
                         pipeline.addLast("decoder", new MessageDecodeHandler());
                         pipeline.addLast("encoder", new MessageEncodeHandler());
                         // IdleStateHandler 下一个 handler 必须实现 userEventTriggered 方法处理对应事件
-                        pipeline.addLast(new IdleStateHandler(0, 0, properties.getTimeout().getSeconds(), TimeUnit.SECONDS));
+                        pipeline.addLast(new IdleStateHandler(properties.getTimeout().getSeconds(), 0, 0, TimeUnit.SECONDS));
                         pipeline.addLast("sessionManager", new SessionManagerNetHandler(McTypeEnum.B));
                         pipeline.addLast("serverNetHandler", serverNetHandler);
                     }

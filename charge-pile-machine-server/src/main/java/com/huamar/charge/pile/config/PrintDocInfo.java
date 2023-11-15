@@ -1,17 +1,23 @@
 package com.huamar.charge.pile.config;
 
 import com.huamar.charge.common.common.StringPool;
+import com.huamar.charge.pile.enums.LoggerEnum;
 import de.vandermeer.asciitable.AsciiTable;
 import lombok.SneakyThrows;
-import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.context.ApplicationContext;
 import org.springframework.core.env.Environment;
 import org.springframework.web.util.UriComponentsBuilder;
 
 import java.net.InetAddress;
 
-@Slf4j
+/**
+ * 日志打印，系统启动信息
+ */
 public class PrintDocInfo {
+
+    private static final Logger logger = LoggerFactory.getLogger(LoggerEnum.APPLICATION_MAIN_LOGGER.getCode());
 
     /**
      * 启动打印信息
@@ -52,7 +58,7 @@ public class PrintDocInfo {
         at.addRow(properties.getHost(), properties.getPort(), properties.getTimeout().getSeconds() + "s", properties.getNetSocketModel());
         at.addRule();
 
-        log.info(System.getProperty("line.separator") + at.render());
+        logger.info(System.getProperty("line.separator") + at.render());
 
 
         at = new AsciiTable();
@@ -70,6 +76,6 @@ public class PrintDocInfo {
         at.addRow("Swagger Api :", swagger.build().toString());
         at.addRule();
 
-        log.info(System.getProperty("line.separator") + at.render());
+        logger.info(System.getProperty("line.separator") + at.render());
     }
 }
