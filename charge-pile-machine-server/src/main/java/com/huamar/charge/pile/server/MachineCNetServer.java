@@ -156,7 +156,7 @@ public class MachineCNetServer {
                         ChannelPipeline pipeline = socketChannel.pipeline();
                         pipeline.addLast("splitD", new MessageSplitDecodeHandler());
                         pipeline.addLast("handleD", new MessageHandleDecodeHandler());
-                        pipeline.addLast(new IdleStateHandler(0, 0, 60, TimeUnit.SECONDS));
+                        pipeline.addLast(new IdleStateHandler(60, 60, 60, TimeUnit.SECONDS));
                         pipeline.addLast("sessionManager", new SessionManagerForProtocolCNetHandler(McTypeEnum.C));
                         pipeline.addLast("serverNetHandler", applicationContext.getBean(ServerNetHandlerForMC.class));
                     }

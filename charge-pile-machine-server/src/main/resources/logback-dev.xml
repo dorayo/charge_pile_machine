@@ -177,17 +177,17 @@
 	
 	
 	<!-- 设备心业务日志 -->
-	<logger level="INFO" name="com.huamar.charge.pile" additivity="false">
+	<logger level="INFO" name="com.huamar.charge.pile" additivity="true">
 		<appender-ref ref="PILE_SIFT_FILE"/>
 	</logger>
 	
 	<!-- 设备心跳包日志 -->
-	<logger level="INFO" name="MachineHeartbeatLogger" additivity="false">
+	<logger level="INFO" name="MachineHeartbeatLogger" additivity="true">
 		<appender-ref ref="PILE_HEART_SIFT_FILE"/>
 	</logger>
 	
 	<!-- 设备数据包日志 -->
-	<logger level="INFO" name="MachinePacketLogger" additivity="false">
+	<logger level="INFO" name="MachinePacketLogger" additivity="true">
 		<appender-ref ref="PILE_PACKET_SIFT_FILE"/>
 	</logger>
 	
