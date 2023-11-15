@@ -96,7 +96,7 @@ public class SessionManagerForProtocolCNetHandler extends SimpleChannelInboundHa
             AttributeKey<String> machineId = AttributeKey.valueOf(ConstEnum.MACHINE_ID.getCode());
             channelHandlerContext.channel().attr(machineId).set(id);
             SimpleSessionChannel sessionChannelNew = new SimpleSessionChannel(channelHandlerContext);
-            sessionChannelNew.setId(id);
+            sessionChannelNew.setId("4710" + id);
             sessionChannelNew.setType(type);
             SessionManager.put(id, sessionChannelNew);
         }
