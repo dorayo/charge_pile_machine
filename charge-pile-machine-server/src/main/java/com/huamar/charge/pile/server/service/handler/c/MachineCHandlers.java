@@ -199,11 +199,12 @@ public class MachineCHandlers {
             byte state = body[16 + 8];
             byte isCon = body[16 + 10];
             int cVoltage = (int) BinaryViews.shortViewLe(body, 16 + 10 + 1);
-            int cStream = (int) BinaryViews.shortViewLe(body, 16 + 10 + 1 + 2);
+            short cStream = (short) ((short) 1600 - (short) BinaryViews.shortViewLe(body, 16 + 10 + 1 + 2));
             int currentMoney = BinaryViews.intViewLe(body, bodyLen - 6);
             int powerCount = BinaryViews.intViewLe(body, bodyLen - 14);
             int resetTime = (int) BinaryViews.shortViewLe(body, bodyLen - 16);
             int useTime = (int) BinaryViews.shortViewLe(body, bodyLen - 18);
+
             if (currentMoney < 0) {
                 log.info("error negative{}", currentMoney);
                 return;
@@ -221,7 +222,7 @@ public class MachineCHandlers {
             chargeStageDataDTO.setGunSort(gunShort);
             chargeStageDataDTO.setIdCode(onlineInfoDto.getIdCode());
             chargeStageDataDTO.setRemainChargeTime((short) (resetTime * 60));
-            chargeStageDataDTO.setPileElectricityOutValue((short) cStream);
+            chargeStageDataDTO.setPileElectricityOutValue(cStream);
             chargeStageDataDTO.setPileVoltageOutValue((short) cVoltage);
             log.info("state={} isCon={} cMoney = {}", state, isCon, currentMoney);
 
