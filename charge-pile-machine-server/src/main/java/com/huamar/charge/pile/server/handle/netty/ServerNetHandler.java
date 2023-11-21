@@ -12,6 +12,8 @@ import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
 import lombok.extern.slf4j.Slf4j;
 
+import java.util.Objects;
+
 /**
  * 服务端监听器 ChannelInboundHandlerAdapter 区别，SimpleChannelInboundHandler.channelRead0 可是实现释放数据
  *
@@ -38,7 +40,18 @@ public class ServerNetHandler extends SimpleChannelInboundHandler<DataPacket> {
         String bsId = new String((dataPacket).getIdCode());
         SessionChannel sessionChannel = SessionManager.get(bsId);
         String code = HexExtUtil.encodeHexStr(dataPacket.getMsgId());
-        MachinePacketHandler<DataPacket> handler = machinePacketFactory.getHandler(ProtocolCodeEnum.getByCode(code));
+        ProtocolCodeEnum codeEnum = ProtocolCodeEnum.getByCode(code);
+        if(Objects.isNull(codeEnum)){
+            log.warn("协议消息ID获取执行器失败：code:{}", code);
+            channelHandlerContext.fireChannelRead(dataPacket);
+            return;
+        }
+        MachinePacketHandler<DataPacket> handler = machinePacketFactory.getHandler(codeEnum);
+        if(Objects.isNull(handler)){
+            log.warn("协议消息ID获取执行器失败：code:{}", codeEnum);
+            channelHandlerContext.fireChannelRead(dataPacket);
+            return;
+        }
         handler.handler(dataPacket, sessionChannel);
     }
 

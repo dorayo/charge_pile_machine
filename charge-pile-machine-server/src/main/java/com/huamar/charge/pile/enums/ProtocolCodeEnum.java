@@ -70,6 +70,6 @@ public enum ProtocolCodeEnum {
                 return e;
             }
         }
-        throw new RuntimeException("enum not exists.");
+        return null;
     }
 }

@@ -46,10 +46,21 @@ public class ServerNetBHandler extends SimpleChannelInboundHandler<DataPacket> {
         SessionChannel sessionChannel = SessionManager.get(bsId);
         String code = HexExtUtil.encodeHexStr(dataPacket.getMsgId());
         String format_code = String.format("%s%s", protocolCodePrefix, code);
-        MachinePacketHandler<DataPacket> handler = packetFactory.getHandler(ProtocolCodeEnum.getByCode(format_code));
-        // 如果不存在走SLX通用协议
+        ProtocolCodeEnum codeEnum = ProtocolCodeEnum.getByCode(format_code);
+        if(Objects.isNull(codeEnum)){
+            log.warn("协议消息ID获取执行器失败：code:{}", format_code);
+            codeEnum = ProtocolCodeEnum.getByCode(code);
+        }
+        if(Objects.isNull(codeEnum)){
+            log.warn("协议消息ID获取执行器失败：code:{}", codeEnum);
+            channelHandlerContext.fireChannelRead(dataPacket);
+            return;
+        }
+        MachinePacketHandler<DataPacket> handler = packetFactory.getHandler(codeEnum);
         if(Objects.isNull(handler)){
-            handler = packetFactory.getHandler(ProtocolCodeEnum.getByCode(code));
+            log.warn("协议消息ID获取执行器失败：code:{}", codeEnum);
+            channelHandlerContext.fireChannelRead(dataPacket);
+            return;
         }
         handler.handler(dataPacket, sessionChannel);
     }

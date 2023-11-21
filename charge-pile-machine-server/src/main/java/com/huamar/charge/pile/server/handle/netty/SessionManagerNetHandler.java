@@ -76,36 +76,46 @@ public class SessionManagerNetHandler extends SimpleChannelInboundHandler<BasePa
     @Override
     public void channelInactive(ChannelHandlerContext ctx) {
         MDC.clear();
-        AttributeKey<String> sessionKey = AttributeKey.valueOf(ConstEnum.X_SESSION_ID.getCode());
-        String sessionId = ctx.channel().attr(sessionKey).get();
-        MDC.put(ConstEnum.X_SESSION_ID.getCode(), sessionId);
-
-        log.info("{} 断开了服务器", ctx.channel().remoteAddress());
-        authLog.info("{} 断开了服务器", ctx.channel().remoteAddress());
-        String bsId = "";
         try {
-            AttributeKey<String> machineId = AttributeKey.valueOf(ConstEnum.MACHINE_ID.getCode());
-            bsId = ctx.channel().attr(machineId).get();
-            if (StringUtils.isNotBlank(bsId)) {
-                MDC.put(ConstEnum.ID_CODE.getCode(), bsId);
-                SessionManager.remove(bsId);
-            }
-        } catch (Exception ignored) {
-            authLog.info("idCode:{}, {} 断开了服务器 error", bsId, ctx.channel().remoteAddress());
-            log.info("idCode:{}, {} 断开了服务器 error", bsId, ctx.channel().remoteAddress());
-        } finally {
-            authLog.info("idCode:{}, {} 断开了服务器 close", bsId, ctx.channel().remoteAddress());
-            log.info("idCode:{}, {} 断开了服务器 close", bsId, ctx.channel().remoteAddress());
-            ctx.channel().close().addListener(future -> {
-                authLog.error("ctx channel close:{} ", future.isSuccess(), future.cause());
-                log.error("ctx channel close:{} ", future.isSuccess(), future.cause());
-            });
+            AttributeKey<String> sessionKey = AttributeKey.valueOf(ConstEnum.X_SESSION_ID.getCode());
+            String sessionId = ctx.channel().attr(sessionKey).get();
+            MDC.put(ConstEnum.X_SESSION_ID.getCode(), sessionId);
 
-            ctx.close().addListener(future -> {
-                authLog.error("ctx close:{} ", future.isSuccess(), future.cause());
-                log.error("ctx close:{} ", future.isSuccess(), future.cause());
-            });
+            AttributeKey<String> machineId = AttributeKey.valueOf(ConstEnum.MACHINE_ID.getCode());
+            String bsId = ctx.channel().attr(machineId).get();
+            MDC.put(ConstEnum.ID_CODE.getCode(), bsId);
+
+            log.info("channelInactive remoteAddress:{} 连接不活跃 idCode:{}", bsId, ctx.channel().remoteAddress());
+            authLog.info("channelInactive remoteAddress:{} 连接不活跃 idCode:{}", bsId, ctx.channel().remoteAddress());
+        }catch (Exception e){
+            log.error("channelInactive error:{}", e.getMessage(), e);
+            authLog.error("channelInactive error:{}", e.getMessage(), e);
         }
+
+//        String bsId = "";
+//        try {
+//            AttributeKey<String> machineId = AttributeKey.valueOf(ConstEnum.MACHINE_ID.getCode());
+//            bsId = ctx.channel().attr(machineId).get();
+//            if (StringUtils.isNotBlank(bsId)) {
+//                MDC.put(ConstEnum.ID_CODE.getCode(), bsId);
+//                SessionManager.remove(bsId);
+//            }
+//        } catch (Exception ignored) {
+//            authLog.info("idCode:{}, {} 断开了服务器 error", bsId, ctx.channel().remoteAddress());
+//            log.info("idCode:{}, {} 断开了服务器 error", bsId, ctx.channel().remoteAddress());
+//        } finally {
+//            authLog.info("idCode:{}, {} 断开了服务器 close", bsId, ctx.channel().remoteAddress());
+//            log.info("idCode:{}, {} 断开了服务器 close", bsId, ctx.channel().remoteAddress());
+//            ctx.channel().close().addListener(future -> {
+//                authLog.error("ctx channel close:{} ", future.isSuccess(), future.cause());
+//                log.error("ctx channel close:{} ", future.isSuccess(), future.cause());
+//            });
+//
+//            ctx.close().addListener(future -> {
+//                authLog.error("ctx close:{} ", future.isSuccess(), future.cause());
+//                log.error("ctx close:{} ", future.isSuccess(), future.cause());
+//            });
+//        }
     }
 
     /**
@@ -122,8 +132,8 @@ public class SessionManagerNetHandler extends SimpleChannelInboundHandler<BasePa
 
             AttributeKey<String> machineId = AttributeKey.valueOf(ConstEnum.MACHINE_ID.getCode());
             String bsId = ctx.channel().attr(machineId).get();
-            log.error("handlerRemoved, idCode:{}, remoteAddress:{}", bsId,ctx.channel().remoteAddress());
-            authLog.error("handlerRemoved, idCode:{}, remoteAddress:{}", bsId,ctx.channel().remoteAddress());
+            log.warn("handlerRemoved, idCode:{}, remoteAddress:{}", bsId, ctx.channel().remoteAddress());
+            authLog.warn("handlerRemoved, idCode:{}, remoteAddress:{}", bsId, ctx.channel().remoteAddress());
             if (StringUtils.isNotBlank(bsId)) {
                 MDC.put(ConstEnum.ID_CODE.getCode(), bsId);
                 SessionManager.remove(bsId);

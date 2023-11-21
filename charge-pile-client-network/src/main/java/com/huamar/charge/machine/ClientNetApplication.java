@@ -42,10 +42,10 @@ public class ClientNetApplication {
     @Order(0)
     public void listen(ApplicationReadyEvent event) throws Exception {
         MachineAClient a = event.getApplicationContext().getBean(MachineAClient.class);
-        a.connect(new Node("127.0.0.1", 8886));
+        a.connect(new Node("121.36.36.155", 8889));
 
         MachineBClient b = event.getApplicationContext().getBean(MachineBClient.class);
-        b.connect(new Node("127.0.0.1", 8886));
+        b.connect(new Node("121.36.36.155", 8889));
 
         TimeUnit.SECONDS.sleep(60);
         Tio.close(b.getClientChannelContext(), "close");
