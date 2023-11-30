@@ -16,6 +16,10 @@
 	<logger name="jdbc.audit" level="ERROR"/>
 	<logger name="jdbc.result" level="ERROR"/>
 	
+	<logger name="com.huamar.charge.machine.client.protocol.PacketProtocolCodec" level="INFO"/>
+	
+	
+	
 	
 	
 </configuration>

@@ -3,10 +3,11 @@ package com.huamar.charge.machine.client.protocol;
 import com.huamar.charge.common.exception.ProtocolCodecException;
 import com.huamar.charge.common.protocol.BasePacket;
 import com.huamar.charge.common.protocol.DataPacket;
+import com.huamar.charge.common.protocol.ProtocolCodec;
+import io.netty.buffer.ByteBuf;
 import lombok.Getter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.tio.core.exception.TioDecodeException;
 
 import java.nio.ByteBuffer;
 import java.util.Objects;
@@ -39,12 +40,30 @@ public class ProtocolCodecFactory {
         return null;
     }
 
+    /**
+     * 获取对应的解码器，
+     *  成功解码返回BasePacket
+     *  不可组包返回null
+     *  不是当前解码器抛出异常 ProtocolCodecException
+     * 返回系统
+     */
+    public static BasePacket decode(ByteBuf byteBuf) {
+        for (ProtocolCodecEnum codec : ProtocolCodecEnum.values()) {
+            try {
+                return codec.getProtocolCodec().decode(byteBuf);
+            }catch (ProtocolCodecException ignored){
+                logger.warn("协议不匹配 codec:{}", codec.getProtocolCodec().getClazz());
+            }
+        }
+        return null;
+    }
+
 
     /**
      * 编码协议对象
      */
     public static ByteBuffer encode(BasePacket packet) {
-        PacketCodec protocolCodec = ProtocolCodecEnum.getCodec(packet.getClass());
+        ProtocolCodec protocolCodec = ProtocolCodecEnum.getCodec(packet.getClass());
         if(Objects.isNull(protocolCodec)){
             return null;
         }
@@ -52,15 +71,31 @@ public class ProtocolCodecFactory {
     }
 
 
+    /**
+     * 编码协议对象
+     */
+    public static void encode(BasePacket packet, ByteBuf byteBuf) {
+        ProtocolCodec protocolCodec = ProtocolCodecEnum.getCodec(packet.getClass());
+        if(Objects.isNull(protocolCodec)){
+           throw new RuntimeException("protocolCodec is null");
+        }
+
+        boolean encode = protocolCodec.encode(packet, byteBuf);
+        if (logger.isDebugEnabled()){
+            logger.debug("encode status:{}", encode);
+        }
+    }
+
+
 
     @Getter
     enum ProtocolCodecEnum{
-        DATA_PACKET(DataPacket.class, new PacketCodec());
+        DATA_PACKET(DataPacket.class, new PacketProtocolCodec());
 
         private final Class<?> clazz;
-        private final PacketCodec protocolCodec;
+        private final ProtocolCodec protocolCodec;
 
-        ProtocolCodecEnum(Class<?> clazz, PacketCodec protocolCodec) {
+        ProtocolCodecEnum(Class<?> clazz, ProtocolCodec protocolCodec) {
             this.clazz = clazz;
             this.protocolCodec = protocolCodec;
         }
@@ -69,7 +104,7 @@ public class ProtocolCodecFactory {
          * 获取对应类型的解码器
          * @author TiAmo(13721682347@163.com)
          */
-        public static PacketCodec getCodec(Class<?> clazz) {
+        public static ProtocolCodec getCodec(Class<?> clazz) {
             for (ProtocolCodecEnum e : values()) {
                 if (Objects.equals(clazz, e.getClazz())) {
                     return e.getProtocolCodec();
