@@ -1,25 +1,25 @@
 package com.huamar.charge.pile.server.service.handler;
 
+import com.huamar.charge.common.protocol.DataPacket;
+import com.huamar.charge.common.util.JSONParser;
 import com.huamar.charge.net.core.SessionChannel;
-import com.huamar.charge.pile.config.PileMachineProperties;
 import com.huamar.charge.pile.convert.McHeartbeatConvert;
 import com.huamar.charge.pile.entity.dto.fault.McHeartbeatReqDTO;
 import com.huamar.charge.pile.entity.dto.mq.MessageData;
 import com.huamar.charge.pile.entity.dto.platform.PileHeartbeatDTO;
 import com.huamar.charge.pile.entity.dto.resp.McCommonResp;
-import com.huamar.charge.pile.enums.*;
-import com.huamar.charge.common.protocol.DataPacket;
+import com.huamar.charge.pile.enums.LoggerEnum;
+import com.huamar.charge.pile.enums.McAnswerEnum;
+import com.huamar.charge.pile.enums.MessageCodeEnum;
+import com.huamar.charge.pile.enums.ProtocolCodeEnum;
 import com.huamar.charge.pile.server.service.factory.McAnswerFactory;
 import com.huamar.charge.pile.server.service.produce.PileMessageProduce;
-import com.huamar.charge.common.util.JSONParser;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.slf4j.MDC;
 import org.springframework.stereotype.Service;
 import org.springframework.util.Assert;
 
-import javax.annotation.PostConstruct;
 import java.time.LocalDateTime;
 
 /**
@@ -44,11 +44,6 @@ public class MachineHeartbeatHandler implements MachinePacketHandler<DataPacket>
      * 消息投递
      */
     private final PileMessageProduce pileMessageProduce;
-
-    /**
-     * 设备参数配置
-     */
-    private final PileMachineProperties pileMachineProperties;
 
     /**
      * 协议编码

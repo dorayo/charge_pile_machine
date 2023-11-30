@@ -45,4 +45,9 @@ public class McAuthResp extends BaseResp {
 	 */
 	public FixString secretKey;
 
+	/**
+	 * 原消息序号
+	 */
+	private short msgNumber;
+
 }

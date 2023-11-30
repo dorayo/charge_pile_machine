@@ -3,13 +3,12 @@ package com.huamar.charge.pile.server.service.upload;
 import cn.hutool.core.date.DateUtil;
 import cn.hutool.core.util.IdUtil;
 import com.huamar.charge.common.common.codec.BCD;
-import com.huamar.charge.pile.config.PileMachineProperties;
+import com.huamar.charge.common.protocol.DataPacketReader;
 import com.huamar.charge.pile.entity.dto.MachineDataUpItem;
 import com.huamar.charge.pile.entity.dto.McChargerOnlineInfoDTO;
 import com.huamar.charge.pile.entity.dto.mq.MessageData;
 import com.huamar.charge.pile.entity.dto.platform.PileHeartbeatDTO;
 import com.huamar.charge.pile.enums.McDataUploadEnum;
-import com.huamar.charge.common.protocol.DataPacketReader;
 import com.huamar.charge.pile.enums.McTypeEnum;
 import com.huamar.charge.pile.enums.MessageCodeEnum;
 import com.huamar.charge.pile.server.service.produce.PileMessageProduce;
@@ -38,11 +37,6 @@ public class McDataUploadOnlineExecute implements McDataUploadExecute {
      * 消息投递
      */
     private final PileMessageProduce pileMessageProduce;
-
-    /**
-     * 设备参数配置
-     */
-    private final PileMachineProperties pileMachineProperties;
 
     /**
      * 协议编码
@@ -187,15 +181,15 @@ public class McDataUploadOnlineExecute implements McDataUploadExecute {
     /**
      * 兼容国华协议
      *
-     * @param time
-     * @param item
+     * @param time time
+     * @param item item
      */
     public void chargerExecute(BCD time, MachineDataUpItem item) {
         if (item.getData().length > 2 && (item.getData().length - 2) % 56 == 0) {
-            byte data[] = Arrays.copyOfRange(item.getData(), 2, item.getData().length);
+            byte[] data = Arrays.copyOfRange(item.getData(), 2, item.getData().length);
             int num = (item.getData().length - 2) / 56;
             for (int i = 0; i < num; i++) {
-                byte newScores[] = Arrays.copyOfRange(data, i * 56, (i + 1) * 56);
+                byte[] newScores = Arrays.copyOfRange(data, i * 56, (i + 1) * 56);
                 item.setData(newScores);
                 McChargerOnlineInfoDTO parse = this.parse(item);
                 log.info("充电桩实时状态信息 data:{}", parse);

@@ -74,7 +74,7 @@ public class SessionManagerNetHandler extends SimpleChannelInboundHandler<BasePa
      */
     @SuppressWarnings("DuplicatedCode")
     @Override
-    public void channelInactive(ChannelHandlerContext ctx) {
+    public void channelInactive(ChannelHandlerContext ctx) throws Exception {
         MDC.clear();
         try {
             AttributeKey<String> sessionKey = AttributeKey.valueOf(ConstEnum.X_SESSION_ID.getCode());
@@ -91,31 +91,7 @@ public class SessionManagerNetHandler extends SimpleChannelInboundHandler<BasePa
             log.error("channelInactive error:{}", e.getMessage(), e);
             authLog.error("channelInactive error:{}", e.getMessage(), e);
         }
-
-//        String bsId = "";
-//        try {
-//            AttributeKey<String> machineId = AttributeKey.valueOf(ConstEnum.MACHINE_ID.getCode());
-//            bsId = ctx.channel().attr(machineId).get();
-//            if (StringUtils.isNotBlank(bsId)) {
-//                MDC.put(ConstEnum.ID_CODE.getCode(), bsId);
-//                SessionManager.remove(bsId);
-//            }
-//        } catch (Exception ignored) {
-//            authLog.info("idCode:{}, {} 断开了服务器 error", bsId, ctx.channel().remoteAddress());
-//            log.info("idCode:{}, {} 断开了服务器 error", bsId, ctx.channel().remoteAddress());
-//        } finally {
-//            authLog.info("idCode:{}, {} 断开了服务器 close", bsId, ctx.channel().remoteAddress());
-//            log.info("idCode:{}, {} 断开了服务器 close", bsId, ctx.channel().remoteAddress());
-//            ctx.channel().close().addListener(future -> {
-//                authLog.error("ctx channel close:{} ", future.isSuccess(), future.cause());
-//                log.error("ctx channel close:{} ", future.isSuccess(), future.cause());
-//            });
-//
-//            ctx.close().addListener(future -> {
-//                authLog.error("ctx close:{} ", future.isSuccess(), future.cause());
-//                log.error("ctx close:{} ", future.isSuccess(), future.cause());
-//            });
-//        }
+        super.channelInactive(ctx);
     }
 
     /**
@@ -131,27 +107,20 @@ public class SessionManagerNetHandler extends SimpleChannelInboundHandler<BasePa
             MDC.put(ConstEnum.X_SESSION_ID.getCode(), sessionId);
 
             AttributeKey<String> machineId = AttributeKey.valueOf(ConstEnum.MACHINE_ID.getCode());
-            String bsId = ctx.channel().attr(machineId).get();
-            log.warn("handlerRemoved, idCode:{}, remoteAddress:{}", bsId, ctx.channel().remoteAddress());
-            authLog.warn("handlerRemoved, idCode:{}, remoteAddress:{}", bsId, ctx.channel().remoteAddress());
-            if (StringUtils.isNotBlank(bsId)) {
-                MDC.put(ConstEnum.ID_CODE.getCode(), bsId);
-                SessionManager.remove(bsId);
+            String idCode = ctx.channel().attr(machineId).get();
+            log.warn("handlerRemoved, idCode:{}, remoteAddress:{}", idCode, ctx.channel().remoteAddress());
+            authLog.warn("handlerRemoved, idCode:{}, remoteAddress:{}", idCode, ctx.channel().remoteAddress());
+
+            if (StringUtils.isNotBlank(idCode)) {
+                MDC.put(ConstEnum.ID_CODE.getCode(), idCode);
+                SessionManager.remove(idCode);
             }
         } catch (Exception cause) {
             log.error("handlerRemoved error, idCode:{}, remoteAddress:{}", ctx.channel().remoteAddress(), cause.getMessage(), cause);
             authLog.error("handlerRemoved error, idCode:{}, remoteAddress:{}", ctx.channel().remoteAddress(), cause.getMessage(), cause);
-        }finally {
+        } finally {
             // 防止session 关闭不执行，始终执行一次
-            ctx.channel().close().addListener(future -> {
-                log.error("handlerRemoved ctx channel close:{} ", future.isSuccess(), future.cause());
-                authLog.error("handlerRemoved ctx channel close:{} ", future.isSuccess(), future.cause());
-            });
-
-            ctx.close().addListener(future -> {
-                log.error("handlerRemoved ctx close:{} ", future.isSuccess(), future.cause());
-                authLog.error("handlerRemoved ctx close:{} ", future.isSuccess(), future.cause());
-            });
+            this.close(ctx);
         }
         super.handlerRemoved(ctx);
     }
@@ -194,15 +163,14 @@ public class SessionManagerNetHandler extends SimpleChannelInboundHandler<BasePa
             MDC.put(ConstEnum.ID_CODE.getCode(), "fail_packet");
             FailMathPacket dataPacket = (FailMathPacket) packet;
             log.info("FailMathPacket data:{}", HexExtUtil.encodeHexStrFormat(dataPacket.getBody(), StringPool.SPACE));
-            channelHandlerContext.channel().close().addListener(future -> {
-                log.error("ctx channel close:{} ", future.isSuccess(), future.cause());
-            });
+            log.info("FailMathPacket close session...");
+            this.close(channelHandlerContext);
             MDC.clear();
             return;
         }
 
         channelHandlerContext.fireChannelRead(packet);
-        log.info("channelRead0 address:{} end idCode:{} <<<<<<<<<<<<<<<<<<<", remotedAddress, idCode);
+        log.info("channelRead0 end session address:{} end idCode:{} <<<<<<<<<<<<<<<<<<<", remotedAddress, idCode);
         MDC.clear();
     }
 
@@ -233,15 +201,7 @@ public class SessionManagerNetHandler extends SimpleChannelInboundHandler<BasePa
             authLog.error("{} exceptionCaught error,{}", ctx.channel().remoteAddress(), cause.getMessage(), cause);
             log.error("{} exceptionCaught error,{}", ctx.channel().remoteAddress(), cause.getMessage(), cause);
         } finally {
-            ctx.channel().close().addListener(future -> {
-                authLog.error("ctx channel close:{} ", future.isSuccess(), future.cause());
-                log.error("ctx channel close:{} ", future.isSuccess(), future.cause());
-            });
-
-            ctx.close().addListener(future -> {
-                authLog.error("ctx close:{} ", future.isSuccess(), future.cause());
-                log.error("ctx close:{} ", future.isSuccess(), future.cause());
-            });
+            this.close(ctx);
         }
     }
 
@@ -294,13 +254,13 @@ public class SessionManagerNetHandler extends SimpleChannelInboundHandler<BasePa
      */
     private void close(ChannelHandlerContext ctx) {
         ctx.channel().close().addListener(future -> {
-            authLog.error("ctx channel close:{} ", future.isSuccess(), future.cause());
-            log.error("ctx channel close:{} ", future.isSuccess(), future.cause());
+            authLog.error("SessionManager ctx channel close:{} ", future.isSuccess(), future.cause());
+            log.error("SessionManager ctx channel close:{} ", future.isSuccess(), future.cause());
         });
 
         ctx.close().addListener(future -> {
-            authLog.error("ctx close:{} ", future.isSuccess(), future.cause());
-            log.error("ctx close:{} ", future.isSuccess(), future.cause());
+            authLog.error("SessionManager ctx close:{} ", future.isSuccess(), future.cause());
+            log.error("SessionManager ctx close:{} ", future.isSuccess(), future.cause());
         });
     }
 }

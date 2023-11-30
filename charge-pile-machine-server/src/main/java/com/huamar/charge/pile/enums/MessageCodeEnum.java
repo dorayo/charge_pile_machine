@@ -77,6 +77,8 @@ public enum MessageCodeEnum {
 
     PILE_AUTH("PILE_AUTH", "设备认证"),
 
+    PILE_OFFLINE("PILE_OFFLINE", "设备下线"),
+
     // <<<<<<<<<<<<<<<<<<<<<<<< 业务端 <<<<<<<<<<<<<<<<<<<<<<<<
 
     WARNING("WARNING", "压制警告");

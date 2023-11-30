@@ -130,11 +130,11 @@ public class SimpleSessionChannel implements SessionChannel {
     public void close() {
 
         channelContext.channel().close().addListener(future -> {
-            log.error("ctx channel close:{} ", future.isSuccess(), future.cause());
+            log.error("session ctx channel close:{} ", future.isSuccess(), future.cause());
         });
 
         channelContext.close().addListener(future -> {
-            log.error("ctx channel close:{} ", future.isSuccess(), future.cause());
+            log.error("session ctx close:{} ", future.isSuccess(), future.cause());
         });
 
     }

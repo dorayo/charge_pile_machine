@@ -5,7 +5,11 @@ import com.github.benmanes.caffeine.cache.Cache;
 import com.github.benmanes.caffeine.cache.Caffeine;
 import com.huamar.charge.common.protocol.DataPacket;
 import com.huamar.charge.net.core.SessionChannel;
+import com.huamar.charge.pile.entity.dto.mq.MessageData;
 import com.huamar.charge.pile.enums.CacheKeyEnum;
+import com.huamar.charge.pile.enums.MessageCodeEnum;
+import com.huamar.charge.pile.server.service.produce.PileMessageProduce;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.redisson.api.RAtomicLong;
 import org.redisson.api.RedissonClient;
@@ -26,6 +30,7 @@ import java.util.Objects;
  */
 @Slf4j
 @Component
+@RequiredArgsConstructor
 public class SessionManager implements ApplicationListener<ContextRefreshedEvent> {
 
     private final static Cache<String, SessionChannel> cache = Caffeine.newBuilder().initialCapacity(1000).build();
@@ -33,6 +38,11 @@ public class SessionManager implements ApplicationListener<ContextRefreshedEvent
     private static MachineSessionContext sessionContext;
 
     private static RedissonClient redissonClient;
+
+    /**
+     * 消息投递
+     */
+    private static PileMessageProduce pileMessageProduce;
 
     /**
      * 根据业务Id获取Session
@@ -54,21 +64,25 @@ public class SessionManager implements ApplicationListener<ContextRefreshedEvent
 
     /**
      * 清除会话缓存
-     * @param bsId bsId
+     * @param idCode idCode
      */
-    public static void remove(String bsId){
+    public static void remove(String idCode){
         try {
-            if(Objects.isNull(bsId)){
+
+            if(Objects.isNull(idCode)){
                 return;
             }
-            SessionChannel sessionChannel = cache.getIfPresent(bsId);
+
+            SessionChannel sessionChannel = cache.getIfPresent(idCode);
             if(Objects.nonNull(sessionChannel)){
                 sessionChannel.close();
             }
+
+            pileMessageProduce.send(new MessageData<>(MessageCodeEnum.PILE_OFFLINE, idCode));
         }catch (Exception e){
             log.error("remove error:{}", e.getMessage(), e);
         }
-        cache.invalidate(bsId);
+        cache.invalidate(idCode);
     }
 
 
@@ -77,6 +91,7 @@ public class SessionManager implements ApplicationListener<ContextRefreshedEvent
         ApplicationContext applicationContext = event.getApplicationContext();
         redissonClient = applicationContext.getBean(RedissonClient.class);
         sessionContext = applicationContext.getBean(MachineSessionContext.class);
+        pileMessageProduce = applicationContext.getBean(PileMessageProduce.class);
     }
 
     /**

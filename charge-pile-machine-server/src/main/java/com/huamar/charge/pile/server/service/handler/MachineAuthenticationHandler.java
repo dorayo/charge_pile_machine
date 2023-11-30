@@ -110,6 +110,7 @@ public class MachineAuthenticationHandler implements MachinePacketHandler<DataPa
         authResp.setSecretKeyLength((short) 0);
         authResp.setIdCode(idCode);
         authResp.setSecretKey(new FixString(new byte[0]));
+        authResp.setMsgNumber(packet.getMsgNumber());
 
         // 应答实现
         McAnswerExecute<BaseResp> answerExecute = answerFactory.getExecute(McAnswerEnum.AUTH);

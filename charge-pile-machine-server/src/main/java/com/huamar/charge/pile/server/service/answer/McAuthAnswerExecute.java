@@ -44,7 +44,7 @@ public class McAuthAnswerExecute implements McAnswerExecute<McAuthResp> {
         PacketBuilder builder = PacketBuilder.builder();
         builder.body(writer)
                 .messageId(ProtocolCodeEnum.AUTH_ANSWER.getCode())
-                .messageNumber(SessionManager.getMessageNumber(resp.getIdCode()))
+                .messageNumber(resp.getMsgNumber())
                 .idCode(resp.getIdCode());
         SessionManager.writePacket(builder.build(), channelContext);
     }

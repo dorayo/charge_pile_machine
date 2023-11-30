@@ -67,7 +67,6 @@ public class MachineNetServer implements NetServer {
 
     private ChannelFuture channelFuture;
 
-
     /**
      * 是否启动
      */
@@ -112,8 +111,6 @@ public class MachineNetServer implements NetServer {
         this.init();
         isRun.getAndSet(Boolean.TRUE);
         channelFuture = serverBootstrap.bind(properties.getPort()).sync();
-        //serverBootstrap.bind(properties.getPortSalve()).sync();
-        //channelFuture.channel().closeFuture().sync(); 阻塞等待服务器 socket 关闭
     }
 
 
@@ -124,6 +121,7 @@ public class MachineNetServer implements NetServer {
         if (isRun.get()) {
             return;
         }
+
         boosGroup = new NioEventLoopGroup(properties.getBoss());
         workerGroup = new NioEventLoopGroup(properties.getWorker());
         serverBootstrap.group(boosGroup, workerGroup)
