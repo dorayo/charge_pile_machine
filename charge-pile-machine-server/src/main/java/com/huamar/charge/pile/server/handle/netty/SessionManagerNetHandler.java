@@ -55,6 +55,7 @@ public class SessionManagerNetHandler extends SimpleChannelInboundHandler<BasePa
     @Override
     public void channelActive(ChannelHandlerContext ctx) {
         MDC.clear();
+        Thread.currentThread().setName(IdUtil.getSnowflakeNextIdStr());
         AttributeKey<String> sessionKey = AttributeKey.valueOf(ConstEnum.X_SESSION_ID.getCode());
         String sessionId = ctx.channel().attr(sessionKey).get();
         if(Objects.isNull(sessionId)){
@@ -64,6 +65,7 @@ public class SessionManagerNetHandler extends SimpleChannelInboundHandler<BasePa
         MDC.put(ConstEnum.X_SESSION_ID.getCode(), sessionId);
         log.info("{} 连上了服务器", ctx.channel().remoteAddress());
         authLog.info("{} 连上了服务器", ctx.channel().remoteAddress());
+        MDC.clear();
     }
 
 
@@ -77,6 +79,7 @@ public class SessionManagerNetHandler extends SimpleChannelInboundHandler<BasePa
     public void channelInactive(ChannelHandlerContext ctx) throws Exception {
         MDC.clear();
         try {
+            Thread.currentThread().setName(IdUtil.getSnowflakeNextIdStr());
             AttributeKey<String> sessionKey = AttributeKey.valueOf(ConstEnum.X_SESSION_ID.getCode());
             String sessionId = ctx.channel().attr(sessionKey).get();
             MDC.put(ConstEnum.X_SESSION_ID.getCode(), sessionId);
