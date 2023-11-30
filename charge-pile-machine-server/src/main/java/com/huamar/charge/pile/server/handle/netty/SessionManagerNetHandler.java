@@ -88,8 +88,8 @@ public class SessionManagerNetHandler extends SimpleChannelInboundHandler<BasePa
             String bsId = ctx.channel().attr(machineId).get();
             MDC.put(ConstEnum.ID_CODE.getCode(), bsId);
 
-            log.info("channelInactive remoteAddress:{} 连接不活跃 idCode:{}", bsId, ctx.channel().remoteAddress());
-            authLog.info("channelInactive remoteAddress:{} 连接不活跃 idCode:{}", bsId, ctx.channel().remoteAddress());
+            log.info("channelInactive  连接不活跃 idCode:{} remoteAddress:{}", bsId, ctx.channel().remoteAddress());
+            authLog.info("channelInactive 连接不活跃 idCode:{} remoteAddress:{}", bsId, ctx.channel().remoteAddress());
         }catch (Exception e){
             log.error("channelInactive error:{}", e.getMessage(), e);
             authLog.error("channelInactive error:{}", e.getMessage(), e);
@@ -118,6 +118,7 @@ public class SessionManagerNetHandler extends SimpleChannelInboundHandler<BasePa
                 MDC.put(ConstEnum.ID_CODE.getCode(), idCode);
                 SessionManager.remove(idCode);
             }
+
         } catch (Exception cause) {
             log.error("handlerRemoved error, idCode:{}, remoteAddress:{}", ctx.channel().remoteAddress(), cause.getMessage(), cause);
             authLog.error("handlerRemoved error, idCode:{}, remoteAddress:{}", ctx.channel().remoteAddress(), cause.getMessage(), cause);
