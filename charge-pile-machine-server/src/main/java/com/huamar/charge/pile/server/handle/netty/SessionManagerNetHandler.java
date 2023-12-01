@@ -169,6 +169,7 @@ public class SessionManagerNetHandler extends SimpleChannelInboundHandler<BasePa
             log.info("FailMathPacket data:{}", HexExtUtil.encodeHexStrFormat(dataPacket.getBody(), StringPool.SPACE));
             log.info("FailMathPacket close session...");
             this.close(channelHandlerContext);
+            SessionManager.remove(idCode);
             MDC.clear();
             return;
         }
@@ -225,14 +226,14 @@ public class SessionManagerNetHandler extends SimpleChannelInboundHandler<BasePa
             IdleStateEvent event = (IdleStateEvent) evt;
             AttributeKey<String> machineId = AttributeKey.valueOf(ConstEnum.MACHINE_ID.getCode());
             String bsId = ctx.channel().attr(machineId).get();
+            if (StringUtils.isNotBlank(bsId)) {
+                MDC.put(ConstEnum.ID_CODE.getCode(), bsId);
+            }
             switch (event.state()) {
 
                 case READER_IDLE:
                     authLog.warn("IdCode:{} READER_IDLE 读取数据空闲 心跳链接超时 关闭连接", bsId);
                     log.warn("IdCode:{} READER_IDLE 读取数据空闲 心跳链接超时 关闭连接", bsId);
-                    if (StringUtils.isNotBlank(bsId)) {
-                        MDC.put(ConstEnum.ID_CODE.getCode(), bsId);
-                    }
                     this.close(ctx);
                     break;
 
