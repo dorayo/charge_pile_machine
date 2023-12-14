@@ -20,10 +20,12 @@ import io.netty.buffer.ByteBuf;
 import io.netty.buffer.ByteBufAllocator;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.redisson.api.RBucket;
 import org.redisson.api.RedissonClient;
 import org.springframework.stereotype.Component;
 
+import java.util.Objects;
 import java.util.concurrent.TimeUnit;
 
 
@@ -106,8 +108,7 @@ public class McElectricityPriceCommandExecute implements McCommandExecute<McElec
                 if (f.isSuccess()) {
                     log.info("write 0x0A success ");
                 } else {
-                    f.cause().printStackTrace();
-                    log.info("write 0x0A error ");
+                    log.info("write 0x0A error e:{}", ExceptionUtils.getMessage(f.cause()));
                 }
             });
             return;
@@ -135,36 +136,34 @@ public class McElectricityPriceCommandExecute implements McCommandExecute<McElec
         DataPacketWriter writer = new DataPacketWriter();
         //noinspection SwitchStatementWithTooFewBranches
         log.info("电价信息:{}", JSONParser.jsonString(command));
-        switch (type) {
-            case B:
-                writer.write(command.getGunSort());
-                writer.write((short) (command.getPrice1() / 100));
-                writer.write((short) (command.getPrice2() / 100));
-                writer.write((short) (command.getPrice3() / 100));
-                writer.write((short) (command.getPrice4() / 100));
-                writer.write(command.getTimeStage());
-                writer.write((short) (command.getServicePrice1() / 100));
-                CacheKeyEnum keyEnum = CacheKeyEnum.MACHINE_SERVICE_PRICE;
-                String key = command.getIdCode();
-                key = keyEnum.joinKey(key);
-                RBucket<McElectricityPriceCommandDTO> bucket = redissonClient.getBucket(key);
-                bucket.set(command, keyEnum.getDuration().toMillis(), TimeUnit.MILLISECONDS);
-                break;
-            default:
-                writer.write(command.getGunSort());
-                writer.write(command.getPrice1());
-                writer.write(command.getPrice2());
-                writer.write(command.getPrice3());
-                writer.write(command.getPrice4());
-                writer.write(command.getPrice5());
-                writer.write(command.getPrice6());
-                writer.write(command.getServicePrice1());
-                writer.write(command.getServicePrice2());
-                writer.write(command.getServicePrice3());
-                writer.write(command.getServicePrice4());
-                writer.write(command.getServicePrice5());
-                writer.write(command.getServicePrice6());
-                writer.write(command.getTimeStage());
+        if (Objects.requireNonNull(type) == McTypeEnum.B) {
+            writer.write(command.getGunSort());
+            writer.write((short) (command.getPrice1() / 100));
+            writer.write((short) (command.getPrice2() / 100));
+            writer.write((short) (command.getPrice3() / 100));
+            writer.write((short) (command.getPrice4() / 100));
+            writer.write(command.getTimeStage());
+            writer.write((short) (command.getServicePrice1() / 100));
+            CacheKeyEnum keyEnum = CacheKeyEnum.MACHINE_SERVICE_PRICE;
+            String key = command.getIdCode();
+            key = keyEnum.joinKey(key);
+            RBucket<McElectricityPriceCommandDTO> bucket = redissonClient.getBucket(key);
+            bucket.set(command, keyEnum.getDuration().toMillis(), TimeUnit.MILLISECONDS);
+        } else {
+            writer.write(command.getGunSort());
+            writer.write(command.getPrice1());
+            writer.write(command.getPrice2());
+            writer.write(command.getPrice3());
+            writer.write(command.getPrice4());
+            writer.write(command.getPrice5());
+            writer.write(command.getPrice6());
+            writer.write(command.getServicePrice1());
+            writer.write(command.getServicePrice2());
+            writer.write(command.getServicePrice3());
+            writer.write(command.getServicePrice4());
+            writer.write(command.getServicePrice5());
+            writer.write(command.getServicePrice6());
+            writer.write(command.getTimeStage());
         }
         McCommandDTO commandDTO = new McCommandDTO(typeCode, command.getFieldsByteLength(), writer.toByteArray());
         log.info("McCommandDTO:{}", JSONParser.jsonString(commandDTO));

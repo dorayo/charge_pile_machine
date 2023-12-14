@@ -24,6 +24,12 @@ public enum McCommandEnum {
     ORDER_APPOINTMENT("0005", "充电预约 (0x0005)"),
 
     CARD_QUERY("0004", "卡查询结果 (0x0004)"),
+
+    /**
+     * 国花协议 背光灯
+     */
+    CUSTOM_AD_LAMP("CUSTOM:0004", "背光灯时间 (0x0004)");
+
     ;
     private final String code;
     private final String desc;

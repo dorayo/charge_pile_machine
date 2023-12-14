@@ -1,19 +1,12 @@
 package com.huamar.charge.pile.server.handle.netty.c;
 
-import cn.hutool.core.lang.Assert;
-import com.huamar.charge.common.protocol.DataPacket;
 import com.huamar.charge.common.protocol.c.ProtocolCPacket;
-import com.huamar.charge.common.util.HexExtUtil;
 import com.huamar.charge.net.core.SessionChannel;
 import com.huamar.charge.pile.enums.ConstEnum;
 import com.huamar.charge.pile.enums.NAttrKeys;
-import com.huamar.charge.pile.enums.ProtocolCodeEnum;
-import com.huamar.charge.pile.server.service.factory.MachinePacketFactory;
-import com.huamar.charge.pile.server.service.handler.MachinePacketHandler;
 import com.huamar.charge.pile.server.service.handler.c.MachineCAuthenticationHandler;
 import com.huamar.charge.pile.server.service.handler.c.MachineCHandlers;
 import com.huamar.charge.pile.server.service.handler.c.MachineCHeartbeatHandler;
-import com.huamar.charge.pile.server.service.produce.PileMessageProduce;
 import com.huamar.charge.pile.server.session.SessionManager;
 import io.netty.channel.ChannelHandler;
 import io.netty.channel.ChannelHandlerContext;
@@ -22,8 +15,6 @@ import io.netty.util.AttributeKey;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
-
-import java.nio.charset.StandardCharsets;
 
 
 /**

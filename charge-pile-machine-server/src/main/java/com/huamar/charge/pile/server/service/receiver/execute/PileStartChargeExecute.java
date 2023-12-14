@@ -111,7 +111,7 @@ public class PileStartChargeExecute implements PileMessageExecute {
             chargeCommand.setIdCode(chargeControl.getIdCode());
             log.info("开启充电参数下发：" + chargeCommand);
             SimpleSessionChannel session = (SimpleSessionChannel) SessionManager.get(chargeControl.getIdCode());
-//        command.getTypeCode()
+
             if (session.getType() == McTypeEnum.C) {
                 handleProtocolC(chargeControl.getIdCode(), chargeCommand);
                 return;
