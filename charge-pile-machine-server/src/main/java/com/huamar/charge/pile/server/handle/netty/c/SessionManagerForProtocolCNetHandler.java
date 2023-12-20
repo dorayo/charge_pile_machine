@@ -62,20 +62,7 @@ public class SessionManagerForProtocolCNetHandler extends SimpleChannelInboundHa
     @SuppressWarnings("DuplicatedCode")
     @Override
     public void channelInactive(ChannelHandlerContext ctx) {
-//        MDC.clear();
-//        log.info("{} 断开了服务器", ctx.channel().remoteAddress());
-//        try {
-////            AttributeKey<String> machineId = AttributeKey.valueOf(ConstEnum.MACHINE_ID.getCode());
-////            String bsId = ctx.channel().attr(machineId).get();
-////            if (StringUtils.isNotBlank(bsId)) {
-////                MDC.put(ConstEnum.ID_CODE.getCode(), bsId);
-////                SessionManager.remove(bsId);
-////            }
-//        } catch (Exception ignored) {
-//            log.info("{} 断开了服务器 error", ctx.channel().remoteAddress());
-//        } finally {
-//            ctx.close();
-//        }
+
     }
 
     /**

@@ -81,29 +81,6 @@ public class MachineCNetServer {
     @Bean
     public ApplicationListener<ApplicationReadyEvent> serverCStart() {
         return event -> {
-//            Thread thread = new Thread() {
-//                @Override
-//                public void run() {
-//                    try {
-//                        sleep(25000);
-//                    } catch (InterruptedException e) {
-//                        throw new RuntimeException(e);
-//                    }
-//                    McChargeCommandDTO a = new McChargeCommandDTO();
-//                    a.setGunSort((byte) 0x01);
-//                    a.setBalance(0xfffffff);
-//                    a.setOrderSerialNumber("1111111111111111111111111111111111111111111111".getBytes());
-//                    event.getApplicationContext().getBean(PileStartChargeExecute.class).handleProtocolC("00220323501003", a);
-//                    try {
-//                        sleep(15000);
-//                    } catch (InterruptedException e) {
-//                        throw new RuntimeException(e);
-//                    }
-//                    event.getApplicationContext().getBean(PileStopChargeExecute.class).handleC("00220323501003", a);
-//
-//                }
-//            };
-//            thread.start();
             MachineCNetServer netServer = event.getApplicationContext().getBean(this.getClass());
             netServer.start(event.getApplicationContext());
             log.info("Server C Net start ...{}", netServer.getClass().getSimpleName());
@@ -130,8 +107,6 @@ public class MachineCNetServer {
         this.init(applicationContext);
         isRun.getAndSet(Boolean.TRUE);
         channelFuture = serverBootstrap.bind(properties.getPortC()).sync();
-        //serverBootstrap.bind(properties.getPortSalve()).sync();
-        //channelFuture.channel().closeFuture().sync(); 阻塞等待服务器 socket 关闭
     }
 
 
@@ -152,7 +127,6 @@ public class MachineCNetServer {
                 .childHandler(new ChannelInitializer<SocketChannel>() {
                     @Override
                     protected void initChannel(SocketChannel socketChannel) {
-//                        ServerNetHandler serverNetHandler = new ServerNetHandler(machinePacketFactory);
                         ChannelPipeline pipeline = socketChannel.pipeline();
                         pipeline.addLast("splitD", new MessageSplitDecodeHandler());
                         pipeline.addLast("handleD", new MessageHandleDecodeHandler());

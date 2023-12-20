@@ -1,27 +1,16 @@
 package com.huamar.charge.pile.server.service.handler.c;
 
 import cn.hutool.core.date.StopWatch;
-import cn.hutool.core.lang.Assert;
-import cn.hutool.crypto.digest.HMac;
-import cn.hutool.crypto.digest.HmacAlgorithm;
 import com.huamar.charge.common.protocol.DataPacket;
-import com.huamar.charge.common.protocol.FixString;
 import com.huamar.charge.common.protocol.c.ProtocolCPacket;
 import com.huamar.charge.common.util.Cp56Time2aUtil;
-import com.huamar.charge.common.util.HexExtUtil;
 import com.huamar.charge.common.util.netty.NUtils;
 import com.huamar.charge.net.core.SessionChannel;
 import com.huamar.charge.pile.api.dto.PileDTO;
 import com.huamar.charge.pile.convert.MachineAuthenticationConvert;
 import com.huamar.charge.pile.entity.dto.MachineAuthenticationReqDTO;
 import com.huamar.charge.pile.entity.dto.mq.MessageData;
-import com.huamar.charge.pile.entity.dto.resp.McAuthResp;
-import com.huamar.charge.pile.enums.ConstEnum;
-import com.huamar.charge.pile.enums.MessageCodeEnum;
-import com.huamar.charge.pile.enums.NAttrKeys;
-import com.huamar.charge.pile.enums.ProtocolCodeEnum;
-import com.huamar.charge.pile.server.service.factory.McAnswerFactory;
-import com.huamar.charge.pile.server.service.factory.McCommandFactory;
+import com.huamar.charge.pile.enums.*;
 import com.huamar.charge.pile.server.service.machine.MachineService;
 import com.huamar.charge.pile.server.service.produce.PileMessageProduce;
 import com.huamar.charge.pile.server.session.SessionManager;
@@ -33,6 +22,10 @@ import io.netty.channel.ChannelHandlerContext;
 import io.netty.util.AttributeKey;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.exception.ExceptionUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.slf4j.MDC;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.task.TaskExecutor;
 import org.springframework.stereotype.Service;
@@ -41,6 +34,7 @@ import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.Date;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
@@ -56,21 +50,12 @@ import java.util.concurrent.TimeUnit;
 @RequiredArgsConstructor
 public class MachineCAuthenticationHandler {
 
+    private final Logger authLog = LoggerFactory.getLogger(LoggerEnum.PILE_AUTH_LOGGER.getCode());
 
     /**
      * 设备接口
      */
     private final MachineService machineService;
-
-    /**
-     * 应答回复工厂
-     */
-    private final McAnswerFactory answerFactory;
-
-    /**
-     * 指令下发工厂
-     */
-    private final McCommandFactory commandFactory;
 
     /**
      * 消息生产者
@@ -103,51 +88,65 @@ public class MachineCAuthenticationHandler {
         byte[] idBody = channelHandlerContext.channel().attr(NAttrKeys.ID_BODY).get();
         String mId = channelHandlerContext.channel().attr(machineId).get();
         final int gunCount = packet.getBody()[8];
-        log.info("终端鉴权，loginNumber={} time={}", idBody, LocalDateTime.now());
+        log.info("终端鉴权（YKC），loginNumber={} time={}", idBody, LocalDateTime.now());
         ByteBuf bfB = ByteBufAllocator.DEFAULT.heapBuffer();
         bfB.writeBytes(idBody);
         bfB.writeByte(0x00);
         ByteBuf responseB = BinaryBuilders.protocolCLeResponseBuilder(NUtils.nBFToBf(bfB), packet.getOrderVBf(), (byte) 0x02);
         log.info(BinaryViews.bfToHexStr(responseB));
-        //        log.info("write {}", BinaryViews.bfToHexStr(BinaryBuilders.protocolCLeResponseBuilder(NUtils.nBFToBf(bfB), packet.getOrderVBf(), (byte) 0x02)));
         channelHandlerContext.channel().writeAndFlush(responseB).addListener((f) -> {
             if (f.isSuccess()) {
                 sessionChannel.setAttribute("auth", "ok");
-                log.info("0x0{}write success", 0x02);
-            } else {
-                sessionChannel.close();
-                f.cause().printStackTrace();
+                log.info("0x0{}, write success", 0x02);
+                return;
             }
+
+            sessionChannel.close();
+            log.error("0x0{}, write error:{}", 0x02, ExceptionUtils.getMessage(f.cause()), f.cause());
         });
+
+        Map<String, String> mdcMap = MDC.getCopyOfContextMap();
         taskExecutor.execute(() -> {
             try {
+                MDC.setContextMap(mdcMap);
                 pileMessageProduce.send(new MessageData<>(MessageCodeEnum.PILE_AUTH, mId));
-//                pileMessageProduce.send(new MessageData<>(MessageCodeEnum., id));
+
                 long startTime = System.currentTimeMillis();
                 long maxWaitTime = Duration.ofSeconds(3).toMillis();
+
                 PileDTO pile = null;
                 StopWatch stopWatch = new StopWatch("Auth");
                 stopWatch.start("wait pile");
                 while (System.currentTimeMillis() - startTime < maxWaitTime) {
+                    TimeUnit.MILLISECONDS.sleep(300);
                     pile = machineService.getCache(mId);
-                    if (Objects.isNull(pile)) {
-                        continue;
-                    }
-                    try {
-                        TimeUnit.MILLISECONDS.sleep(500);
-                    } catch (InterruptedException ignored) {
+                    boolean nonNull = Objects.nonNull(pile);
+                    log.warn("终端鉴权 （YKC） auth wait pile time await:{} success:{}", System.currentTimeMillis() - startTime, nonNull);
+                    authLog.warn("终端鉴权 （YKC） auth wait pile time await:{} success:{}", System.currentTimeMillis() - startTime, nonNull);
+                    if (nonNull) {
+                        break;
                     }
                 }
                 stopWatch.stop();
-                log.info("auth pile isSuccess:{}", Optional.ofNullable(pile).isPresent());
-                log.info("auth auth task run time:{} prettyPrint:{}"
-                        , stopWatch.getTotalTimeSeconds()
-                        , stopWatch.prettyPrint(TimeUnit.MILLISECONDS));
+                log.info("终端鉴权 （YKC）auth pile isSuccess:{}, time:{}", Optional.ofNullable(pile).isPresent(), stopWatch.getTotalTimeSeconds());
+                authLog.info("终端鉴权 （YKC）auth pile isSuccess:{}, time:{}", Optional.ofNullable(pile).isPresent(), stopWatch.getTotalTimeSeconds());
+
+                // 多次鉴权并发问题
+                // 多次鉴权并发问题
+                Object auth = sessionChannel.getAttribute("auth");
+                if (Objects.nonNull(auth)) {
+                    log.info("终端鉴权 （YKC） pile auth session attribute:{}", auth);
+                    authLog.info("终端鉴权 （YKC） pile auth session attribute:{}", auth);
+                }
 
                 if (Objects.isNull(pile)) {
+                    log.info("终端鉴权失败 （YKC） pile auth session attribute:{}", auth);
+                    authLog.info("终端鉴权失败 （YKC） pile auth session attribute:{}", auth);
                     SessionManager.close(sessionChannel);
                     return;
                 }
+
+
                 PileDTO update = new PileDTO();
                 update.setId(pile.getId());
                 sessionChannel.setAttribute("auth", "ok");
@@ -156,36 +155,8 @@ public class MachineCAuthenticationHandler {
                 pileMessageProduce.send(new MessageData<>(MessageCodeEnum.ELECTRICITY_PRICE, update));
                 sendQrCode(packet, channelHandlerContext, gunCount);
                 syncTime(packet, channelHandlerContext);
-                // 多次鉴权并发问题，先返回成功，认证失败关闭连接
-//                authResp.setStatus(MachineAuthStatus.SUCCESS.getCode());
-                //             answerExecute.execute(authResp, sessionChannel);
-
-//                long startTime = System.currentTimeMillis();
-//                long maxWaitTime = Duration.ofSeconds(3).toMillis();
-
-                // 多次鉴权并发问题
-
-                // 更新对象
-//                PileDTO update = new PileDTO();
-//                update.setPileCode(id);
-
-                // 标记此连接鉴权成功
-
-
-                // 二维码下发
-//                this.sendQrCode(authResp);
-                // 设备更新
-//                pileMessageProduce.send(new MessageData<>(MessageCodeEnum.PILE_UPDATE, update));
-
-                //电价更新
-//                update.setStationId(pile.getStationId());
-//                update.setPileCode(pile.getPileCode());
-//                pileMessageProduce.send(new MessageData<>(MessageCodeEnum.ELECTRICITY_PRICE, update));
-
             } catch (Exception e) {
-                log.error("auth execute error:{}", e.getMessage(), e);
-            } finally {
-                machineService.removeCache(mId);
+                log.error("终端鉴权失败 （YKC） auth execute error:{}", e.getMessage(), e);
             }
         });
     }
@@ -200,26 +171,6 @@ public class MachineCAuthenticationHandler {
         return MachineAuthenticationConvert.INSTANCE.convert(packet);
     }
 
-
-    /**
-     * 电桩加密封装
-     *
-     * @param reqDTO reqDTO
-     */
-    private void encryptionSecretKey(MachineAuthenticationReqDTO reqDTO, McAuthResp authResp) {
-        if ((reqDTO.getBoardNum() & 0xff) != 160) {
-            return;
-        }
-        authResp.setEncryptionType((byte) 1);
-        String src = reqDTO.getIdCode() + authResp.getTime() + reqDTO.getMacAddress().toString();
-        HMac mac = new HMac(HmacAlgorithm.HmacMD5, "VB6dQCFh2F9ZyNg7".getBytes());
-        byte[] digest = mac.digest(src);
-        authResp.setSecretKey(new FixString(digest));
-        authResp.setSecretKeyLength((short) digest.length);
-        String encodeHexStr = HexExtUtil.encodeHexStr(digest, false);
-        log.info("encryption :{}", encodeHexStr);
-    }
-
     /**
      * 二维码下发
      */
@@ -229,9 +180,9 @@ public class MachineCAuthenticationHandler {
         byte[] urlB = url.getBytes(StandardCharsets.US_ASCII);
         byte urlLen = (byte) urlB.length;
         for (int i = 0; i <= gunCount; i++) {
-            Integer latestOrderV = ctx.attr(NAttrKeys.PROTOCOL_C_LATEST_ORDER_V).get();
+            Integer latestOrderV = ctx.channel().attr(NAttrKeys.PROTOCOL_C_LATEST_ORDER_V).get();
             latestOrderV++;
-            ctx.attr(NAttrKeys.PROTOCOL_C_LATEST_ORDER_V).set(latestOrderV);
+            ctx.channel().attr(NAttrKeys.PROTOCOL_C_LATEST_ORDER_V).set(latestOrderV);
             ByteBuf bfB = ByteBufAllocator.DEFAULT.heapBuffer();
             bfB.writeByte(i);
             bfB.writeByte(urlLen);
@@ -240,8 +191,7 @@ public class MachineCAuthenticationHandler {
             log.info("write  0x9c {} ", BinaryViews.bfToHexStr(responseB));
             ctx.writeAndFlush(responseB).addListener((f) -> {
                 if (!f.isSuccess()) {
-                    log.error("write 0x9c error");
-                    f.cause().printStackTrace();
+                    log.error("write error:{}", ExceptionUtils.getMessage(f.cause()), f.cause());
                 }
             });
         }
@@ -252,10 +202,10 @@ public class MachineCAuthenticationHandler {
      */
     private void syncTime(ProtocolCPacket packet, ChannelHandlerContext ctx) {
         byte type = (byte) 0x56;
-        byte[] idBody = ctx.attr(NAttrKeys.ID_BODY).get();
-        Integer latestOrderV = ctx.attr(NAttrKeys.PROTOCOL_C_LATEST_ORDER_V).get();
+        byte[] idBody = ctx.channel().attr(NAttrKeys.ID_BODY).get();
+        Integer latestOrderV = ctx.channel().attr(NAttrKeys.PROTOCOL_C_LATEST_ORDER_V).get();
         latestOrderV++;
-        ctx.attr(NAttrKeys.PROTOCOL_C_LATEST_ORDER_V).set(latestOrderV);
+        ctx.channel().attr(NAttrKeys.PROTOCOL_C_LATEST_ORDER_V).set(latestOrderV);
         ByteBuf bfB = ByteBufAllocator.DEFAULT.heapBuffer();
         bfB.writeBytes(idBody);
         bfB.writeBytes(Cp56Time2aUtil.dateToByte(new Date()));
@@ -264,7 +214,7 @@ public class MachineCAuthenticationHandler {
         ctx.writeAndFlush(responseB).addListener((f) -> {
             if (!f.isSuccess()) {
                 log.error("write 0x56 error");
-                f.cause().printStackTrace();
+                log.error("write error:{}", ExceptionUtils.getMessage(f.cause()), f.cause());
             }
         });
     }
