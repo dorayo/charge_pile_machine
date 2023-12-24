@@ -20,6 +20,7 @@ import io.netty.buffer.ByteBuf;
 import io.netty.buffer.ByteBufAllocator;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.springframework.stereotype.Component;
 
 import java.util.concurrent.ConcurrentHashMap;
@@ -56,10 +57,10 @@ public class PileStopChargeExecute implements PileMessageExecute {
     public void handleC(String idCode, McChargeCommandDTO chargeCommand) {
         byte type = 0x36;
         SimpleSessionChannel session = (SimpleSessionChannel) SessionManager.get(idCode);
-        Integer latestOrderV = session.channel().attr(NAttrKeys.PROTOCOL_C_LATEST_ORDER_V).get();
+        Integer latestOrderV = session.channel().channel().attr(NAttrKeys.PROTOCOL_C_LATEST_ORDER_V).get();
         latestOrderV++;
-        session.channel().attr(NAttrKeys.PROTOCOL_C_LATEST_ORDER_V).set(latestOrderV);
-        byte[] idBody = session.channel().attr(NAttrKeys.ID_BODY).get();
+        session.channel().channel().attr(NAttrKeys.PROTOCOL_C_LATEST_ORDER_V).set(latestOrderV);
+        byte[] idBody = session.channel().channel().attr(NAttrKeys.ID_BODY).get();
         ByteBuf responseBody = ByteBufAllocator.DEFAULT.heapBuffer(7 + 1);
         responseBody.writeBytes(idBody);
         responseBody.writeByte(chargeCommand.getGunSort());
@@ -69,8 +70,7 @@ public class PileStopChargeExecute implements PileMessageExecute {
             if (f.isSuccess()) {
                 log.info("{} success", type);
             } else {
-                log.error("{}success error", type);
-                f.cause().printStackTrace();
+                log.error("{} success error:{}", type, ExceptionUtils.getMessage(f.cause()));
             }
         });
     }

@@ -16,7 +16,7 @@ import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
 
 /**
- * 远程参数下发
+ * 远程参数下发，背光灯下发
  * date: 2023/08
  *
  * @author TiAmo(13721682347 @ 163.com)
