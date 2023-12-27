@@ -479,7 +479,7 @@ public class PileChargeFinishEventExecute implements PileEventExecute {
         eventDTO.setOrderSerialNumber(reader.readString(32));
         reader.readByte();
         reader.readString(4);
-        eventDTO.setOrderSerialNumber(reader.readString(17));
+        eventDTO.setCarIdentificationCode(reader.readString(17));
 
         //判断是否还有未读完数据，兼容不同版本协议
         if (!reader.isEnd()) {
