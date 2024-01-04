@@ -23,6 +23,7 @@ import io.netty.channel.ChannelHandlerContext;
 import io.netty.util.AttributeKey;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -30,6 +31,8 @@ import java.time.ZoneId;
 import java.time.temporal.ChronoUnit;
 import java.util.Arrays;
 import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
 
 import static com.huamar.charge.pile.enums.NAttrKeys.SERVICE_PRICE_RATIOS;
 
@@ -266,6 +269,7 @@ public class MachineCHandlers {
      * @param ctx    the ctx
      */
     public void handler0x3b(ProtocolCPacket packet, ChannelHandlerContext ctx) {
+        Map<String, Object> params = new HashMap<>();
         try {
             float[] ratios = ctx.channel().attr(SERVICE_PRICE_RATIOS).get();
             if (ratios == null) {
@@ -277,10 +281,25 @@ public class MachineCHandlers {
             byte[] oldBody = packet.getBody();
             int bodyLen = oldBody.length;
             int priceStartIndex = 16 + 7 + 14;
+
+            byte[] orderNumberBytes = new byte[16];
+            System.arraycopy(oldBody, 0, orderNumberBytes, 0, 16);
+            String orderNumber = cn.hutool.core.codec.BCD.bcdToStr(orderNumberBytes);
+            params.put("orderNumber", orderNumber);
+
             long firstPrice = BinaryViews.intViewLe(oldBody, priceStartIndex + 12);
+            params.put("firstPrice", firstPrice);
+
             long secondPrice = BinaryViews.intViewLe(oldBody, priceStartIndex + 12 + 16);
+            params.put("secondPrice", secondPrice);
+
             long thirdPrice = BinaryViews.intViewLe(oldBody, priceStartIndex + 12 + 16 * 2);
+            params.put("thirdPrice", thirdPrice);
+
+
             long forthPrice = BinaryViews.intViewLe(oldBody, priceStartIndex + 12 + 16 * 3);
+            params.put("forthPrice", forthPrice);
+
 //            if (firstPrice != 0) {
 //                currenServiceRatioI = 0;
 //            }
@@ -310,8 +329,7 @@ public class MachineCHandlers {
                 if (f.isSuccess()) {
                     log.info("write {}  success", "0x40");
                 } else {
-                    log.error("write {}  error", "0x40");
-                    f.cause().printStackTrace();
+                    log.error("write {}  error", "0x40", f.cause());
                 }
             });
             log.info("事件汇报：0x3b  消费金额{}", total);
@@ -333,6 +351,7 @@ public class MachineCHandlers {
             eventPushDTO.setGunSort(gunShort);
             eventPushDTO.setServiceMoney((int) (total * (ratios[currenServiceRatioI])));
             eventPushDTO.setChargeMoney((int) (total - eventPushDTO.getServiceMoney()));
+            eventPushDTO.setOrderSerialNumber(orderNumber);
             MessageData<PileChargeFinishEventPushDTO> messageData = new MessageData<>(eventPushDTO);
             messageData.setBusinessCode(MessageCodeEnum.EVENT_CHARGE_FINISH.getCode());
             messageData.setBusinessId(idCode);
@@ -348,7 +367,9 @@ public class MachineCHandlers {
 //            pileMessageProduce.send(messageData1);
 
         } catch (Exception e) {
-            log.error("sendMessage send error e:{}", e.getMessage(), e);
+            log.error("sendMessage send error e:{}", ExceptionUtils.getMessage(e), e);
+        }finally {
+            log.info("YKC-订单结束事件 params:{}", params);
         }
     }
 
