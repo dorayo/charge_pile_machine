@@ -10,6 +10,9 @@
 	<property name="LOG_FILE" value="${LOG_FILE:-${LOG_PATH:-${LOG_TEMP:-${java.io.tmpdir:-/tmp}}}/spring.log}"/>
 	<property name="LOG_PATH" value="${LOG_PATH:-${LOG_TEMP:-${java.io.tmpdir:-/tmp}}}"/>
 	
+	<springProperty scope="context" name="LOG_LOCATION" source="logLocation" defaultValue="/data/weblog/java" />
+	
+	
 	<!-- 彩色日志格式 -->
 	<property name="LOG_PATTERN"
 			  value="%clr(%d{yyyy-MM-dd HH:mm:ss.SSS}){faint} %clr(${LOG_LEVEL_PATTERN:-%5p}) %clr(${PID:- }){magenta} %clr(---){faint} %clr([%15.15t]){faint} %clr(%-40.40logger{39}){cyan} %clr(:){faint} %m%n${LOG_EXCEPTION_CONVERSION_WORD:-%wEx}"/>
@@ -40,14 +43,11 @@
 	
 	
 	<!-- Spring日志级别控制  -->
-	<logger name="org.springframework" level="INFO"/>
+	<logger name="org.springframework" level="WARN"/>
 	<logger name="org.springframework.web.filter" level="INFO"/>
-
-
-	
+	<logger name="org.springframework.web.filter" level="DEBUG"/>
 	<logger name="org.springframework.jdbc.core.JdbcTemplate" level="DEBUG"/>
 	<logger name="feign.Logger" level="DEBUG"/>
-	<logger name="org.tio.client.TioClient" level="WARN"/>
 	
 	
 	<!--1. 输出到控制台-->
@@ -59,16 +59,53 @@
 		</encoder>
 	</appender>
 	
-	<!-- 设备心跳包日志 -->
-	<logger level="INFO" name="MachineHeartbeatLogger" additivity="false">
-	</logger>
+	<appender name="FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
+		<encoder>
+			<pattern>${FILE_LOG_PATTERN}</pattern>
+			<charset>${FILE_LOG_CHARSET}</charset>
+		</encoder>
+		<file>${LOG_FILE}.log</file>
+		<rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
+			<fileNamePattern>${LOG_FILE}.log.%d{yyyy-MM-dd}.%i.gz</fileNamePattern>
+			<cleanHistoryOnStart>false</cleanHistoryOnStart>
+			<maxFileSize>128MB</maxFileSize>
+			<totalSizeCap>60GB</totalSizeCap>
+			<maxHistory>365</maxHistory>
+		</rollingPolicy>
+	</appender>
 	
-	<!-- 设备数据包日志 -->
-	<logger level="INFO" name="MachinePacketLogger" additivity="false">
-	</logger>
+	<!-- 自定义字段分割日志 -->
+	<appender name="SIFT_FILE" class="ch.qos.logback.classic.sift.SiftingAppender">
+		
+		<discriminator>
+			<key>idCode</key>
+			<defaultValue>0</defaultValue>
+		</discriminator>
+		
+		<sift>
+			<appender name="SIFT-LOG-${idCode}" class="ch.qos.logback.core.rolling.RollingFileAppender">
+				
+				<encoder>
+					<pattern>${FILE_LOG_PATTERN}</pattern>
+					<charset>${FILE_LOG_CHARSET}</charset>
+				</encoder>
+				
+				<file>${LOG_PATH}/${LOG_FILE_NAME}-${idCode}.log</file>
+				<rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
+					<fileNamePattern>${LOG_PATH}/%d/${LOG_FILE_NAME}-${idCode}-%i.gz</fileNamePattern>
+					<cleanHistoryOnStart>false</cleanHistoryOnStart>
+					<maxFileSize>100MB</maxFileSize>
+					<totalSizeCap>60GB</totalSizeCap>
+					<maxHistory>365</maxHistory>
+				</rollingPolicy>
+				
+			</appender>
+		</sift>
+	</appender>
 	
-	<root level="INFO">
+	<root level="DEBUG">
 		<appender-ref ref="STDOUT"/>
 	</root>
+	
 	
 </configuration>

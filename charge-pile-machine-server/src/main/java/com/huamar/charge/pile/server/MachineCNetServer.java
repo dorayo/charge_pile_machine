@@ -1,23 +1,34 @@
 package com.huamar.charge.pile.server;
 
+import cn.hutool.core.util.IdUtil;
+import com.huamar.charge.common.common.BCDUtils;
+import com.huamar.charge.common.common.StringPool;
 import com.huamar.charge.common.protocol.c.ProtocolCPacket;
+import com.huamar.charge.common.util.ByteExtUtil;
+import com.huamar.charge.common.util.HexExtUtil;
 import com.huamar.charge.pile.config.ServerApplicationProperties;
+import com.huamar.charge.pile.enums.ConstEnum;
 import com.huamar.charge.pile.enums.McTypeEnum;
-import com.huamar.charge.pile.server.handle.netty.c.ServerNetHandlerForMC;
-import com.huamar.charge.pile.server.handle.netty.c.SessionManagerForProtocolCNetHandler;
-import com.huamar.charge.pile.server.service.factory.b.MachineBPacketFactory;
+import com.huamar.charge.pile.server.handle.netty.c.ServerNetHandlerForYKC;
+import com.huamar.charge.pile.server.handle.netty.c.SessionManagerForYKCNetHandler;
 import com.huamar.charge.pile.server.session.context.SimpleSessionContext;
 import com.huamar.charge.pile.utils.views.BinaryViews;
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.buffer.ByteBuf;
+import io.netty.buffer.ByteBufUtil;
 import io.netty.channel.*;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
 import io.netty.handler.codec.ByteToMessageDecoder;
 import io.netty.handler.timeout.IdleStateHandler;
+import io.netty.util.AttributeKey;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
+import org.slf4j.MDC;
+import org.slf4j.helpers.MessageFormatter;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.event.ApplicationReadyEvent;
 import org.springframework.context.ApplicationContext;
@@ -29,6 +40,7 @@ import org.springframework.context.event.ContextClosedEvent;
 
 import java.time.Duration;
 import java.util.List;
+import java.util.StringJoiner;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 
@@ -46,6 +58,9 @@ public class MachineCNetServer {
      */
     private final ServerApplicationProperties properties;
 
+    @SuppressWarnings("SpringJavaAutowiredFieldsWarningInspection")
+    @Autowired
+    private ServerNetHandlerForYKC serverNetHandlerForYKC;
 
     /**
      * 接收线程
@@ -71,12 +86,14 @@ public class MachineCNetServer {
      */
     private final AtomicBoolean isRun = new AtomicBoolean(Boolean.FALSE);
 
+
     /**
      * @param properties properties
      */
-    public MachineCNetServer(ServerApplicationProperties properties, MachineBPacketFactory machinePacketFactory) {
+    public MachineCNetServer(ServerApplicationProperties properties) {
         this.properties = properties;
     }
+
 
     @Bean
     public ApplicationListener<ApplicationReadyEvent> serverCStart() {
@@ -86,6 +103,7 @@ public class MachineCNetServer {
             log.info("Server C Net start ...{}", netServer.getClass().getSimpleName());
         };
     }
+
 
     @Bean
     public ApplicationListener<ContextClosedEvent> stopCApplicationListener() {
@@ -101,10 +119,13 @@ public class MachineCNetServer {
      */
     @SneakyThrows
     public void start(ApplicationContext applicationContext) {
+        String[] activeProfiles = applicationContext.getEnvironment().getActiveProfiles();
+        log.info("activeProfiles:{}", StringUtils.join(activeProfiles));
+
         if (isRun.get()) {
             return;
         }
-        this.init(applicationContext);
+        this.init();
         isRun.getAndSet(Boolean.TRUE);
         channelFuture = serverBootstrap.bind(properties.getPortC()).sync();
     }
@@ -113,7 +134,7 @@ public class MachineCNetServer {
     /**
      * 初始化
      */
-    private void init(ApplicationContext applicationContext) {
+    private void init() {
         if (isRun.get()) {
             return;
         }
@@ -123,16 +144,60 @@ public class MachineCNetServer {
                 .channel(NioServerSocketChannel.class)
                 .option(ChannelOption.CONNECT_TIMEOUT_MILLIS, (int) Duration.ofSeconds(60).toMillis())
                 // 没有空闲链接将请求暂存在缓冲队列
-                .option(ChannelOption.SO_BACKLOG, 1024)
+                .option(ChannelOption.SO_BACKLOG, 4096)
                 .childHandler(new ChannelInitializer<SocketChannel>() {
                     @Override
                     protected void initChannel(SocketChannel socketChannel) {
                         ChannelPipeline pipeline = socketChannel.pipeline();
+                        pipeline.addLast("Inbound", new ChannelInboundHandlerAdapter(){
+
+
+                            @SuppressWarnings("DuplicatedCode")
+                            @Override
+                            public void channelRead(ChannelHandlerContext ctx, Object msg) {
+                                Thread.currentThread().setName(IdUtil.getSnowflakeNextIdStr());
+
+                                try {
+                                    AttributeKey<String> machineId = AttributeKey.valueOf(ConstEnum.MACHINE_ID.getCode());
+                                    String idCode = ctx.channel().attr(machineId).get();
+                                    if (StringUtils.isNotBlank(idCode)) {
+                                        MDC.put(ConstEnum.ID_CODE.getCode(), idCode);
+                                    }
+
+                                    AttributeKey<String> sessionKey = AttributeKey.valueOf(ConstEnum.X_SESSION_ID.getCode());
+                                    String sessionId = ctx.channel().attr(sessionKey).get();
+                                    if (StringUtils.isNotBlank(sessionId)) {
+                                        MDC.put(ConstEnum.X_SESSION_ID.getCode(), sessionId);
+                                    }
+
+
+                                    if (log.isDebugEnabled()) {
+                                        log.info("YKC channelRead into >>>>>>>>>>>>>>>>>>");
+                                    }
+
+                                    ctx.fireChannelRead(msg);
+
+                                    if (log.isDebugEnabled()) {
+                                        log.info("YKC channelRead goto <<<<<<<<<<<<<<<<<<");
+                                    }
+                                }finally {
+                                    MDC.clear();
+                                }
+
+                            }
+
+                            @Override
+                            public void channelReadComplete(ChannelHandlerContext ctx) throws Exception {
+                                log.info("YKC channelReadComplete end <<<<<<<<<<<<<<<<<<");
+                                super.channelReadComplete(ctx);
+                            }
+
+                        });
                         pipeline.addLast("splitD", new MessageSplitDecodeHandler());
                         pipeline.addLast("handleD", new MessageHandleDecodeHandler());
-                        pipeline.addLast(new IdleStateHandler(0, 0, 60, TimeUnit.SECONDS));
-                        pipeline.addLast("sessionManager", new SessionManagerForProtocolCNetHandler(McTypeEnum.C));
-                        pipeline.addLast("serverNetHandler", applicationContext.getBean(ServerNetHandlerForMC.class));
+                        pipeline.addLast(new IdleStateHandler(properties.getTimeout().getSeconds(), 0, 0, TimeUnit.SECONDS));
+                        pipeline.addLast("sessionManager", new SessionManagerForYKCNetHandler(McTypeEnum.C));
+                        pipeline.addLast("serverNetHandler", serverNetHandlerForYKC);
                     }
                 });
     }
@@ -140,6 +205,7 @@ public class MachineCNetServer {
     /**
      * 停止
      */
+    @SuppressWarnings("DuplicatedCode")
     public void close() {
         if (!isRun.get()) {
             return;
@@ -149,7 +215,7 @@ public class MachineCNetServer {
             try {
                 channelFuture.channel().close().sync();
             } catch (InterruptedException exception) {
-                log.info("MachineNetServer channelFuture close error e:{}", exception.getMessage(), exception);
+                log.warn("MachineNetServer channelFuture close error e:{}", exception.getMessage(), exception);
             }
         }
         boosGroup.shutdownGracefully();
@@ -158,31 +224,64 @@ public class MachineCNetServer {
 
 
     /**
-     * split
+     * 分包
      */
     static class MessageSplitDecodeHandler extends ByteToMessageDecoder {
 
         @Override
-        protected void decode(ChannelHandlerContext channelHandlerContext, ByteBuf byteBuf, List<Object> list) {
+        protected void decode(ChannelHandlerContext ctx, ByteBuf byteBuf, List<Object> list) {
+
+            // 设备idCode 线程变量
+            AttributeKey<String> machineId = AttributeKey.valueOf(ConstEnum.MACHINE_ID.getCode());
+            String idCode = ctx.channel().attr(machineId).get();
+            if(StringUtils.isNotBlank(idCode)){
+                MDC.put(ConstEnum.ID_CODE.getCode(), idCode);
+            }
+
+            AttributeKey<String> sessionKey = AttributeKey.valueOf(ConstEnum.X_SESSION_ID.getCode());
+            String sessionId = ctx.channel().attr(sessionKey).get();
+            MDC.put(ConstEnum.X_SESSION_ID.getCode(), sessionId);
+
             byteBuf.markReaderIndex();
-            int byteLen = byteBuf.readableBytes();
-            if (byteLen < 2) return;
-            if (byteBuf.readByte() != 0x68) {
-                channelHandlerContext.close();
+            int readableBytes = byteBuf.readableBytes();
+
+            if (readableBytes < 2) {
                 return;
             }
+
+            if (byteBuf.readByte() != 0x68) {
+                ctx.close();
+                return;
+            }
+
             short resultLen = byteBuf.readUnsignedByte();
-            int pageLen = 4 + resultLen;
-            byteBuf.resetReaderIndex();
-            if (4 + resultLen >= pageLen) {
-                if (byteLen < pageLen) {
-                    return;
+
+            // 协议包分割大小
+            int packetLength = 4 + resultLen;
+
+            // 不足继续读取
+            if (readableBytes < packetLength) {
+                if(log.isDebugEnabled()){
+                    log.info("YKC 获取半包 return:{}", byteBuf);
                 }
-                log.info("receive success");
-                list.add(byteBuf.readBytes(pageLen));
+
+                //重置读取
+                byteBuf.resetReaderIndex();
+                return;
+            }
+
+            //重置读取，上次标记从头读取
+            byteBuf.resetReaderIndex();
+            ByteBuf nextBuf = byteBuf.readBytes(packetLength);
+            list.add(nextBuf);
+
+            // 分割数据包
+            if(log.isDebugEnabled()){
+                log.debug("YKC Decode >>>>>>>>>> SplitDecode byteBuf:{}", byteBuf);
             }
         }
     }
+
 
     /**
      * handle
@@ -190,13 +289,45 @@ public class MachineCNetServer {
     static class MessageHandleDecodeHandler extends ByteToMessageDecoder {
         @Override
         protected void decode(ChannelHandlerContext ctx, ByteBuf byteBuf, List<Object> list) {
-            log.info(BinaryViews.bfToHexStr(byteBuf));
+
+            // 可读字节，数据包
+            byteBuf.markReaderIndex();
+            byte[] bytes = new byte[byteBuf.readableBytes()];
+            byteBuf.readBytes(bytes);
+            byteBuf.resetReaderIndex();
+
+            // 设备idCode 线程变量
+            AttributeKey<String> machineId = AttributeKey.valueOf(ConstEnum.MACHINE_ID.getCode());
+            String idCode = ctx.channel().attr(machineId).get();
+            if(StringUtils.isNotBlank(idCode)){
+                MDC.put(ConstEnum.ID_CODE.getCode(), idCode);
+            }
+
+            if(log.isDebugEnabled()){
+                log.debug("YKC Decode hex packet:{}", HexExtUtil.encodeHexStrFormat(bytes, StringPool.SPACE));
+            }
+
+            // 协议包解析
             ProtocolCPacket p = ProtocolCPacket.createFromNettyBuf(byteBuf);
-            if (p.getLocalRealCheckBit()[0] != p.getRemoteFrameCheckBit()[0] || p.getLocalRealCheckBit()[1] != p.getRemoteFrameCheckBit()[1]) {
-                log.error("p.getLocalRealCheckBit() != p.getRemoteFrameCheckBit()");
+
+            if(log.isDebugEnabled()){
+                String messageId = HexExtUtil.encodeHexStr(p.getBodyType());
+                log.debug("YKC 终端号:{}, msgId:{}, sign:{}, bodyLen:{}, orderVBf:{}, encryptState:{}, bodyType:{}, ",
+                        idCode, messageId, p.getSign(), p.getBodyLen(), HexExtUtil.encodeHexStr(p.getOrderVBf()), p.isEncryptState(), HexExtUtil.encodeHexStr(p.getBodyType()));
+            }
+
+            if(log.isDebugEnabled()){
+                log.debug("YKC Decode CRC16 check ByteOrder:{}, source:{} check:{}", p.getByteOrder(), p.getSourceCrC(), p.getCheckCrC());
+                log.debug("YKC Decode <<<<<<<<<< end hex");
+            }
+
+            boolean checkCrc = p.getSourceCrC() == p.getCheckCrC();
+            if(!checkCrc){
+                log.error("YKC CRC16 check error source:{} check:{}", p.getSourceCrC(), p.getCheckCrC());
                 ctx.close();
                 return;
             }
+
             list.add(p);
         }
     }

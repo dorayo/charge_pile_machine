@@ -128,7 +128,7 @@ public class MachineNetServer implements NetServer {
                 .channel(NioServerSocketChannel.class)
                 .option(ChannelOption.CONNECT_TIMEOUT_MILLIS, (int) Duration.ofSeconds(60).toMillis())
                 // 没有空闲链接将请求暂存在缓冲队列
-                .option(ChannelOption.SO_BACKLOG, 1024)
+                .option(ChannelOption.SO_BACKLOG, 4096)
                 .childHandler(new ChannelInitializer<SocketChannel>() {
                     @Override
                     protected void initChannel(SocketChannel socketChannel) {
@@ -147,6 +147,7 @@ public class MachineNetServer implements NetServer {
     /**
      * 停止
      */
+    @SuppressWarnings("DuplicatedCode")
     @Override
     public void close() {
         if (!isRun.get()) {

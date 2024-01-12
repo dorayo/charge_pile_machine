@@ -19,6 +19,12 @@ public enum ConstEnum {
 
     PROTOCOL_C_PRICE_ORDER_ID("PROTOCOL_C_PRICE_ORDER_ID", "电价单号"),
 
+    YKC_CHARGE_PRICE("YKC_CHARGE_PRICE", "YKC 电价信息"),
+
+    STATION_ID("STATION_ID", "电站ID"),
+
+    ELE_CHARG_TYPE("ELE_CHARG_TYPE", "充电电价类型"),
+
     // MDC log使用
     ID_CODE("idCode", "设备ID"),
 
@@ -27,8 +33,8 @@ public enum ConstEnum {
 
 
     private final String code;
-    private final String desc;
 
+    private final String desc;
     ConstEnum(String code, String desc) {
         this.code = code;
         this.desc = desc;

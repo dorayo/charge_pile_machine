@@ -22,6 +22,11 @@ public enum CacheKeyEnum {
 
     MACHINE_SERVICE_PRICE("charge:price", "服务费", Duration.ofDays(30)),
 
+    /**
+     * 充电中订单信息 二级缓存 LOCAL + REDIS Cache
+     */
+    CHARGE_ORDER_INFO("charge:mc:order_info", "充电中订单信息", Duration.ofHours(30)),
+
     ;
     private final String code;
 

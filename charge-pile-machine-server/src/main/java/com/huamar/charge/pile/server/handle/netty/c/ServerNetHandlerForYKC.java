@@ -1,6 +1,7 @@
 package com.huamar.charge.pile.server.handle.netty.c;
 
 import com.huamar.charge.common.protocol.c.ProtocolCPacket;
+import com.huamar.charge.common.util.HexExtUtil;
 import com.huamar.charge.net.core.SessionChannel;
 import com.huamar.charge.pile.enums.ConstEnum;
 import com.huamar.charge.pile.enums.NAttrKeys;
@@ -24,10 +25,12 @@ import org.springframework.stereotype.Component;
 @ChannelHandler.Sharable
 @Component
 @RequiredArgsConstructor
-public class ServerNetHandlerForMC extends SimpleChannelInboundHandler<ProtocolCPacket> {
+public class ServerNetHandlerForYKC extends SimpleChannelInboundHandler<ProtocolCPacket> {
 
     private final MachineCAuthenticationHandler machineCAuthenticationHandler;
+
     private final MachineCHeartbeatHandler machineCHeartbeatHandler;
+
     private final MachineCHandlers machineCHandlers;
 
     /**
@@ -37,53 +40,72 @@ public class ServerNetHandlerForMC extends SimpleChannelInboundHandler<ProtocolC
     protected void channelRead0(ChannelHandlerContext ctx, ProtocolCPacket cPacket) {
         AttributeKey<String> machineId = AttributeKey.valueOf(ConstEnum.MACHINE_ID.getCode());
         SessionChannel session = SessionManager.get(ctx.channel().attr(machineId).get());
-        ctx.attr(NAttrKeys.PROTOCOL_C_LATEST_PACKET).set(cPacket);
-        Integer latestOrderV = ctx.attr(NAttrKeys.PROTOCOL_C_LATEST_ORDER_V).get();
+        ctx.channel().attr(NAttrKeys.PROTOCOL_C_LATEST_PACKET).set(cPacket);
+
+        Integer latestOrderV = ctx.channel().attr(NAttrKeys.PROTOCOL_C_LATEST_ORDER_V).get();
         if (latestOrderV == null) {
             latestOrderV = 0;
         }
         int currentPacketOrderV = cPacket.getOrderV();
         if (latestOrderV <= currentPacketOrderV) {
-            ctx.attr(NAttrKeys.PROTOCOL_C_LATEST_ORDER_V).set(currentPacketOrderV);
+            ctx.channel().attr(NAttrKeys.PROTOCOL_C_LATEST_ORDER_V).set(currentPacketOrderV);
         }
         switch (cPacket.getBodyType()) {
+
             //login
             case 0x01:
                 machineCAuthenticationHandler.handler(cPacket, session, ctx);
                 break;
+
             //heartbeat
             case 0x03:
                 machineCHeartbeatHandler.handler(cPacket, session, ctx);
                 break;
+
             //verify price model
             case 0x05:
                 machineCHandlers.handler0x05(cPacket, ctx);
                 break;
+
             // request price model
             case 0x09:
                 machineCHandlers.handler0x09(cPacket, ctx);
                 break;
+
             //上送充电枪实时数据，周期上送时，待机 5 分钟、充电 15 秒
             case 0x13:
                 machineCHandlers.handler0x13(cPacket, ctx);
                 break;
+
             // start charge response
             case 0x33:
                 machineCHandlers.handler0x33(cPacket, ctx);
                 break;
+
             // stop charge response
             case 0x35:
                 machineCHandlers.handler0x35(cPacket, ctx);
                 break;
+
             //  qrcode set response
-            case (byte) 0x9B:
-                machineCHandlers.handler0x9B(cPacket, ctx);
-                //  qrcode set response
-            case (byte) 0x55:
+            case 0x55:
                 machineCHandlers.handler0x55(cPacket, ctx);
                 break;
-            case (byte) 0x3b:
+
+            case 0x3b:
                 machineCHandlers.handler0x3b(cPacket, ctx);
+                break;
+
+            case (byte) 0x63:
+            case (byte) 0x91:
+            case (byte) 0x92:
+            case (byte) 0x93:
+            case (byte) 0x94:
+            case (byte) 0x9B:
+                //  qrcode set response
+
+                log.error("YCK 不明协议类型，请关注 type={}", HexExtUtil.encodeHexStr(cPacket.getBodyType()));
+                machineCHandlers.handler0x9B(cPacket, ctx);
                 break;
         }
     }

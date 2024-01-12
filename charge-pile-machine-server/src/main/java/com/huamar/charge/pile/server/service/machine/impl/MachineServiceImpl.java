@@ -38,7 +38,7 @@ public class MachineServiceImpl implements MachineService {
 
     private final static Cache<String, PileDTO> cache = Caffeine.newBuilder()
             .initialCapacity(2000)
-            .expireAfterAccess(Duration.ofMinutes(5))
+            .expireAfterAccess(Duration.ofMinutes(10))
             .build();
 
     /**

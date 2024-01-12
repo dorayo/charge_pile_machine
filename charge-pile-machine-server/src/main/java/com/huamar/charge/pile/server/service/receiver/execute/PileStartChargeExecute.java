@@ -1,16 +1,16 @@
 package com.huamar.charge.pile.server.service.receiver.execute;
 
-import com.huamar.charge.common.protocol.c.ProtocolCPacket;
+import cn.hutool.core.util.ByteUtil;
+import com.huamar.charge.common.util.ByteExtUtil;
 import com.huamar.charge.common.util.JSONParser;
 import com.huamar.charge.common.util.netty.NUtils;
 import com.huamar.charge.pile.entity.dto.command.McChargeCommandDTO;
 import com.huamar.charge.pile.entity.dto.command.MessageCommonRespDTO;
 import com.huamar.charge.pile.entity.dto.mq.MessageData;
 import com.huamar.charge.pile.entity.dto.platform.PileChargeControlDTO;
-import com.huamar.charge.pile.entity.dto.platform.event.PileChargeFinishEventPushDTO;
 import com.huamar.charge.pile.enums.*;
-import com.huamar.charge.pile.server.service.factory.McCommandFactory;
 import com.huamar.charge.pile.server.service.command.MessageCommandRespService;
+import com.huamar.charge.pile.server.service.factory.McCommandFactory;
 import com.huamar.charge.pile.server.service.receiver.PileMessageExecute;
 import com.huamar.charge.pile.server.session.SessionManager;
 import com.huamar.charge.pile.server.session.SimpleSessionChannel;
@@ -18,11 +18,13 @@ import com.huamar.charge.pile.utils.binaryBuilder.BinaryBuilders;
 import com.huamar.charge.pile.utils.views.BinaryViews;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.ByteBufAllocator;
+import io.netty.channel.ChannelHandlerContext;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j;
+import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.springframework.stereotype.Component;
 
-import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
@@ -31,7 +33,7 @@ import java.util.concurrent.ConcurrentHashMap;
  *
  * @author TiAmo(13721682347 @ 163.com)
  **/
-@Log4j
+@Slf4j
 @Component
 @RequiredArgsConstructor
 public class PileStartChargeExecute implements PileMessageExecute {
@@ -58,17 +60,26 @@ public class PileStartChargeExecute implements PileMessageExecute {
 
     public void handleProtocolC(String idCode, McChargeCommandDTO chargeCommand) {
         SimpleSessionChannel session = (SimpleSessionChannel) SessionManager.get(idCode);
+        ChannelHandlerContext ctx = session.channel();
+
         final byte type = 0x34;
-        Integer orderV = session.channel().attr(NAttrKeys.PROTOCOL_C_LATEST_ORDER_V).get();
-        orderV++;
-        session.channel().attr(NAttrKeys.PROTOCOL_C_LATEST_ORDER_V).set(orderV);
-        ConcurrentHashMap<Integer, Integer> orderMap = session.channel().attr(NAttrKeys.GUN_ORDER_MAP).get();
-        byte[] idBody = session.channel().attr(NAttrKeys.ID_BODY).get();
+//        Integer orderV = ctx.channel().attr(NAttrKeys.PROTOCOL_C_LATEST_ORDER_V).get();
+//        orderV++;
+//        ctx.channel().attr(NAttrKeys.PROTOCOL_C_LATEST_ORDER_V).set(orderV);
+
+        Short number = NAttrKeys.getSerialNumber(session);
+        byte[] serialNumber = ByteExtUtil.shortToBytes(number, ByteUtil.DEFAULT_ORDER);
+
+
+        ConcurrentHashMap<Integer, Integer> orderMap = ctx.channel().attr(NAttrKeys.GUN_ORDER_MAP).get();
+        byte[] idBody = ctx.channel().attr(NAttrKeys.ID_BODY).get();
         if (orderMap == null) {
             orderMap = new ConcurrentHashMap<Integer, Integer>();
-            session.channel().attr(NAttrKeys.GUN_ORDER_MAP).set(orderMap);
+            ctx.channel().attr(NAttrKeys.GUN_ORDER_MAP).set(orderMap);
         }
-        orderMap.put((int) chargeCommand.getGunSort(), orderV);
+        orderMap.put((int) chargeCommand.getGunSort(), number.intValue());
+
+
         ByteBuf responseBody = ByteBufAllocator.DEFAULT.heapBuffer(16 + 7 + 1 + 8 + 8 + 4);
         byte[] serialN = BinaryViews.numberStrToBcd(chargeCommand.getOrderSerialNumber());
         responseBody.writeBytes(serialN);
@@ -77,15 +88,13 @@ public class PileStartChargeExecute implements PileMessageExecute {
         responseBody.writeBytes(empty);
         responseBody.writeIntLE(chargeCommand.getBalance());
 //        responseBody.writeIntLE(3000);
-        ByteBuf response = BinaryBuilders.protocolCLeResponseBuilder(NUtils.nBFToBf(responseBody), orderV, type);
+        ByteBuf response = BinaryBuilders.protocolCLeResponseBuilder(NUtils.nBFToBf(responseBody), serialNumber, type);
         String str = BinaryViews.bfToHexStr(response);
-        log.info(str);
-        session.channel().writeAndFlush(response).addListener((f) -> {
+        ctx.writeAndFlush(response).addListener((f) -> {
             if (f.isSuccess()) {
-                log.info("0x34 success");
+                log.info("YKC 开机充电 0x34 hex packet:{} success", str);
             } else {
-                log.error("0x34  error");
-                f.cause().printStackTrace();
+                log.error("YKC 开机充电 0x34 error:{}", ExceptionUtils.getMessage(f.cause()), f.cause());
             }
         });
     }

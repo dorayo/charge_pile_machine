@@ -30,10 +30,21 @@ public class ServerApplicationProperties {
      * 监听端口B
      */
     private Integer portB = 8888;
+
     /**
      * 监听端口C
      */
     private Integer portC = 8889;
+
+    /**
+     * GH
+     */
+    private Boolean enableBServer = Boolean.TRUE;
+
+    /**
+     * YKC 1.6 tag
+     */
+    private Boolean enableCServer = Boolean.TRUE;
 
     /**
      * 备用端口

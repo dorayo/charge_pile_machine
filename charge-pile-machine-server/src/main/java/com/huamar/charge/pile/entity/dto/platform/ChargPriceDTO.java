@@ -56,6 +56,7 @@ public class ChargPriceDTO implements Serializable {
      * 服务费
      */
     private BigDecimal serviceCharge;
+
     /**
      * 电价类型  0.直流  1.交流
      */

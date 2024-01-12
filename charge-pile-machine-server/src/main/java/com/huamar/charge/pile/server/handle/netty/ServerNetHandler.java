@@ -41,6 +41,7 @@ public class ServerNetHandler extends SimpleChannelInboundHandler<DataPacket> {
         SessionChannel sessionChannel = SessionManager.get(bsId);
         String code = HexExtUtil.encodeHexStr(dataPacket.getMsgId());
         ProtocolCodeEnum codeEnum = ProtocolCodeEnum.getByCode(code);
+        //noinspection DuplicatedCode
         if(Objects.isNull(codeEnum)){
             log.warn("协议消息ID获取执行器失败：code:{}", code);
             channelHandlerContext.fireChannelRead(dataPacket);

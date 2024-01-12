@@ -9,6 +9,7 @@ import java.nio.charset.StandardCharsets;
  * The type Binary views.
  */
 public class BinaryViews {
+
     /**
      * Bcd views le string.
      *

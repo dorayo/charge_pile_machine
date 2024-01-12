@@ -11,7 +11,7 @@ import java.time.format.DateTimeFormatter;
  *
  * @author TiAmo(13721682347 @ 163.com)
  */
-public class BCDUtils {
+public class BCDUtils extends cn.hutool.core.codec.BCD {
 
     /**
      * bcdTime
@@ -41,19 +41,7 @@ public class BCDUtils {
         }
         return new BCD(b);
     }
-    //	/**
-//	 * bcdTime
-//	 * @return byte[]
-//	 */
-//	public byte[] bcdTime(){
-//		SimpleDateFormat df = new SimpleDateFormat("yy,MM,dd,HH,mm,ss");
-//		String a = df.format(new Date());
-//		byte[] b = new byte[6];
-//		String[] c = a.split(",");
-//		for (int i = 0; i < c.length; i++) {
-//			int dd = Integer.parseInt(c[i]);
-//			b[i] = (byte) ((dd/10)*16 + dd%10);
-//		}
-//		return b;
-//	}
+
+
+
 }

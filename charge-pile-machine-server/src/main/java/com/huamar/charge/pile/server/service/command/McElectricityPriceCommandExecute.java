@@ -1,32 +1,38 @@
 package com.huamar.charge.pile.server.service.command;
 
 import cn.hutool.core.convert.Convert;
+import cn.hutool.core.util.ByteUtil;
 import com.huamar.charge.common.protocol.DataPacket;
 import com.huamar.charge.common.protocol.DataPacketWriter;
 import com.huamar.charge.common.protocol.c.ProtocolCPacket;
+import com.huamar.charge.common.util.ByteExtUtil;
+import com.huamar.charge.common.util.HexExtUtil;
 import com.huamar.charge.common.util.JSONParser;
 import com.huamar.charge.common.util.netty.NUtils;
 import com.huamar.charge.pile.entity.dto.command.McCommandDTO;
 import com.huamar.charge.pile.entity.dto.command.McElectricityPriceCommandDTO;
-import com.huamar.charge.pile.enums.CacheKeyEnum;
-import com.huamar.charge.pile.enums.McCommandEnum;
-import com.huamar.charge.pile.enums.McTypeEnum;
-import com.huamar.charge.pile.enums.NAttrKeys;
+import com.huamar.charge.pile.entity.dto.command.YKCChargePrice;
+import com.huamar.charge.pile.enums.*;
 import com.huamar.charge.pile.server.session.SessionManager;
 import com.huamar.charge.pile.server.session.SimpleSessionChannel;
 import com.huamar.charge.pile.utils.binaryBuilder.BinaryBuilders;
 import com.huamar.charge.pile.utils.views.BinaryViews;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.ByteBufAllocator;
+import io.netty.channel.ChannelHandlerContext;
+import io.netty.util.AttributeKey;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.redisson.api.RBucket;
 import org.redisson.api.RedissonClient;
+import org.slf4j.MDC;
 import org.springframework.stereotype.Component;
+import org.springframework.util.Assert;
 
 import java.util.Objects;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
 
 
 /**
@@ -60,62 +66,97 @@ public class McElectricityPriceCommandExecute implements McCommandExecute<McElec
      */
     @Override
     public void execute(McElectricityPriceCommandDTO command) {
-        McTypeEnum type = McTypeEnum.A;
         SimpleSessionChannel sessionChannel = (SimpleSessionChannel) SessionManager.get(command.getIdCode());
-        if (sessionChannel != null) {
-            type = sessionChannel.getType();
-        }
+        Assert.notNull(sessionChannel, "sessionChannel ctx is null");
+        McTypeEnum type = sessionChannel.getType();
+        ChannelHandlerContext ctx = sessionChannel.channel();
+        Assert.notNull(ctx, "sessionChannel ctx is null");
+
+        AttributeKey<String> sessionKey = AttributeKey.valueOf(ConstEnum.X_SESSION_ID.getCode());
+        String sessionId = ctx.channel().attr(sessionKey).get();
+        MDC.put(ConstEnum.X_SESSION_ID.getCode(), sessionId);
+
+        //YKC 计费模型
         if (type == McTypeEnum.C) {
+            log.info("YKC 充电计费 充电计费请求下发 0xA0 >>> ");
             byte[] timeStages = command.getTimeStage().toString().getBytes();
             for (int i = timeStages.length - 1; i >= 0; i--) {
                 timeStages[i] = (byte) ((timeStages[i] - 0x30) % 4);
             }
-            byte[] idBody = sessionChannel.channel().attr(NAttrKeys.ID_BODY).get();
-            byte[] orderBf;
-            ProtocolCPacket packet = sessionChannel.channel().attr(NAttrKeys.PROTOCOL_C_0x09_PACKET).get();
-            float[] SERVICE_PRICE_RATIOS = new float[4];
-            sessionChannel.channel().attr(NAttrKeys.SERVICE_PRICE_RATIOS).set(SERVICE_PRICE_RATIOS);
-            if (packet.getOrderVBf() == null) {
-                Integer orderV = sessionChannel.channel().attr(NAttrKeys.PROTOCOL_C_LATEST_ORDER_V).get();
-                orderBf = new byte[]{
-                        (byte) (orderV & 0xff),
-                        (byte) (orderV & 0xff00 >> 8)
-                };
+
+            YKCChargePrice ykcChargePrice = getYkcChargePrice(command);
+
+            log.info("YKC 充电计费信息  hex timeBucket{} hex newTimeBucket{}", HexExtUtil.encodeHexStr(timeStages), HexExtUtil.encodeHexStr(command.getPriceBucketJFPG()));
+
+            // 会话存储电价信息
+            AttributeKey<YKCChargePrice> ykcPriceAttr = AttributeKey.valueOf(ConstEnum.YKC_CHARGE_PRICE.getCode());
+            ctx.channel().attr(ykcPriceAttr).set(ykcChargePrice);
+
+
+            byte[] idBody = sessionChannel.channel().channel().attr(NAttrKeys.ID_BODY).get();
+            byte[] serialNumber;
+            ProtocolCPacket packetC = sessionChannel.channel().channel().attr(NAttrKeys.PROTOCOL_C_0x09_PACKET).get();
+            if (Objects.isNull(packetC) || packetC.getOrderVBf() == null) {
+                Short number = NAttrKeys.getSerialNumber(sessionChannel);
+                serialNumber = ByteExtUtil.shortToBytes(number, ByteUtil.DEFAULT_ORDER);
             } else {
-                orderBf = packet.getOrderVBf();
+                serialNumber = packetC.getOrderVBf();
             }
-            SERVICE_PRICE_RATIOS[0] = (float) command.getServicePrice1() / ((float) command.getPrice1() + (float) command.getServicePrice1());
-            SERVICE_PRICE_RATIOS[1] = (float) command.getServicePrice2() / ((float) command.getPrice2() + (float) command.getServicePrice2());
-            SERVICE_PRICE_RATIOS[2] = (float) command.getServicePrice3() / ((float) command.getPrice3() + (float) command.getServicePrice3());
-            SERVICE_PRICE_RATIOS[3] = (float) command.getServicePrice4() / ((float) command.getPrice4() + (float) command.getServicePrice4());
+
             ByteBuf responseBody = ByteBufAllocator.DEFAULT.heapBuffer(59);
             responseBody.writeBytes(idBody);
             responseBody.writeByte(0x01);
             responseBody.writeByte(0x00);
-            responseBody.writeIntLE(command.getPrice1() * 10);
-            responseBody.writeIntLE(command.getServicePrice1() * 10);
-            responseBody.writeIntLE(command.getPrice2() * 10);
-            responseBody.writeIntLE(command.getServicePrice2() * 10);
-            responseBody.writeIntLE(command.getPrice3() * 10);
-            responseBody.writeIntLE(command.getServicePrice3() * 10);
-            responseBody.writeIntLE(command.getPrice4() * 10);
-            responseBody.writeIntLE(command.getServicePrice4() * 10);
+
+            responseBody.writeIntLE(command.getJPrice() * 10);
+            responseBody.writeIntLE(command.getJPriceS() * 10);
+            responseBody.writeIntLE(command.getFPrice() * 10);
+            responseBody.writeIntLE(command.getFPriceS() * 10);
+            responseBody.writeIntLE(command.getPPrice() * 10);
+            responseBody.writeIntLE(command.getPPriceS() * 10);
+            responseBody.writeIntLE(command.getGPrice() * 10);
+            responseBody.writeIntLE(command.getGPriceS() * 10);
             responseBody.writeByte(0x00);
-            responseBody.writeBytes(timeStages);
-            ByteBuf response = BinaryBuilders.protocolCLeResponseBuilder(NUtils.nBFToBf(responseBody), orderBf, (byte) 0x0A);
-            log.info("response 0x0A={}", BinaryViews.bfToHexStr(response));
+            responseBody.writeBytes(command.getPriceBucketJFPG());
+
+            ByteBuf response = BinaryBuilders.protocolCLeResponseBuilder(NUtils.nBFToBf(responseBody), serialNumber, (byte) 0x0A);
+            String hexString = BinaryViews.bfToHexStr(response);
             sessionChannel.channel().writeAndFlush(response).addListener((f) -> {
                 if (f.isSuccess()) {
-                    log.info("write 0x0A success ");
+                    log.info("YKC 充电计费信息 0x0A write success hex:{}", hexString);
                 } else {
-                    log.info("write 0x0A error e:{}", ExceptionUtils.getMessage(f.cause()));
+                    log.info("YKC 充电计费信息 0x0A write error hex:{} e:{}", hexString, ExceptionUtils.getMessage(f.cause()));
                 }
             });
             return;
         }
+
+        //默认协议
         DataPacket packet = this.packet(command);
         boolean sendCommand = SessionManager.writePacket(packet);
         log.info("Electricity Price idCode:{} sendCommand:{} msgId:{} ", command.getIdCode(), sendCommand, packet.getMsgNumber());
+    }
+
+
+    /**
+     * YKC 电价
+     *
+     * @param command command
+     * @return YKCChargePrice
+     */
+    private YKCChargePrice getYkcChargePrice(McElectricityPriceCommandDTO command) {
+        YKCChargePrice ykcChargePrice = new YKCChargePrice();
+        ykcChargePrice.setJPrice(command.getJPrice());
+        ykcChargePrice.setFPrice(command.getFPrice());
+        ykcChargePrice.setPPrice(command.getPPrice());
+        ykcChargePrice.setGPrice(command.getGPrice());
+
+        ykcChargePrice.setJPriceS(command.getJPriceS());
+        ykcChargePrice.setFPriceS(command.getFPriceS());
+        ykcChargePrice.setPPriceS(command.getPPriceS());
+        ykcChargePrice.setGPriceS(command.getGPriceS());
+        ykcChargePrice.setPriceBucketJFPG(command.getPriceBucketJFPG());
+        return ykcChargePrice;
     }
 
 

@@ -20,6 +20,7 @@ public class McElectricityPriceCommandDTO extends McBaseCommandDTO {
 	private byte gunSort;
 
 	/**
+	 * SLX
 	 * 电价 1~6 WORD 非零值，单位 0.01 元
 	 */
 	private short price1;
@@ -31,6 +32,7 @@ public class McElectricityPriceCommandDTO extends McBaseCommandDTO {
 
 
 	/**
+	 * SLX
 	 * 服务费 1~6 WORD 非零值，单位 0.01 元
 	 */
 	private short servicePrice1;
@@ -47,9 +49,27 @@ public class McElectricityPriceCommandDTO extends McBaseCommandDTO {
 	private NumberFixStr timeStage;
 
 
+	/**
+	 * YKC 云快冲
+	 */
+	private int jPrice = 0;
+	private int fPrice = 0;
+	private int pPrice = 0;
+	private int gPrice = 0;
+
+	/**
+	 * YKC 云快冲 服务费
+	 */
+	private int jPriceS = 0;
+	private int fPriceS = 0;
+	private int pPriceS = 0;
+	private int gPriceS = 0;
+
+	//ykc 峰谷4时段电价
+	private byte[] priceBucketJFPG = new byte[48];
 
 	public McElectricityPriceCommandDTO() {
-		// 设置命令行字节长度
+		// 设置命令行字节长度，SLX 协议使用
 		this.fieldsByteLength = (byte) (1 + 2 + 2 + 2 + 2 + 2 + 2 +2 + 2 + 2 + 2 + 2 + 2 + 48);
 	}
 }

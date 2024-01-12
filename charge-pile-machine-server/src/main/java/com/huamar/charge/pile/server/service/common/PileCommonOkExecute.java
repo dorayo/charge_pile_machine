@@ -1,10 +1,8 @@
 package com.huamar.charge.pile.server.service.common;
 
-import com.huamar.charge.pile.entity.dto.McCommonReq;
-import com.huamar.charge.pile.entity.dto.command.MessageCommonRespDTO;
-import com.huamar.charge.pile.enums.PileCommonResultEnum;
 import com.huamar.charge.common.util.JSONParser;
-import com.huamar.charge.pile.server.service.command.MessageCommandRespService;
+import com.huamar.charge.pile.entity.dto.McCommonReq;
+import com.huamar.charge.pile.enums.PileCommonResultEnum;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
@@ -20,11 +18,6 @@ import org.springframework.stereotype.Component;
 @Component
 @RequiredArgsConstructor
 public class PileCommonOkExecute implements McCommonResultExecute<McCommonReq> {
-
-    /**
-     * 消息应答处理
-     */
-    private final MessageCommandRespService messageCommandRespService;
 
     /**
      * 协议编码
@@ -43,6 +36,6 @@ public class PileCommonOkExecute implements McCommonResultExecute<McCommonReq> {
      */
     @Override
     public void execute(McCommonReq command) {
-        log.info("通用应答结果处理-{} start ==> command：{}", getCode().getDesc(),JSONParser.jsonString(command));
+        log.info("通用应答结果处理 CommonResul:{}-{} start ==> command：{}", PileCommonResultEnum.SUCCESS.name(), getCode().getDesc(),JSONParser.jsonString(command));
     }
 }

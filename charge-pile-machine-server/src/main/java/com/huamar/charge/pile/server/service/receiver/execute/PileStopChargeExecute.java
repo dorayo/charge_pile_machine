@@ -1,6 +1,7 @@
 package com.huamar.charge.pile.server.service.receiver.execute;
 
 import com.alibaba.druid.sql.visitor.functions.Bin;
+import com.alibaba.fastjson.JSONObject;
 import com.huamar.charge.common.protocol.c.ProtocolCPacket;
 import com.huamar.charge.common.util.JSONParser;
 import com.huamar.charge.common.util.netty.NUtils;
@@ -55,6 +56,7 @@ public class PileStopChargeExecute implements PileMessageExecute {
     }
 
     public void handleC(String idCode, McChargeCommandDTO chargeCommand) {
+        log.info("YKC 下发结束充电 idCode:{}, gunCode:{}", chargeCommand.getIdCode(), chargeCommand.getGunSort());
         byte type = 0x36;
         SimpleSessionChannel session = (SimpleSessionChannel) SessionManager.get(idCode);
         Integer latestOrderV = session.channel().channel().attr(NAttrKeys.PROTOCOL_C_LATEST_ORDER_V).get();
@@ -65,12 +67,12 @@ public class PileStopChargeExecute implements PileMessageExecute {
         responseBody.writeBytes(idBody);
         responseBody.writeByte(chargeCommand.getGunSort());
         ByteBuf response = BinaryBuilders.protocolCLeResponseBuilder(NUtils.nBFToBf(responseBody), latestOrderV, type);
-        log.info("send 停机0x36 body={}", BinaryViews.bfToHexStr(response));
+        log.info("YKC 下发结束充电 send 停机0x36 body={}", BinaryViews.bfToHexStr(response));
         session.channel().writeAndFlush(response).addListener((f) -> {
             if (f.isSuccess()) {
-                log.info("{} success", type);
+                log.debug("YKC 下发结束充电 {} success", type);
             } else {
-                log.error("{} success error:{}", type, ExceptionUtils.getMessage(f.cause()));
+                log.error("YKC 下发结束充电 {} error:{}", type, ExceptionUtils.getMessage(f.cause()));
             }
         });
     }
@@ -96,7 +98,7 @@ public class PileStopChargeExecute implements PileMessageExecute {
             SimpleSessionChannel session = (SimpleSessionChannel) SessionManager.get(chargeCommand.getIdCode());
 
             if (session.getType() == McTypeEnum.C) {
-                handleC(chargeCommand.getIdCode(), chargeCommand);
+                this.handleC(chargeCommand.getIdCode(), chargeCommand);
                 return;
             }
 

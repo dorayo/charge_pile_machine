@@ -16,10 +16,12 @@ public enum LoggerEnum {
 
     APPLICATION_MAIN_LOGGER("ApplicationMainLogger", "主程序日志"),
 
+    // 放弃使用
     HEARTBEAT_LOGGER("MachineHeartbeatLogger", "设备心跳日志"),
 
     PILE_AUTH_LOGGER("PileAuthLogger", "设备认证日志打印"),
 
+    // 放弃使用
     MACHINE_PACKET_LOGGER("MachinePacketLogger", "设备数据包日志"),
 
     BASE("压制警告", "压制警告"),

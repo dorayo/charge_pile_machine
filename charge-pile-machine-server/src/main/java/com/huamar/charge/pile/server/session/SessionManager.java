@@ -33,7 +33,7 @@ import java.util.Objects;
 @RequiredArgsConstructor
 public class SessionManager implements ApplicationListener<ContextRefreshedEvent> {
 
-    private final static Cache<String, SessionChannel> cache = Caffeine.newBuilder().initialCapacity(1000).build();
+    private final static Cache<String, SessionChannel> cache = Caffeine.newBuilder().initialCapacity(4096).build();
 
     private static MachineSessionContext sessionContext;
 

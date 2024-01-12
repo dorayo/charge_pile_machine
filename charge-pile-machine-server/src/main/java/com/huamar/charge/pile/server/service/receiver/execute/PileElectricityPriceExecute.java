@@ -1,23 +1,32 @@
 package com.huamar.charge.pile.server.service.receiver.execute;
 
 import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONObject;
+import com.huamar.charge.common.common.StringPool;
+import com.huamar.charge.common.util.HexExtUtil;
 import com.huamar.charge.pile.entity.dto.command.McElectricityPriceCommandDTO;
+import com.huamar.charge.pile.entity.dto.command.YKCChargePrice;
 import com.huamar.charge.pile.entity.dto.mq.MessageData;
 import com.huamar.charge.pile.entity.dto.platform.ChargPriceDTO;
 import com.huamar.charge.pile.entity.dto.platform.PileElectricityPriceDTO;
 import com.huamar.charge.pile.enums.McCommandEnum;
 import com.huamar.charge.pile.enums.MessageCodeEnum;
 import com.huamar.charge.common.protocol.NumberFixStr;
+import com.huamar.charge.pile.server.service.charge.ChargeInfoService;
 import com.huamar.charge.pile.server.service.factory.McCommandFactory;
 import com.huamar.charge.pile.server.service.receiver.PileMessageExecute;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.springframework.stereotype.Component;
+import org.springframework.util.Assert;
 
 import java.math.BigDecimal;
 import java.time.LocalTime;
 import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * 消息执行器-电价下发
@@ -31,6 +40,8 @@ import java.util.*;
 public class PileElectricityPriceExecute implements PileMessageExecute {
 
     private final McCommandFactory mcCommandFactory;
+
+    private final ChargeInfoService chargeInfoService;
 
     /**
      * 协议编码
@@ -51,18 +62,30 @@ public class PileElectricityPriceExecute implements PileMessageExecute {
     public void execute(MessageData<String> body) {
         PileElectricityPriceDTO pileElectricityPriceDTO = JSON.parseObject(body.getData(), PileElectricityPriceDTO.class);
         List<ChargPriceDTO> list = pileElectricityPriceDTO.getList();
+        if(list.isEmpty()){
+            log.warn("event:{} price list is none", MessageCodeEnum.ELECTRICITY_PRICE);
+            return;
+        }
+
+
         Map<Integer, ChargPriceDTO> collect = new HashMap<>();
         for (int i = 0; i < list.size(); i++) {
             collect.put(i, list.get(i));
         }
-//        Map<Integer, ChargPriceDTO> collect = list.stream().collect(Collectors.toMap(ChargPriceDTO::getSortNum, item -> item, (k1, k2) -> k1));
         McElectricityPriceCommandDTO commandDTO = buildPrice(collect);
-//        byte[] timePriceBucket = new byte[48];
+
+        // 峰谷电价
+        try {
+            YKCChargePrice ykcChargePrice = this.buildJFPGPrice(commandDTO, pileElectricityPriceDTO);
+            ChargPriceDTO next = list.iterator().next();
+            chargeInfoService.putPriceInfoForCache(next.getStationId(), next.getChargType(), ykcChargePrice);
+        } catch (Exception e) {
+            log.error("YKC ykcChargePrice build error:{}", ExceptionUtils.getMessage(e), e);
+        }
+
+
         String[] timePriceBucket = new String[48];
-//          byte zero = '0';
         Arrays.fill(timePriceBucket, "0");
-
-
         list.forEach(item -> {
             LocalTime startTime = LocalTime.parse(item.getStartTime());
             LocalTime endTime = LocalTime.parse(item.getEndTime());
@@ -76,6 +99,7 @@ public class PileElectricityPriceExecute implements PileMessageExecute {
             if (start > end) {
                 return;
             }
+
             for (; start <= end; start++) {
                 if (start > 47) {
                     return;
@@ -122,10 +146,135 @@ public class PileElectricityPriceExecute implements PileMessageExecute {
         });
         commandDTO.setGunSort((byte) 0);
         commandDTO.setIdCode(pileElectricityPriceDTO.getIdCode());
-//        commandDTO.setTimeStage(new NumberFixStr(  timePriceBucket ));
         commandDTO.setTimeStage(new NumberFixStr(StringUtils.join(timePriceBucket).getBytes()));
-        log.info("commandDTO{}", commandDTO);
+
+        if(log.isDebugEnabled()){
+            log.debug("commandDTO: {}", JSON.toJSONString(commandDTO));
+        }
+
         mcCommandFactory.getExecute(McCommandEnum.ELECTRICITY_PRICE).execute(commandDTO);
+    }
+
+    /**
+     * 峰谷电价
+     *
+     * @param pileElectricityPriceDTO pileElectricityPriceDTO
+     */
+    private YKCChargePrice buildJFPGPrice(McElectricityPriceCommandDTO commandJFPGDTO, PileElectricityPriceDTO pileElectricityPriceDTO) {
+        Assert.notNull(pileElectricityPriceDTO, "电价下发失败");
+        Assert.isTrue(CollectionUtils.isNotEmpty(pileElectricityPriceDTO.getList()), "电价下发失败");
+        BigDecimal unit = new BigDecimal("10000");
+
+        List<ChargPriceDTO> objects = pileElectricityPriceDTO.getList();
+
+//        List<ChargPriceDTO> sortedList = objects.stream()
+//                .sorted((obj1, obj2) -> obj2.getCharge().compareTo(obj1.getCharge()))
+//                .collect(Collectors.toList());
+
+        // 转换集合
+        List<BigDecimal> priceList = objects.stream()
+                .map(ChargPriceDTO::getCharge)
+                .collect(Collectors.toList());
+
+        // 去重 计算 间峰平谷 电价 index 0 1 2 3
+        List<BigDecimal> distinctPrice = priceList.stream()
+                .distinct().sorted(Comparator.reverseOrder()).collect(Collectors.toList());
+
+        // 解决重复键的冲突策略
+        Map<BigDecimal, ChargPriceDTO> personMap = objects.stream()
+                .collect(Collectors.toMap(ChargPriceDTO::getCharge, var -> var, (existing, incoming) -> existing));
+
+        // 间峰平谷电下标 0 1 2 3
+        Map<BigDecimal, Byte> jfpgIndexMap = new HashMap<>();
+
+
+        JSONObject jsonLog = new JSONObject();
+        if(!distinctPrice.isEmpty()){
+            ChargPriceDTO chargPriceDTO = personMap.get(distinctPrice.get(0));
+            BigDecimal charge = chargPriceDTO.getCharge();
+            BigDecimal serviceCharge = chargPriceDTO.getServiceCharge();
+            commandJFPGDTO.setJPrice(charge.multiply(unit).intValue());
+            commandJFPGDTO.setJPriceS(serviceCharge.multiply(unit).intValue());
+            jfpgIndexMap.put(charge, (byte) 0);
+
+            jsonLog.put("j", charge);
+            jsonLog.put("jS", serviceCharge);
+        }
+
+        if(distinctPrice.size() >= 2){
+            ChargPriceDTO chargPriceDTO = personMap.get(distinctPrice.get(1));
+            BigDecimal charge = chargPriceDTO.getCharge();
+            BigDecimal serviceCharge = chargPriceDTO.getServiceCharge();
+            commandJFPGDTO.setFPrice(charge.multiply(unit).intValue());
+            commandJFPGDTO.setFPriceS(serviceCharge.multiply(unit).intValue());
+            jfpgIndexMap.put(charge, (byte) 1);
+
+            jsonLog.put("f", charge);
+            jsonLog.put("fS", serviceCharge);
+        }
+
+        if(distinctPrice.size() >= 3){
+            ChargPriceDTO chargPriceDTO = personMap.get(distinctPrice.get(2));
+            BigDecimal charge = chargPriceDTO.getCharge();
+            BigDecimal serviceCharge = chargPriceDTO.getServiceCharge();
+            commandJFPGDTO.setPPrice(charge.multiply(unit).intValue());
+            commandJFPGDTO.setPPriceS(serviceCharge.multiply(unit).intValue());
+            jfpgIndexMap.put(charge, (byte) 2);
+
+            jsonLog.put("p", charge);
+            jsonLog.put("pS", serviceCharge);
+        }
+
+        if(distinctPrice.size() >= 4){
+            ChargPriceDTO chargPriceDTO = personMap.get(distinctPrice.get(3));
+            BigDecimal charge = chargPriceDTO.getCharge();
+            BigDecimal serviceCharge = chargPriceDTO.getServiceCharge();
+            commandJFPGDTO.setGPrice(charge.multiply(unit).intValue());
+            commandJFPGDTO.setGPriceS(serviceCharge.multiply(unit).intValue());
+            jfpgIndexMap.put(charge, (byte) 3);
+
+            jsonLog.put("g", charge);
+            jsonLog.put("gS", serviceCharge);
+        }
+
+        byte[] priceBucketJFPG = new byte[48];
+        Arrays.fill(priceBucketJFPG, (byte) 0);
+
+        objects.forEach(var -> {
+            LocalTime startTime = LocalTime.parse(var.getStartTime());
+            LocalTime endTime = LocalTime.parse(var.getEndTime());
+
+            int startPeriodIndex = startTime.toSecondOfDay() / 1800;
+            int endPeriodIndex = endTime.toSecondOfDay() / 1800;
+
+            Byte index = jfpgIndexMap.getOrDefault(var.getCharge(), (byte) 0);
+            Arrays.fill(priceBucketJFPG, startPeriodIndex, endPeriodIndex, index);
+
+            //锁定在一个时间段 Arrays.fill无法填充
+            if(startPeriodIndex == endPeriodIndex){
+                priceBucketJFPG[startPeriodIndex] = index;
+            }
+        });
+
+        jsonLog.put("timeBucket", HexExtUtil.encodeHexStrFormat(priceBucketJFPG, StringPool.SPACE));
+        commandJFPGDTO.setPriceBucketJFPG(priceBucketJFPG);
+
+        if(log.isDebugEnabled()){
+            log.info("尖峰平谷 电价：{}", jsonLog);
+        }
+
+        YKCChargePrice ykcChargePrice = new YKCChargePrice();
+        ykcChargePrice.setJPrice(commandJFPGDTO.getJPrice());
+        ykcChargePrice.setFPrice(commandJFPGDTO.getFPrice());
+        ykcChargePrice.setPPrice(commandJFPGDTO.getPPrice());
+        ykcChargePrice.setGPrice(commandJFPGDTO.getGPrice());
+
+        ykcChargePrice.setJPriceS(commandJFPGDTO.getJPriceS());
+        ykcChargePrice.setFPriceS(commandJFPGDTO.getFPriceS());
+        ykcChargePrice.setPPriceS(commandJFPGDTO.getPPriceS());
+        ykcChargePrice.setGPriceS(commandJFPGDTO.getGPriceS());
+        ykcChargePrice.setPriceBucketJFPG(commandJFPGDTO.getPriceBucketJFPG());
+        return ykcChargePrice;
     }
 
 

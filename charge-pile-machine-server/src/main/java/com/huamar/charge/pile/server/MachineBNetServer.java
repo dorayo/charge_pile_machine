@@ -3,7 +3,6 @@ package com.huamar.charge.pile.server;
 import com.huamar.charge.common.protocol.BasePacket;
 import com.huamar.charge.pile.config.ServerApplicationProperties;
 import com.huamar.charge.pile.enums.McTypeEnum;
-import com.huamar.charge.pile.server.handle.netty.ServerNetHandler;
 import com.huamar.charge.pile.server.handle.netty.SessionManagerNetHandler;
 import com.huamar.charge.pile.server.handle.netty.b.ServerNetBHandler;
 import com.huamar.charge.pile.server.protocol.ProtocolCodecFactory;
@@ -151,6 +150,7 @@ public class MachineBNetServer implements NetServer {
     /**
      * 停止
      */
+    @SuppressWarnings("DuplicatedCode")
     @Override
     public void close() {
         if (!isRun.get()) {

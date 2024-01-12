@@ -20,6 +20,7 @@ public class McChargerOnlineInfoDTO extends BaseReqDTO {
 	 * 充电枪编号 充电桩/补电车中充电枪对应编号 范围 1-254，0xff 表示无效
 	 */
 	public byte gunSort;
+
 	/**
 	 * 充电枪状态
 	 * 0.空闲未连接
@@ -31,34 +32,42 @@ public class McChargerOnlineInfoDTO extends BaseReqDTO {
 	 * 6.故障
 	 */
 	public byte gunState = PileStateEnum.UN_KNOW.getCode();
+
 	/**
-	 * 充电开始时间
+	 * 充电开始时间 new BCD(new byte[]{0, 0, 0, 0, 0, 0}) 000000000000 这个标记是无充电中数据
 	 */
 	public BCD startTime;
+
 	/**
 	 * 累计充电时间 单位 1Min/bit，有效值 1-65535，偏移0
 	 */
 	public int cumulativeTime;
+
 	/**
-	 * 当前已充电的金额,电费，0.01元/bit，0xFFFFFFFF表示无效
+	 * 当前已充电的金额,电费，0.0001元，0xFFFFFFFF表示无效
 	 */
 	public int curMoney;
+
 	/**
 	 * 服务费，0.01元/bit，0xFFFFFFFF表示无效
 	 */
 	public int serviceMoney;
+
 	/**
-	 * 实际充电量 单位：0.1Kw.h/bit，偏移 0
+	 * 实际充电量 单位：0.0001 偏移 0
 	 */
 	public int curChargeQuantity;
+
 	/**
 	 * 故障码1
 	 */
 	public int faultCode1;
+
 	/**
 	 * 故障码2
 	 */
 	public int faultCode2;
+
 	/**
 	 * 充电枪数量(用来兼容老协议)
 	 */

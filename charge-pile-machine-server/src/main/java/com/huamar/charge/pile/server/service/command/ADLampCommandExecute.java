@@ -1,6 +1,5 @@
 package com.huamar.charge.pile.server.service.command;
 
-import cn.hutool.core.convert.Convert;
 import com.huamar.charge.common.protocol.DataPacket;
 import com.huamar.charge.common.protocol.DataPacketWriter;
 import com.huamar.charge.common.util.HexExtUtil;
@@ -82,7 +81,7 @@ public class ADLampCommandExecute implements McCommandExecute<ADLampCommandDTO> 
                 break;
 
             case B:
-                short typeCode = Convert.toShort(getCode().getCode());
+                short typeCode = Short.parseShort(this.getCode().getCode());
                 commandDTO = new McCommandDTO(typeCode, command.getFieldsByteLength(), writer.toByteArray());
 
             case C:

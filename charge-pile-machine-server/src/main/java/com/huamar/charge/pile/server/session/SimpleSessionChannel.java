@@ -3,6 +3,7 @@ package com.huamar.charge.pile.server.session;
 import com.huamar.charge.net.core.SessionChannel;
 import com.huamar.charge.pile.enums.McTypeEnum;
 import io.netty.channel.ChannelHandlerContext;
+import lombok.Getter;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 
@@ -27,14 +28,8 @@ public class SimpleSessionChannel implements SessionChannel {
     private final Date startDate = new Date();
 
 
-    public McTypeEnum getType() {
-        return type;
-    }
-
-    public void setType(McTypeEnum type) {
-        this.type = type;
-    }
-
+    @Setter
+    @Getter
     private McTypeEnum type = McTypeEnum.A;
 
     private final ConcurrentHashMap<Object, Object> attribute = new ConcurrentHashMap<>();

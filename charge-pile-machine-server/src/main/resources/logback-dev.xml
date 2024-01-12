@@ -73,7 +73,7 @@
 			<cleanHistoryOnStart>false</cleanHistoryOnStart>
 			<maxFileSize>128MB</maxFileSize>
 			<totalSizeCap>10GB</totalSizeCap>
-			<maxHistory>365</maxHistory>
+			<maxHistory>30</maxHistory>
 		</rollingPolicy>
 	</appender>
 	
@@ -100,7 +100,7 @@
 					<cleanHistoryOnStart>false</cleanHistoryOnStart>
 					<maxFileSize>100MB</maxFileSize>
 					<totalSizeCap>10GB</totalSizeCap>
-					<maxHistory>365</maxHistory>
+					<maxHistory>15</maxHistory>
 				</rollingPolicy>
 			
 			</appender>
@@ -130,7 +130,7 @@
 					<cleanHistoryOnStart>false</cleanHistoryOnStart>
 					<maxFileSize>100MB</maxFileSize>
 					<totalSizeCap>10GB</totalSizeCap>
-					<maxHistory>365</maxHistory>
+					<maxHistory>15</maxHistory>
 				</rollingPolicy>
 			
 			</appender>
@@ -159,10 +159,9 @@
 					<fileNamePattern>${LOG_PATH}/%d/pile_packet_${idCode}_%i.log</fileNamePattern>
 					<cleanHistoryOnStart>false</cleanHistoryOnStart>
 					<maxFileSize>100MB</maxFileSize>
-					<totalSizeCap>60GB</totalSizeCap>
-					<maxHistory>365</maxHistory>
+					<totalSizeCap>10GB</totalSizeCap>
+					<maxHistory>15</maxHistory>
 				</rollingPolicy>
-			
 			</appender>
 		</sift>
 	</appender>

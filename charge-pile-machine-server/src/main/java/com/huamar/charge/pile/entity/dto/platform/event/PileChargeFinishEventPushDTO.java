@@ -45,7 +45,7 @@ public class PileChargeFinishEventPushDTO extends PileEventPushBaseDTO {
     private BCD startTime;
 
     /**
-     * 4 累计充电时间 WORD 单位：，1Min/bit， 偏移 0
+     * 4 累计充电时间 WORD 单位：，秒/bit， 偏移 0
      */
     private Integer cumulativeChargeTime;
 
