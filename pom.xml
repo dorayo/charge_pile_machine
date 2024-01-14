@@ -20,7 +20,6 @@
 		<module>charge-pile-machine-server</module>
 		<module>charge-pile-platform-api</module>
 		<module>charge-pile-machine-common</module>
-		<module>charge-pile-client-network</module>
 	</modules>
 	
 	<properties>

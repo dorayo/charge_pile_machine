@@ -192,7 +192,7 @@
 		<appender-ref ref="PILE_SIFT_FILE"/>
 	</logger>
 	
-	<logger name="PileAuthLogger" level="DEBUG" additivity="false"/>
+	<logger name="PileAuthLogger" level="DEBUG" additivity="true"/>
 	
 	<logger name="com.huamar.charge.pile.ServerApplication" level="DEBUG"  additivity="false"/>
 	
