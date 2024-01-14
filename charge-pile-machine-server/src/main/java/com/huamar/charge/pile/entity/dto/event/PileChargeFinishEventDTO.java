@@ -22,12 +22,12 @@ public class PileChargeFinishEventDTO extends PileEventBaseDTO {
     /**
      * 2 动力蓄电池单体最低电压 WORD 单位：0.001V/bit， 偏移 0V
      */
-    private short batteryMinVoltage;
+    private int batteryMinVoltage;
 
     /**
      * 动力蓄电池单体最高电压 WORD 单位：0.001V/bit，偏移 0V
      */
-    private short batteryMaxVoltage;
+    private int batteryMaxVoltage;
 
     /**
      * 动力蓄电池最低温度 BYTE 单位：1℃/bit，偏移-40℃
@@ -87,7 +87,7 @@ public class PileChargeFinishEventDTO extends PileEventBaseDTO {
     /**
      * 结束原因
      */
-    private short endReason;
+    private int endReason;
 
     /**
      * 结束原因json说明

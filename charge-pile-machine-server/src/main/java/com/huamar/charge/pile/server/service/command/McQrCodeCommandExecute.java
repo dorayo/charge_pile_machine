@@ -1,6 +1,5 @@
 package com.huamar.charge.pile.server.service.command;
 
-import cn.hutool.core.convert.Convert;
 import com.huamar.charge.common.protocol.DataPacket;
 import com.huamar.charge.common.protocol.DataPacketWriter;
 import com.huamar.charge.pile.entity.dto.command.McCommandDTO;
@@ -55,7 +54,9 @@ public class McQrCodeCommandExecute implements McCommandExecute<McQrCodeCommandD
         DataPacketWriter writer = new DataPacketWriter();
         writer.write(command.getUrlLength());
         writer.write(command.getUrl(), command.getUrlLength());
-        short typeCode = Convert.toShort(getCode().getCode());
+
+        McCommandEnum commandEnum = getCode();
+        short typeCode = Short.parseShort(commandEnum.getCode());
         command.setFieldsByteLength((byte) (command.getUrlLength() + 1));
         return new McCommandDTO(typeCode, command.getFieldsByteLength(), writer.toByteArray());
     }

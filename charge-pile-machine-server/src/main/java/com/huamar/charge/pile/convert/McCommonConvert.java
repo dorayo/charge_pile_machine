@@ -29,8 +29,9 @@ public interface McCommonConvert {
 		DataPacketReader reader = new DataPacketReader(dataPacket.getMsgBody());
 		McCommonReq reqDTO = new McCommonReq();
 		reqDTO.setMsgId(reader.readByte());
-		reqDTO.setMsgNumber(reader.readShort());
-		reqDTO.setMsgResult(reader.readShort());
+		reqDTO.setMsgNumber(reader.readUnsignedShort());
+		reqDTO.setMsgResult(reader.readUnsignedShort());
+		//noinspection SwitchStatementWithTooFewBranches
 		switch (reader.getBuffer().limit()){
 			case 11:{
 				reqDTO.setTime(reader.readBCD());

@@ -17,7 +17,7 @@ public class PileParameterReqDTO extends PileBaseParameterDTO {
     /**
      * 消息流水号
      */
-    private Short msgNumber;
+    private Integer msgNumber;
 
     /**
      * 电表类型

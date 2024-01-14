@@ -20,6 +20,7 @@ import org.redisson.api.RBucket;
 import org.redisson.api.RedissonClient;
 import org.springframework.stereotype.Component;
 
+import java.nio.charset.StandardCharsets;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -80,8 +81,8 @@ public class PileChargeFinishEventExecute implements PileEventExecute {
         DataPacketReader reader = new DataPacketReader(reqDTO.getEventData());
         PileChargeFinishEventDTO eventDTO = new PileChargeFinishEventDTO();
         eventDTO.setTerminationElectricityState(reader.readByte());
-        eventDTO.setBatteryMinVoltage(reader.readShort());
-        eventDTO.setBatteryMaxVoltage(reader.readShort());
+        eventDTO.setBatteryMinVoltage(reader.readUnsignedShort());
+        eventDTO.setBatteryMaxVoltage(reader.readUnsignedShort());
         eventDTO.setBatteryMinTemperature(reader.readByte());
         eventDTO.setBatteryMaxTemperature(reader.readByte());
         eventDTO.setStartTime(reader.readBCD());
@@ -90,9 +91,20 @@ public class PileChargeFinishEventExecute implements PileEventExecute {
         eventDTO.setGunSort(reader.readByte());
         eventDTO.setChargeMoney(reader.readInt());
         eventDTO.setServiceMoney(reader.readInt());
-        eventDTO.setCarIdentificationCode(reader.readString(17));
+
+        String vin = reader.readString(17);
+        try{
+                // UTF-8 编码的字节序列
+            byte[] utf8Bytes = vin.getBytes(StandardCharsets.UTF_8);
+            // 将 UTF-8 字节序列转换回字符串
+            String utf8Vin = new String(utf8Bytes, StandardCharsets.UTF_8);
+            eventDTO.setCarIdentificationCode(utf8Vin);
+        }catch (Exception e){
+            eventDTO.setCarIdentificationCode(vin);
+        }
+
         eventDTO.setOrderSerialNumber(reader.readString(32));
-        eventDTO.setEndReason(reader.readShort());
+        eventDTO.setEndReason(reader.readUnsignedShort());
         //判断是否还有未读完数据，兼容不同版本协议
         if (!reader.isEnd()) {
             eventDTO.setStartSoc(reader.readByte());
@@ -470,7 +482,7 @@ public class PileChargeFinishEventExecute implements PileEventExecute {
         eventDTO.setGunSort(reader.readByte());
         eventDTO.setOutPower(reader.readInt() * 100);
         eventDTO.setChargeMoney(reader.readInt() * 100);
-        eventDTO.setEndReason(reader.readShort());
+        eventDTO.setEndReason(reader.readUnsignedShort());
         eventDTO.setStartTime(reader.readBCD());
         eventDTO.setEndTime(reader.readBCD());
         eventDTO.setCumulativeChargeTime(reader.readInt());

@@ -24,6 +24,7 @@ import lombok.extern.log4j.Log4j;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.springframework.stereotype.Component;
+import org.springframework.util.Assert;
 
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -113,13 +114,14 @@ public class PileStartChargeExecute implements PileMessageExecute {
             McChargeCommandDTO chargeCommand = new McChargeCommandDTO();
             chargeCommand.setChargeControl((byte) 1);
             chargeCommand.setChargeEndType(chargeControl.getChargeEndType().byteValue());
-            chargeCommand.setChargeEndValue(chargeControl.getChargeEndValue().intValue());
+            chargeCommand.setChargeEndValue(chargeControl.getChargeEndValue());
             chargeCommand.setGunSort(chargeControl.getGunSort().byteValue());
             chargeCommand.setOrderSerialNumber(chargeControl.getOrderSerialNumber().getBytes());
             chargeCommand.setBalance(chargeControl.getBalance().intValue());
             chargeCommand.setIdCode(chargeControl.getIdCode());
             log.info("开启充电参数下发：" + chargeCommand);
             SimpleSessionChannel session = (SimpleSessionChannel) SessionManager.get(chargeControl.getIdCode());
+            Assert.notNull(session, "开启充电参数下发 error 设备不在线");
 
             if (session.getType() == McTypeEnum.C) {
                 handleProtocolC(chargeControl.getIdCode(), chargeCommand);
@@ -134,7 +136,7 @@ public class PileStartChargeExecute implements PileMessageExecute {
             commonResp.setIdCode(chargeControl.getIdCode());
             commonResp.setCommandId(chargeControl.getCommandId());
             commonResp.setMsgResult(MessageCommonResultEnum.FAIL.getCode());
-            commonResp.setMsgNumber(chargeCommand.headMessageNum().intValue());
+            commonResp.setMsgNumber(chargeCommand.headMessageNum());
             commonResp.setCommandTypeCode(this.getCode().getCode());
             messageCommandRespService.put(commonResp);
 
@@ -143,6 +145,7 @@ public class PileStartChargeExecute implements PileMessageExecute {
             }
 
         } catch (Exception e) {
+            log.error("开启充电参数下发 error:{}", ExceptionUtils.getMessage(e));
             MessageCommonRespDTO commonResp = new MessageCommonRespDTO();
             commonResp.setIdCode(chargeControl.getIdCode());
             commonResp.setCommandId(chargeControl.getCommandId());

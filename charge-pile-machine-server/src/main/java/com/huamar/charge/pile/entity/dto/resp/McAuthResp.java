@@ -48,6 +48,6 @@ public class McAuthResp extends BaseResp {
 	/**
 	 * 原消息序号
 	 */
-	private short msgNumber;
+	private int msgNumber;
 
 }

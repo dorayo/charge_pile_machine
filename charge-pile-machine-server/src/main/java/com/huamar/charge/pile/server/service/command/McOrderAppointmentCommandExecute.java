@@ -53,7 +53,8 @@ public class McOrderAppointmentCommandExecute implements McCommandExecute<McOrde
      */
     @Override
     public McCommandDTO convert(McOrderAppointmentCommandDTO command) {
-        short typeCode = Convert.toShort(getCode().getCode());
+        McCommandEnum commandEnum = getCode();
+        short typeCode = Short.parseShort(commandEnum.getCode());
         DataPacketWriter writer = new DataPacketWriter();
         writer.write(command.getOrderSerialNumber(), 32);
         writer.write(command.getCurMoney());

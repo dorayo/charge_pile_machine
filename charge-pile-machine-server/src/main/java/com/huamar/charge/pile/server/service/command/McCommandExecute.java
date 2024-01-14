@@ -44,6 +44,7 @@ public interface McCommandExecute<T extends McBaseCommandDTO> {
      * @return DataPacket
      */
     default DataPacket packet(T command){
+        //noinspection DuplicatedCode
         DataPacket packet= new DataPacket();
         packet.setTag(DataPacket.TAG);
         packet.setMsgId(HexExtUtil.decodeHex(ProtocolCodeEnum.COMMON_SEND.getCode())[0]);
@@ -51,13 +52,14 @@ public interface McCommandExecute<T extends McBaseCommandDTO> {
         packet.setMsgBodyAttr(HexExtUtil.decodeHex("00")[0]);
         packet.setTagEnd(DataPacket.TAG);
 
+        //noinspection DuplicatedCode
         McCommandDTO mcCommandDTO = this.convert(command);
         DataPacketWriter writer = new DataPacketWriter();
         writer.write(mcCommandDTO.getTypeCode());
         writer.write(mcCommandDTO.getDataLength());
         writer.write(mcCommandDTO.getData());
         byte[] bytes = writer.toByteArray();
-        packet.setMsgBodyLen((short) bytes.length);
+        packet.setMsgBodyLen(bytes.length);
         packet.setMsgBody(bytes);
         return packet;
     }

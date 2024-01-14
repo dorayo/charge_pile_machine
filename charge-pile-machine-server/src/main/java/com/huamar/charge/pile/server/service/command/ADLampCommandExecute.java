@@ -97,6 +97,7 @@ public class ADLampCommandExecute implements McCommandExecute<ADLampCommandDTO> 
         }
 
 
+        //noinspection DuplicatedCode
         DataPacket packet= new DataPacket();
         packet.setTag(DataPacket.TAG);
         packet.setMsgId(HexExtUtil.decodeHex(ProtocolCodeEnum.COMMON_SEND.getCode())[0]);
@@ -104,12 +105,13 @@ public class ADLampCommandExecute implements McCommandExecute<ADLampCommandDTO> 
         packet.setMsgBodyAttr(HexExtUtil.decodeHex("00")[0]);
         packet.setTagEnd(DataPacket.TAG);
 
+        //noinspection DuplicatedCode
         DataPacketWriter packetWriter = new DataPacketWriter();
         packetWriter.write(commandDTO.getTypeCode());
         packetWriter.write(commandDTO.getDataLength());
         packetWriter.write(commandDTO.getData());
         byte[] bytes = packetWriter.toByteArray();
-        packet.setMsgBodyLen((short) bytes.length);
+        packet.setMsgBodyLen(bytes.length);
         packet.setMsgBody(bytes);
         return packet;
     }

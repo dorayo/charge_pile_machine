@@ -48,19 +48,36 @@ public class DataPacketReader {
         return buffer.get();
     }
 
+
+    public short readUnsignedByte() {
+        return (short)(buffer.get() & 0xFF);
+    }
+
+
     public short readShort() {
         return buffer.getShort();
     }
 
+    /**
+     * readUnsignedShort
+     * @return int
+     */
+    public int readUnsignedShort() {
+        return (buffer.getShort() & 0xFFFF);
+    }
+
+
     public int readInt() {
         return buffer.getInt();
     }
+
 
     public byte[] readBytes(int len) {
         byte[] bytes = new byte[len];
         buffer.get(bytes);
         return bytes;
     }
+
 
     /**
      * 读取剩余的字节
@@ -73,6 +90,7 @@ public class DataPacketReader {
         return bytes;
     }
 
+
     /**
      * 读取定长字符串
      *
@@ -83,6 +101,7 @@ public class DataPacketReader {
         return HexExtUtil.encodeHexStr(this.readBytes(len));
     }
 
+
     /**
      * @return BCD
      */
@@ -92,16 +111,19 @@ public class DataPacketReader {
         return new BCD(bytes);
     }
 
+
     public String readString(int len) {
         byte[] bytes = readBytes(len);
         return new String(bytes, charset);
     }
+
 
     @SuppressWarnings("AlibabaLowerCamelCaseVariableNaming")
     public BCD readBCD3() {
         byte[] bytes = readBytes(3);
         return new BCD(bytes);
     }
+
 
     @SuppressWarnings("AlibabaLowerCamelCaseVariableNaming")
     public BCD readBCD8() {

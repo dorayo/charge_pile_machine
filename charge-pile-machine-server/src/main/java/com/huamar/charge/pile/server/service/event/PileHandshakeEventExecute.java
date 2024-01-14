@@ -75,10 +75,10 @@ public class PileHandshakeEventExecute implements PileEventExecute {
         eventDTO.setBmsProtocolVersion(HexExtUtil.encodeHexStr(reader.readBytes(3)));
         eventDTO.setBatteryType(reader.readByte());
         eventDTO.setCarRatedCapacity(reader.readInt());
-        eventDTO.setCarRatedVoltage(reader.readShort());
-        eventDTO.setBatteryCellVoltage(reader.readShort());
-        eventDTO.setBatteryCellElectricity(reader.readShort());
-        eventDTO.setBatterySerialNumber(reader.readShort());
+        eventDTO.setCarRatedVoltage(reader.readUnsignedShort());
+        eventDTO.setBatteryCellVoltage(reader.readUnsignedShort());
+        eventDTO.setBatteryCellElectricity(reader.readUnsignedShort());
+        eventDTO.setBatterySerialNumber(reader.readUnsignedShort());
         eventDTO.setBatteryProductionDate(reader.readBCD3());
         eventDTO.setBatteryChargeCount(reader.readInt());
         eventDTO.setBatteryTag(reader.readByte());

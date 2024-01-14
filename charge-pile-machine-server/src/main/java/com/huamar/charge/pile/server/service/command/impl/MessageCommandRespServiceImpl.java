@@ -62,7 +62,7 @@ public class MessageCommandRespServiceImpl implements MessageCommandRespService 
      * @return MessageCommonRespDTO
      */
     @Override
-    public MessageCommonRespDTO get(String idCode, Short msgNum){
+    public MessageCommonRespDTO get(String idCode, Integer msgNum){
         CacheKeyEnum keyEnum = CacheKeyEnum.MACHINE_COMMAND_ANSWER;
         String key = idCode + "_" +msgNum;
         key = keyEnum.joinKey(key);

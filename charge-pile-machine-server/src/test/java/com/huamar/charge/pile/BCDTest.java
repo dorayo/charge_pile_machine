@@ -1,5 +1,6 @@
 package com.huamar.charge.pile;
 
+import cn.hutool.core.convert.Convert;
 import cn.hutool.core.date.LocalDateTimeUtil;
 import com.alibaba.fastjson.JSONObject;
 import com.huamar.charge.common.common.BCDUtils;
@@ -7,15 +8,18 @@ import com.huamar.charge.common.common.codec.BCD;
 import com.huamar.charge.common.util.Cp56Time2aUtil;
 import com.huamar.charge.common.util.DatePattern;
 import com.huamar.charge.common.util.HexExtUtil;
+import com.huamar.charge.common.util.JSONParser;
 import com.huamar.charge.pile.utils.views.BinaryViews;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.ByteBufAllocator;
 import io.netty.buffer.ByteBufUtil;
+import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import java.math.BigDecimal;
+import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
@@ -28,6 +32,36 @@ import java.util.stream.Collectors;
 @Slf4j
 public class BCDTest {
 
+
+    @Data
+    static class Demo {
+        Short a;
+    }
+
+    @Data
+    static class Demo1 {
+        int a = 3000;
+    }
+
+
+    public static int readUnsignedShort(ByteBuffer buffer) {
+        short signedShort = buffer.getShort();
+        return Short.toUnsignedInt(signedShort);
+    }
+
+
+
+
+    public static void main(String[] args) {
+        String string = JSONParser.jsonString(new Demo1());
+        Demo d = JSONParser.parseObject(string, Demo.class);
+
+
+        log.info("{}--{}", d, "");
+
+        short typeCode = Short.parseShort("9999");
+        log.info("{}--      {}", d, typeCode);
+    }
 
 
 
@@ -224,5 +258,7 @@ public class BCDTest {
         String vin = "      JX6MA000422";
 
         System.out.printf(vin);
+
+        ByteBuf byteBuf = ByteBufAllocator.DEFAULT.buffer(256);
     }
 }

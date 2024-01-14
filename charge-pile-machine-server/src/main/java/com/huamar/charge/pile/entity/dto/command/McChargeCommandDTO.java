@@ -15,7 +15,7 @@ public class McChargeCommandDTO extends McBaseCommandDTO {
 
 	public McChargeCommandDTO() {
 		// 设置命令行字节长度
-		this.fieldsByteLength = 43;
+		this.fieldsByteLength = (byte) 43;
 	}
 
 	/**

@@ -1,6 +1,5 @@
 package com.huamar.charge.pile.server.service.command;
 
-import cn.hutool.core.convert.Convert;
 import com.huamar.charge.common.protocol.DataPacket;
 import com.huamar.charge.common.protocol.DataPacketWriter;
 import com.huamar.charge.pile.entity.dto.command.McChargeCommandDTO;
@@ -41,7 +40,7 @@ public class McChargeCommandExecute implements McCommandExecute<McChargeCommandD
      */
     @Override
     public void execute(McChargeCommandDTO command) {
-        Short messageNumber = SessionManager.getMessageNumber(command.getIdCode());
+        Integer messageNumber = SessionManager.getMessageNumber(command.getIdCode());
         DataPacket packet = this.packet(command);
         packet.setMsgNumber(messageNumber);
         boolean sendCommand = SessionManager.writePacket(packet);
@@ -65,7 +64,11 @@ public class McChargeCommandExecute implements McCommandExecute<McChargeCommandD
         writer.write(command.getChargeEndValue());
         writer.write(command.getOrderSerialNumber());
         writer.write(command.getBalance());
-        short typeCode = Convert.toShort(getCode().getCode());
+
+        //short typeCode = Convert.toShort(getCode().getCode());
+
+        McCommandEnum commandEnum = getCode();
+        short typeCode = Short.parseShort(commandEnum.getCode());
         return new McCommandDTO(typeCode, command.getFieldsByteLength(), writer.toByteArray());
     }
 

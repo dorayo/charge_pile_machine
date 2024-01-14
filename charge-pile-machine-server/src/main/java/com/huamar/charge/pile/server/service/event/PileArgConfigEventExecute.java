@@ -79,17 +79,17 @@ public class PileArgConfigEventExecute implements PileEventExecute {
     public PileChargeArgConfigDTO parse(PileEventReqDTO reqDTO) {
         PileChargeArgConfigDTO pileChargeArgConfigDTO = new PileChargeArgConfigDTO();
         DataPacketReader reader = new DataPacketReader(reqDTO.getEventData());
-        pileChargeArgConfigDTO.setMaxValidVoltage(reader.readShort());
-        pileChargeArgConfigDTO.setMaxValidElectricity(reader.readShort());
+        pileChargeArgConfigDTO.setMaxValidVoltage(reader.readUnsignedShort());
+        pileChargeArgConfigDTO.setMaxValidElectricity(reader.readUnsignedShort());
         pileChargeArgConfigDTO.setMaxTotalPower(reader.readInt());
-        pileChargeArgConfigDTO.setMaxValidTotalVoltage(reader.readShort());
+        pileChargeArgConfigDTO.setMaxValidTotalVoltage(reader.readUnsignedShort());
         pileChargeArgConfigDTO.setMaxValidTemperature(reader.readByte());
         pileChargeArgConfigDTO.setCarElectricityState(reader.readByte());
-        pileChargeArgConfigDTO.setCarTotalVoltage(reader.readShort());
+        pileChargeArgConfigDTO.setCarTotalVoltage(reader.readUnsignedShort());
         pileChargeArgConfigDTO.setSynTime(reader.readBCD());
-        pileChargeArgConfigDTO.setChargerMaxOutVoltage(reader.readShort());
-        pileChargeArgConfigDTO.setChargerMinOutVoltage(reader.readShort());
-        pileChargeArgConfigDTO.setChargerMaxOutElectricity(reader.readShort());
+        pileChargeArgConfigDTO.setChargerMaxOutVoltage(reader.readUnsignedShort());
+        pileChargeArgConfigDTO.setChargerMinOutVoltage(reader.readUnsignedShort());
+        pileChargeArgConfigDTO.setChargerMaxOutElectricity(reader.readUnsignedShort());
         pileChargeArgConfigDTO.setBmsReadyState(reader.readByte());
         pileChargeArgConfigDTO.setChargerOutReadyState(reader.readByte());
         pileChargeArgConfigDTO.setGunSort(reader.readByte());

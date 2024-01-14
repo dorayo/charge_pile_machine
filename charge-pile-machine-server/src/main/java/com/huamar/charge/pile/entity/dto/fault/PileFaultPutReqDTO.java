@@ -17,26 +17,26 @@ public class PileFaultPutReqDTO extends BaseReqDTO {
 	/**
 	 * 故障枪数量
 	 */
-	public byte gunCount;
+	private byte gunCount;
 
 	/**
 	 * 故障枪号
 	 */
-	public byte gunNumber;
+	private byte gunNumber;
 
 	/**
 	 * 故障状态 1 故障；2 解除
 	 */
-	public byte status;
+	private byte status;
 
 	/**
 	 * 故障代码
 	 */
-	public short descId;
+	private int descId;
 
 	/**
 	 * 故障描述
 	 */
-	public String attributes;
+	private String attributes;
 
 }

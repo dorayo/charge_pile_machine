@@ -19,7 +19,7 @@ public class MachineDataUpItem extends BaseReqDTO {
 
 	private byte unitId;
 
-	private short dataLen;
+	private int dataLen;
 
 	private byte[] data;
 

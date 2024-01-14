@@ -53,7 +53,10 @@ public class McCardQueryCommandExecute implements McCommandExecute<McCardQueryCo
      */
     @Override
     public McCommandDTO convert(McCardQueryCommandDTO command) {
-        short typeCode = Convert.toShort(getCode().getCode());
+        McCommandEnum commandEnum = this.getCode();
+
+        //noinspection UnnecessaryBoxing
+        short typeCode = Short.valueOf(commandEnum.getCode());
         DataPacketWriter writer = new DataPacketWriter();
         writer.write(command.getResult());
         writer.write(command.getCardState());

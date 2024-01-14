@@ -26,7 +26,7 @@ public class McCommonResp extends BaseResp {
 	/**
 	 * 原消息序号
 	 */
-	private short msgNumber;
+	private int msgNumber;
 
 	/**
 	 * 消息结果

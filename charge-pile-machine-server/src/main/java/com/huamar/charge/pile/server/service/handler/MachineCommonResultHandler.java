@@ -62,7 +62,7 @@ public class MachineCommonResultHandler implements MachinePacketHandler<DataPack
             String ip = sessionChannel.getIp();
             commonReq = this.reader(packet);
             resCode = String.format("%04X", commonReq.getMsgResult());
-            log.info("通用应答处理，ip={}, idCode:{}, resCode:{},msgNumber:{}", ip, commonReq.getIdCode(), resCode,commonReq.getMsgNumber());
+            log.info("通用应答处理，ip={}, idCode:{}, resCode:{}, msgNumber:{}", ip, commonReq.getIdCode(), resCode, commonReq.getMsgNumber());
             PileCommonResultEnum commonResultEnum = PileCommonResultEnum.getByCode(resCode);
             if(Objects.isNull(commonResultEnum)){
                 commonResultEnum = PileCommonResultEnum.UNKNOWN;
@@ -81,9 +81,11 @@ public class MachineCommonResultHandler implements MachinePacketHandler<DataPack
         } catch (Exception e) {
             log.error("handler MachineCommon error:{}, e ->", e.getMessage(), e);
             MessageCommonRespDTO commonRespDTO = messageCommandRespService.get(new String(packet.getIdCode()), packet.getMsgNumber());
+
             if(Objects.nonNull(commonReq) && commonReq.getTime() != null){
                 commonRespDTO.setTime(commonReq.getTime().toString());
             }
+
             if(StringUtils.isNotBlank(resCode)){
                 commonRespDTO.setMsgResult(resCode);
                 messageCommandRespService.sendCommonResp(commonRespDTO);

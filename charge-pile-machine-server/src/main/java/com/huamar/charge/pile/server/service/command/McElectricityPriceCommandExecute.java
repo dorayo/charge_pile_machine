@@ -134,7 +134,7 @@ public class McElectricityPriceCommandExecute implements McCommandExecute<McElec
         //默认协议
         DataPacket packet = this.packet(command);
         boolean sendCommand = SessionManager.writePacket(packet);
-        log.info("Electricity Price idCode:{} sendCommand:{} msgId:{} ", command.getIdCode(), sendCommand, packet.getMsgNumber());
+        log.info("Electricity Price idCode:{} sendCommand:{} msgNumber:{} ", command.getIdCode(), sendCommand, packet.getMsgNumber());
     }
 
 

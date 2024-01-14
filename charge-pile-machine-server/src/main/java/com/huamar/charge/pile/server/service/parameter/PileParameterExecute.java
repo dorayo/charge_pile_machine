@@ -64,7 +64,7 @@ public interface PileParameterExecute<T extends PileBaseParameterDTO> {
 
         DataPacketWriter writer = this.writer(command);
         byte[] bytes = writer.toByteArray();
-        packet.setMsgBodyLen((short) bytes.length);
+        packet.setMsgBodyLen(bytes.length);
         packet.setMsgBody(bytes);
         return packet;
     }

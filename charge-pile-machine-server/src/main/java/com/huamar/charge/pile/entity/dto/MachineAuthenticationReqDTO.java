@@ -25,7 +25,7 @@ public class MachineAuthenticationReqDTO extends BaseReqDTO {
 	/**
 	 * 登录流水号 按日自增长，由 1 到 65535(如超过65535 则再次从 1 开始)
 	 */
-	public short loginNumber;
+	public int loginNumber;
 
 	/**
 	 * 终端时钟

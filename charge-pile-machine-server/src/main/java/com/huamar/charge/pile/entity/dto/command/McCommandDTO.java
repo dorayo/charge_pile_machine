@@ -8,7 +8,7 @@ import lombok.EqualsAndHashCode;
  * 远程控制基础类
  * date 2023/07/25
  *
- * @author TiAmo(13721682347@163.com)
+ * @author TiAmo(13721682347 @ 163.com)
  */
 @EqualsAndHashCode(callSuper = true)
 @Data

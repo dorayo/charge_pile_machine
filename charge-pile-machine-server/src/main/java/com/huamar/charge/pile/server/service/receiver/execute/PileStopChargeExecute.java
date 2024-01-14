@@ -109,7 +109,7 @@ public class PileStopChargeExecute implements PileMessageExecute {
             commonResp.setIdCode(chargeControl.getIdCode());
             commonResp.setCommandId(chargeControl.getCommandId());
             commonResp.setMsgResult(MessageCommonResultEnum.FAIL.getCode());
-            commonResp.setMsgNumber(chargeCommand.headMessageNum().intValue());
+            commonResp.setMsgNumber(chargeCommand.headMessageNum());
             commonResp.setCommandTypeCode(this.getCode().getCode());
             messageCommandRespService.put(commonResp);
             if (!commandState) {

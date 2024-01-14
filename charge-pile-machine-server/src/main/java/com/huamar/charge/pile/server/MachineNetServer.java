@@ -34,6 +34,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
+ * SLX(硕立信协议)
  * netty 服务端
  */
 @Slf4j
@@ -126,7 +127,8 @@ public class MachineNetServer implements NetServer {
         workerGroup = new NioEventLoopGroup(properties.getWorker());
         serverBootstrap.group(boosGroup, workerGroup)
                 .channel(NioServerSocketChannel.class)
-                .option(ChannelOption.CONNECT_TIMEOUT_MILLIS, (int) Duration.ofSeconds(60).toMillis())
+                //用于客户端参数
+                //.option(ChannelOption.CONNECT_TIMEOUT_MILLIS, (int) Duration.ofSeconds(60).toMillis())
                 // 没有空闲链接将请求暂存在缓冲队列
                 .option(ChannelOption.SO_BACKLOG, 4096)
                 .childHandler(new ChannelInitializer<SocketChannel>() {

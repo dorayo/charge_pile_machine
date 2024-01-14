@@ -29,7 +29,7 @@ public interface McFaultConvert {
 		reqDTO.setGunCount(reader.readByte());
 		reqDTO.setGunNumber(reader.readByte());
 		reqDTO.setStatus(reader.readByte());
-		reqDTO.setDescId(reader.readShort());
+		reqDTO.setDescId(reader.readUnsignedShort());
 		reqDTO.setAttributes(reader.readString(32));
 		return reqDTO;
 	}

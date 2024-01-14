@@ -28,7 +28,7 @@ public interface MachineAuthenticationConvert {
 	default MachineAuthenticationReqDTO convert(DataPacket dataPacket){
 		DataPacketReader reader = new DataPacketReader(dataPacket.getMsgBody());
 		MachineAuthenticationReqDTO reqDTO = new MachineAuthenticationReqDTO();
-		reqDTO.setLoginNumber(reader.readShort());
+		reqDTO.setLoginNumber(reader.readUnsignedShort());
 		reqDTO.setTerminalTime(reader.readBCD());
 		reqDTO.setMacAddress(reader.readBCD());
 		reqDTO.setBoardNum(reader.readByte());

@@ -1,6 +1,5 @@
 package com.huamar.charge.pile.server.session;
 
-import cn.hutool.core.convert.Convert;
 import com.github.benmanes.caffeine.cache.Cache;
 import com.github.benmanes.caffeine.cache.Caffeine;
 import com.huamar.charge.common.protocol.DataPacket;
@@ -121,19 +120,19 @@ public class SessionManager implements ApplicationListener<ContextRefreshedEvent
      * @return Short
      */
     @SuppressWarnings("DuplicatedCode")
-    public static Short getMessageNumber(String idCode){
+    public static Integer getMessageNumber(String idCode){
         RAtomicLong atomicLong = redissonClient.getAtomicLong(CacheKeyEnum.MACHINE_MESSAGE_NUM_INCR.joinKey(idCode));
         long incremented = atomicLong.incrementAndGet();
         if(Objects.equals(incremented, 1L)){
             atomicLong.expire(CacheKeyEnum.MACHINE_MESSAGE_NUM_INCR.getDuration());
         }
 
-        if(Objects.equals(incremented, 65535)){
+        if(incremented >= 65500){
             atomicLong.set(0L);
             incremented = 0;
             atomicLong.expire(CacheKeyEnum.MACHINE_MESSAGE_NUM_INCR.getDuration());
         }
-        return Convert.toShort(incremented);
+        return (int) (incremented);
     }
 
     /**

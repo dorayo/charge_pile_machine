@@ -22,13 +22,13 @@ public class McCommonReq extends BaseReqDTO {
 	/**
 	 * 原消息序号
 	 */
-	private short msgNumber;
+	private int msgNumber;
 
 	/**
 	 * 消息结果
 	 * 0x0000 表示命令执行成功，0x0001 表示命令执行失败， 0xFFFF 表示无效
 	 */
-	private short msgResult;
+	private int msgResult;
 
 	/**
 	 * 命令时间

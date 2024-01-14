@@ -1,6 +1,5 @@
 package com.huamar.charge.pile.entity.dto.command;
 
-import cn.hutool.core.convert.Convert;
 import com.huamar.charge.common.common.BaseDTO;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -51,16 +50,22 @@ public abstract class McBaseCommandDTO extends BaseDTO {
      * messageNum
      * @param messageNum messageNum
      */
-    public void headMessageNum(Short messageNum){
+    public void headMessageNum(Integer messageNum){
         headerProperties.put(MESSAGE_NUM, messageNum);
     }
 
     /**
      * messageNum
      */
-    public Short headMessageNum(){
+    public Integer headMessageNum(){
         Object object = headerProperties.get(MESSAGE_NUM);
-        return Convert.toShort(object);
+        int value = 0;
+        try {
+            value = Integer.parseInt(object.toString());
+        }catch (Exception e){
+            value = Short.valueOf(object.toString()).intValue();
+        }
+        return value;
     }
 
     /**
@@ -76,8 +81,11 @@ public abstract class McBaseCommandDTO extends BaseDTO {
      */
     public Boolean headCommandState(){
         Object object = headerProperties.get(COMMAND_STATE);
-        Boolean bool = Convert.toBool(object);
-        return Objects.isNull(bool) ? Boolean.FALSE : bool;
+        if(Objects.isNull(object)){
+            return Boolean.FALSE;
+        }
+
+        return Boolean.valueOf(object.toString());
     }
 
 }

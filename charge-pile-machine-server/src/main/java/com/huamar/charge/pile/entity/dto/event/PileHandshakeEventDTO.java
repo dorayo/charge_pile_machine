@@ -45,22 +45,22 @@ public class PileHandshakeEventDTO extends PileEventBaseDTO {
     /**
      * 整车动力蓄电池系统额定总电压  WORD  单位：0.1V/bit，偏移 0
      */
-    public short carRatedVoltage;
+    public int carRatedVoltage;
 
     /**
      * 单体最高允许充电电压  WORD  范围：1~65535， 偏移 0
      */
-    public short batteryCellVoltage;
+    public int batteryCellVoltage;
 
     /**
      * 最高允许充电总电流  WORD  范围：1~65535， 偏移 0
      */
-    public short batteryCellElectricity;
+    public int batteryCellElectricity;
 
     /**
      * 最高允许充电总电压  WORD  范围：1~65535， 偏移 0
      */
-    public short batterySerialNumber;
+    public int batterySerialNumber;
 
     /**
      * 电池组生产日期：年/月/日  BCD[3]
