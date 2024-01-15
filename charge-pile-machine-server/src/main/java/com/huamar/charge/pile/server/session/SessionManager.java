@@ -6,12 +6,18 @@ import com.huamar.charge.common.protocol.DataPacket;
 import com.huamar.charge.net.core.SessionChannel;
 import com.huamar.charge.pile.entity.dto.mq.MessageData;
 import com.huamar.charge.pile.enums.CacheKeyEnum;
+import com.huamar.charge.pile.enums.ConstEnum;
 import com.huamar.charge.pile.enums.MessageCodeEnum;
 import com.huamar.charge.pile.server.service.produce.PileMessageProduce;
+import io.netty.channel.ChannelHandlerContext;
+import io.netty.util.AttributeKey;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.redisson.api.RAtomicLong;
 import org.redisson.api.RedissonClient;
+import org.slf4j.MDC;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationListener;
 import org.springframework.context.event.ContextRefreshedEvent;
@@ -143,4 +149,75 @@ public class SessionManager implements ApplicationListener<ContextRefreshedEvent
     public static void close(SessionChannel sessionChannel){
         sessionChannel.close();
     }
+
+
+    /**
+     * setMDCParam netty
+     *
+     * @param ctx ctx
+     */
+    @SuppressWarnings("DuplicatedCode")
+    public static String setMDCParam(ChannelHandlerContext ctx){
+        String idCode = null;
+        try {
+            AttributeKey<String> machineId = AttributeKey.valueOf(ConstEnum.MACHINE_ID.getCode());
+            idCode = ctx.channel().attr(machineId).get();
+            if (StringUtils.isNotBlank(idCode)) {
+                MDC.put(ConstEnum.ID_CODE.getCode(), idCode);
+            }
+
+            AttributeKey<String> sessionKey = AttributeKey.valueOf(ConstEnum.X_SESSION_ID.getCode());
+            String sessionId = ctx.channel().attr(sessionKey).get();
+            if (StringUtils.isNotBlank(sessionId)) {
+                MDC.put(ConstEnum.X_SESSION_ID.getCode(), sessionId);
+            }
+        }catch (Exception e){
+            log.error("setMDCParam error:{}", ExceptionUtils.getMessage(e));
+        }
+        return idCode;
+    }
+
+    /**
+     * setMDCParam netty
+     *
+     * @param ctx ctx
+     */
+    @SuppressWarnings("DuplicatedCode")
+    public static String setMDCParamToSession(ChannelHandlerContext ctx){
+        String sessionId = null;
+        String idCode = null;
+        try {
+            AttributeKey<String> machineId = AttributeKey.valueOf(ConstEnum.MACHINE_ID.getCode());
+            idCode = ctx.channel().attr(machineId).get();
+            if (StringUtils.isNotBlank(idCode)) {
+                MDC.put(ConstEnum.ID_CODE.getCode(), idCode);
+            }
+
+            AttributeKey<String> sessionKey = AttributeKey.valueOf(ConstEnum.X_SESSION_ID.getCode());
+            sessionId = ctx.channel().attr(sessionKey).get();
+            if (StringUtils.isNotBlank(sessionId)) {
+                MDC.put(ConstEnum.X_SESSION_ID.getCode(), sessionId);
+            }
+        }catch (Exception e){
+            log.error("setMDCParamToSession error:{}", ExceptionUtils.getMessage(e));
+        }
+        return sessionId;
+    }
+
+
+    /**
+     * 获取 sessionId
+     * @param ctx ctx
+     * @return String
+     */
+    public static String getSessionId(ChannelHandlerContext ctx){
+        try {
+            AttributeKey<String> sessionKey = AttributeKey.valueOf(ConstEnum.X_SESSION_ID.getCode());
+            return ctx.channel().attr(sessionKey).get();
+        }catch (Exception e){
+            log.error("getSessionId error:{}", ExceptionUtils.getMessage(e));
+        }
+        return null;
+    }
+
 }

@@ -84,6 +84,10 @@ public class PacketProtocolCodec implements ProtocolCodec {
     @Override
     public BasePacket decode(ByteBuffer buffer) {
         try {
+            if(log.isDebugEnabled()){
+                log.debug("Decode start >>>>>>>>>> buffer:{}", buffer);
+            }
+
             buffer.order(ByteOrder.LITTLE_ENDIAN);
             // 收到的数据组不了业务包，则返回null以告诉框架数据不够
             if (buffer.remaining() < HEADER_LENGTH) {
@@ -121,7 +125,7 @@ public class PacketProtocolCodec implements ProtocolCodec {
 
             // 消息包中数据是否完整
             if (bytes.length < packet.getMsgBodyLen() + BODY_CHECK_LENGTH) {
-                log.info("数据包长度异常：msgBodyLength:{}, bytes.length:{}, 数据头长度:{} ", packet.getMsgBodyLen(), bytes.length, BODY_CHECK_LENGTH);
+                log.info("Decode 数据包长度异常：msgBodyLength:{}, bytes.length:{}, 数据头长度:{} ", packet.getMsgBodyLen(), bytes.length, BODY_CHECK_LENGTH);
                 return new FailMathPacket(bytes);
             }
 
@@ -140,16 +144,21 @@ public class PacketProtocolCodec implements ProtocolCodec {
 
             String messageId = HexExtUtil.encodeHexStr(packet.getMsgId());
             MDC.put(ConstEnum.ID_CODE.getCode(), new String(packet.getIdCode()));
-            StringJoiner joiner = new StringJoiner(StringPool.COMMA, StringPool.EMPTY, StringPool.EMPTY);
-            joiner.add(MessageFormatter.format("终端号:{} msgId:{}", new String(packet.getIdCode()), messageId).getMessage());
-            joiner.add(MessageFormatter.format("hexData:{}", HexExtUtil.encodeHexStrFormat(bytes, StringPool.SPACE)).getMessage());
-            log.info(joiner.toString());
+            if(log.isDebugEnabled()){
+                StringJoiner joiner = new StringJoiner(StringPool.COMMA, StringPool.EMPTY, StringPool.EMPTY);
+                joiner.add(MessageFormatter.format("Decode 终端号:{} msgId:{}", new String(packet.getIdCode()), messageId).getMessage());
+                joiner.add(MessageFormatter.format("hexData:{}", HexExtUtil.encodeHexStrFormat(bytes, StringPool.SPACE)).getMessage());
+                log.debug(joiner.toString());
+            }
+
             return packet;
         } catch (Exception e) {
             log.error("fail TioDecodeException:{}", e.getMessage(), e);
             throw new TioDecodeException(e.getMessage());
         } finally {
-            MDC.clear();
+            if(log.isDebugEnabled()){
+                log.debug("Decode end >>>>>>>>>> buffer:{}", buffer);
+            }
         }
     }
 
@@ -179,6 +188,9 @@ public class PacketProtocolCodec implements ProtocolCodec {
     @SuppressWarnings("DuplicatedCode")
     @Override
     public BasePacket decode(ByteBuf byteBuf) {
+        if(log.isDebugEnabled()){
+            log.debug("Decode start >>>>>>>>>> buffer:{}", byteBuf);
+        }
         try {
             byteBuf.markReaderIndex();
             // 收到的数据组不了业务包，则返回null以告诉框架数据不够,实际不行，因为存在转义问题
@@ -227,7 +239,7 @@ public class PacketProtocolCodec implements ProtocolCodec {
 
             // 消息包中数据是否完整
             if (bytes.length < packet.getMsgBodyLen() + BODY_CHECK_LENGTH) {
-                log.info("数据包长度异常：msgBodyLength:{}, bytes.length:{}, 数据头长度:{} ", packet.getMsgBodyLen(), bytes.length, BODY_CHECK_LENGTH);
+                log.info("Decode 数据包长度异常：msgBodyLength:{}, bytes.length:{}, 数据头长度:{} ", packet.getMsgBodyLen(), bytes.length, BODY_CHECK_LENGTH);
                 return new FailMathPacket(bytes);
             }
 
@@ -245,16 +257,21 @@ public class PacketProtocolCodec implements ProtocolCodec {
 
             String messageId = HexExtUtil.encodeHexStr(packet.getMsgId());
             MDC.put(ConstEnum.ID_CODE.getCode(), new String(packet.getIdCode()));
-            StringJoiner joiner = new StringJoiner(StringPool.COMMA, StringPool.EMPTY, StringPool.EMPTY);
-            joiner.add(MessageFormatter.format("终端号:{} msgId:{}", new String(packet.getIdCode()), messageId).getMessage());
-            joiner.add(MessageFormatter.format("hex packet:{}", HexExtUtil.encodeHexStrFormat(bytes, StringPool.SPACE)).getMessage());
-            log.info(joiner.toString());
+            if(log.isDebugEnabled()){
+                StringJoiner joiner = new StringJoiner(StringPool.COMMA, StringPool.EMPTY, StringPool.EMPTY);
+                joiner.add(MessageFormatter.format("Decode 终端号:{} msgId:{}", new String(packet.getIdCode()), messageId).getMessage());
+                joiner.add(MessageFormatter.format("hexData:{}", HexExtUtil.encodeHexStrFormat(bytes, StringPool.SPACE)).getMessage());
+                log.debug(joiner.toString());
+            }
+
             return packet;
         } catch (Exception e) {
             log.error("fail DecodeException:{}", e.getMessage(), e);
             throw new RuntimeException(e.getMessage());
         } finally {
-            MDC.clear();
+            if(log.isDebugEnabled()){
+                log.debug("Decode end >>>>>>>>>> buffer:{}", byteBuf);
+            }
         }
     }
 
@@ -300,9 +317,9 @@ public class PacketProtocolCodec implements ProtocolCodec {
         byte[] encodeBytes = new byte[position];
         buffer.get(encodeBytes);
 
-        if (log.isDebugEnabled()) {
-            log.debug("transferEncode before:{}", HexExtUtil.encodeHexStrFormat(hexBytes, StringPool.SPACE));
-            log.debug("transferEncode after:{}", HexExtUtil.encodeHexStrFormat(encodeBytes, StringPool.SPACE));
+        if (log.isTraceEnabled()) {
+            log.trace("transferEncode before:{}", HexExtUtil.encodeHexStrFormat(hexBytes, StringPool.SPACE));
+            log.trace("transferEncode after:{}", HexExtUtil.encodeHexStrFormat(encodeBytes, StringPool.SPACE));
         }
         return encodeBytes;
     }
@@ -325,9 +342,9 @@ public class PacketProtocolCodec implements ProtocolCodec {
         buffer.flip();
         byte[] dst = new byte[position];
         buffer.get(dst);
-        if (log.isDebugEnabled()) {
-            log.debug("transferDecode before:{}", HexExtUtil.encodeHexStr(hexBytes));
-            log.debug("transferDecode after:{}", HexUtil.encodeHexStr(dst));
+        if (log.isTraceEnabled()) {
+            log.trace("transferDecode before:{}", HexExtUtil.encodeHexStr(hexBytes));
+            log.trace("transferDecode after:{}", HexUtil.encodeHexStr(dst));
         }
         return dst;
     }

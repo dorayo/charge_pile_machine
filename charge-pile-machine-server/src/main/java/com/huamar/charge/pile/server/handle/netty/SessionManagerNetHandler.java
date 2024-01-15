@@ -22,9 +22,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.MDC;
 
-import java.net.SocketAddress;
 import java.util.Objects;
-import java.util.Optional;
 
 /**
  * 服务端监听器 ChannelInboundHandlerAdapter 区别，SimpleChannelInboundHandler.channelRead0 可是实现释放数据
@@ -63,8 +61,8 @@ public class SessionManagerNetHandler extends SimpleChannelInboundHandler<BasePa
             ctx.channel().attr(sessionKey).set(sessionId);
         }
         MDC.put(ConstEnum.X_SESSION_ID.getCode(), sessionId);
-        log.info("{} 连上了服务器", ctx.channel().remoteAddress());
-        authLog.info("{} 连上了服务器", ctx.channel().remoteAddress());
+        log.info("SLX {} 连上了服务器", ctx.channel().remoteAddress());
+        authLog.info("SLX {} 连上了服务器", ctx.channel().remoteAddress());
         MDC.clear();
     }
 
@@ -77,7 +75,6 @@ public class SessionManagerNetHandler extends SimpleChannelInboundHandler<BasePa
     @SuppressWarnings("DuplicatedCode")
     @Override
     public void channelInactive(ChannelHandlerContext ctx) throws Exception {
-        MDC.clear();
         try {
             Thread.currentThread().setName(IdUtil.getSnowflakeNextIdStr());
             AttributeKey<String> sessionKey = AttributeKey.valueOf(ConstEnum.X_SESSION_ID.getCode());
@@ -88,11 +85,13 @@ public class SessionManagerNetHandler extends SimpleChannelInboundHandler<BasePa
             String bsId = ctx.channel().attr(machineId).get();
             MDC.put(ConstEnum.ID_CODE.getCode(), bsId);
 
-            log.info("channelInactive  连接不活跃 idCode:{} remoteAddress:{}", bsId, ctx.channel().remoteAddress());
-            authLog.info("channelInactive 连接不活跃 idCode:{} remoteAddress:{}", bsId, ctx.channel().remoteAddress());
+            log.warn("SLX channelInactive 连接不活跃 idCode:{} remoteAddress:{}", bsId, ctx.channel().remoteAddress());
+            authLog.warn("SLX channelInactive 连接不活跃 idCode:{} remoteAddress:{}", bsId, ctx.channel().remoteAddress());
         }catch (Exception e){
-            log.error("channelInactive error:{}", e.getMessage(), e);
-            authLog.error("channelInactive error:{}", e.getMessage(), e);
+            log.error("SLX channelInactive error:{}", e.getMessage(), e);
+            authLog.error("SLX channelInactive error:{}", e.getMessage(), e);
+        }finally {
+            MDC.clear();
         }
         super.channelInactive(ctx);
     }
@@ -107,12 +106,14 @@ public class SessionManagerNetHandler extends SimpleChannelInboundHandler<BasePa
         try {
             AttributeKey<String> sessionKey = AttributeKey.valueOf(ConstEnum.X_SESSION_ID.getCode());
             String sessionId = ctx.channel().attr(sessionKey).get();
-            MDC.put(ConstEnum.X_SESSION_ID.getCode(), sessionId);
+            if(Objects.nonNull(sessionId)){
+                MDC.put(ConstEnum.X_SESSION_ID.getCode(), sessionId);
+            }
 
             AttributeKey<String> machineId = AttributeKey.valueOf(ConstEnum.MACHINE_ID.getCode());
             String idCode = ctx.channel().attr(machineId).get();
-            log.warn("handlerRemoved, idCode:{}, remoteAddress:{}", idCode, ctx.channel().remoteAddress());
-            authLog.warn("handlerRemoved, idCode:{}, remoteAddress:{}", idCode, ctx.channel().remoteAddress());
+            log.warn("SLX handlerRemoved, idCode:{}, remoteAddress:{}", idCode, ctx.channel().remoteAddress());
+            authLog.warn("SLX handlerRemoved, idCode:{}, remoteAddress:{}", idCode, ctx.channel().remoteAddress());
 
             if (StringUtils.isNotBlank(idCode)) {
                 MDC.put(ConstEnum.ID_CODE.getCode(), idCode);
@@ -120,8 +121,8 @@ public class SessionManagerNetHandler extends SimpleChannelInboundHandler<BasePa
             }
 
         } catch (Exception cause) {
-            log.error("handlerRemoved error, idCode:{}, remoteAddress:{}", ctx.channel().remoteAddress(), cause.getMessage(), cause);
-            authLog.error("handlerRemoved error, idCode:{}, remoteAddress:{}", ctx.channel().remoteAddress(), cause.getMessage(), cause);
+            log.error("SLX handlerRemoved error, idCode:{}, remoteAddress:{}", ctx.channel().remoteAddress(), cause.getMessage(), cause);
+            authLog.error("SLX handlerRemoved error, idCode:{}, remoteAddress:{}", ctx.channel().remoteAddress(), cause.getMessage(), cause);
         } finally {
             // 防止session 关闭不执行，始终执行一次
             this.close(ctx);
@@ -137,21 +138,16 @@ public class SessionManagerNetHandler extends SimpleChannelInboundHandler<BasePa
      */
     @Override
     protected void channelRead0(ChannelHandlerContext channelHandlerContext, BasePacket packet) {
-        Thread.currentThread().setName(IdUtil.getSnowflakeNextIdStr());
+        if(log.isDebugEnabled()){
+            log.debug("InboundHandler:{}", this.getClass().getSimpleName());
+        }
         String idCode = "";
-        SocketAddress remotedAddress = channelHandlerContext.channel().remoteAddress();
-
-        AttributeKey<String> sessionKey = AttributeKey.valueOf(ConstEnum.X_SESSION_ID.getCode());
-        String sessionId = channelHandlerContext.channel().attr(sessionKey).get();
-        MDC.put(ConstEnum.X_SESSION_ID.getCode(), sessionId);
-
         if (packet instanceof DataPacket) {
             DataPacket dataPacket = (DataPacket) packet;
             String bsId = new String((dataPacket).getIdCode());
             idCode = bsId;
             MDC.put(ConstEnum.ID_CODE.getCode(), new String((dataPacket).getIdCode()));
             SessionChannel session = SessionManager.get(bsId);
-            log.info("channelRead0 start session:{} address:{} idCode:{} >>>>>>>>>>>>>>>>>>", Optional.ofNullable(session).isPresent(), remotedAddress, idCode);
             if (Objects.isNull(session)) {
                 SimpleSessionChannel sessionChannelNew = new SimpleSessionChannel(channelHandlerContext);
                 sessionChannelNew.setId(bsId);
@@ -164,19 +160,18 @@ public class SessionManagerNetHandler extends SimpleChannelInboundHandler<BasePa
         }
 
         if (packet instanceof FailMathPacket) {
+            AttributeKey<String> machineId = AttributeKey.valueOf(ConstEnum.MACHINE_ID.getCode());
+            String sessionCode = channelHandlerContext.channel().attr(machineId).get();
             MDC.put(ConstEnum.ID_CODE.getCode(), "fail_packet");
             FailMathPacket dataPacket = (FailMathPacket) packet;
-            log.info("FailMathPacket data:{}", HexExtUtil.encodeHexStrFormat(dataPacket.getBody(), StringPool.SPACE));
-            log.info("FailMathPacket close session...");
+            log.info("SLX FailMathPacket idCode:{} data:{}", sessionCode,HexExtUtil.encodeHexStrFormat(dataPacket.getBody(), StringPool.SPACE));
+            log.info("SLX FailMathPacket close session...");
             this.close(channelHandlerContext);
             SessionManager.remove(idCode);
-            MDC.clear();
             return;
         }
 
         channelHandlerContext.fireChannelRead(packet);
-        log.info("channelRead0 end session address:{} end idCode:{} <<<<<<<<<<<<<<<<<<<", remotedAddress, idCode);
-        MDC.clear();
     }
 
     /**
@@ -193,8 +188,8 @@ public class SessionManagerNetHandler extends SimpleChannelInboundHandler<BasePa
         String sessionId = ctx.channel().attr(sessionKey).get();
         MDC.put(ConstEnum.X_SESSION_ID.getCode(), sessionId);
 
-        authLog.error("{} 连接出异常了,{}", ctx.channel().remoteAddress(), cause.getMessage(), cause);
-        log.error("{} 连接出异常了,{}", ctx.channel().remoteAddress(), cause.getMessage(), cause);
+        authLog.error("SLX {} 连接出异常了,{}", ctx.channel().remoteAddress(), cause.getMessage(), cause);
+        log.error("SLX {} 连接出异常了,{}", ctx.channel().remoteAddress(), cause.getMessage(), cause);
         try {
             AttributeKey<String> machineId = AttributeKey.valueOf(ConstEnum.MACHINE_ID.getCode());
             String bsId = ctx.channel().attr(machineId).get();
@@ -232,19 +227,19 @@ public class SessionManagerNetHandler extends SimpleChannelInboundHandler<BasePa
             switch (event.state()) {
 
                 case READER_IDLE:
-                    authLog.warn("IdCode:{} READER_IDLE 读取数据空闲 心跳链接超时 关闭连接", bsId);
-                    log.warn("IdCode:{} READER_IDLE 读取数据空闲 心跳链接超时 关闭连接", bsId);
+                    authLog.warn("SLX IdCode:{} READER_IDLE 读取数据空闲 心跳链接超时 关闭连接", bsId);
+                    log.warn("SLX IdCode:{} READER_IDLE 读取数据空闲 心跳链接超时 关闭连接", bsId);
                     this.close(ctx);
                     break;
 
                 case WRITER_IDLE:
-                    authLog.warn("IdCode:{} WRITER_IDLE 读取数据空闲", bsId);
-                    log.warn("IdCode:{} WRITER_IDLE 读取数据空闲", bsId);
+                    authLog.warn("SLX IdCode:{} WRITER_IDLE 读取数据空闲", bsId);
+                    log.warn("SLX IdCode:{} WRITER_IDLE 读取数据空闲", bsId);
                     break;
 
                 case ALL_IDLE:
-                    authLog.warn("IdCode:{} ALL_IDLE 时间超时", bsId);
-                    log.warn("IdCode:{} ALL_IDLE 时间超时", bsId);
+                    authLog.warn("SLX IdCode:{} ALL_IDLE 时间超时", bsId);
+                    log.warn("SLX IdCode:{} ALL_IDLE 时间超时", bsId);
                     break;
             }
         } else {
@@ -259,13 +254,13 @@ public class SessionManagerNetHandler extends SimpleChannelInboundHandler<BasePa
      */
     private void close(ChannelHandlerContext ctx) {
         ctx.channel().close().addListener(future -> {
-            authLog.error("SessionManager ctx channel close:{} ", future.isSuccess(), future.cause());
-            log.error("SessionManager ctx channel close:{} ", future.isSuccess(), future.cause());
+            authLog.error("SLX SessionManager ctx channel close:{} ", future.isSuccess(), future.cause());
+            log.error("SLX SessionManager ctx channel close:{} ", future.isSuccess(), future.cause());
         });
 
         ctx.close().addListener(future -> {
-            authLog.error("SessionManager ctx close:{} ", future.isSuccess(), future.cause());
-            log.error("SessionManager ctx close:{} ", future.isSuccess(), future.cause());
+            authLog.error("SLX SessionManager ctx close:{} ", future.isSuccess(), future.cause());
+            log.error("SXL SessionManager ctx close:{} ", future.isSuccess(), future.cause());
         });
     }
 }

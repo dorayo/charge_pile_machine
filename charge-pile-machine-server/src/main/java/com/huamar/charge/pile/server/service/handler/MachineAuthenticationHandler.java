@@ -101,8 +101,8 @@ public class MachineAuthenticationHandler implements MachinePacketHandler<DataPa
         InetSocketAddress remoteAddress = sessionChannel.remoteAddress();
         MachineAuthenticationReqDTO reqDTO = this.reader(packet);
         String idCode = reqDTO.getIdCode();
-        log.info("终端鉴权（SLX） idCode:{}, remoteAddress:{}, loginNumber={}, time={}", idCode, remoteAddress, reqDTO.getLoginNumber(), reqDTO.getTerminalTime());
-        authLog.info("终端鉴权（SLX） idCode:{}, remoteAddress:{}, loginNumber={}, time={}", idCode, remoteAddress, reqDTO.getLoginNumber(), reqDTO.getTerminalTime());
+        log.info("SLX 终端鉴权 idCode:{}, remoteAddress:{}, loginNumber={}, time={}", idCode, remoteAddress, reqDTO.getLoginNumber(), reqDTO.getTerminalTime());
+        authLog.info("SLX 终端鉴权 idCode:{}, remoteAddress:{}, loginNumber={}, time={}", idCode, remoteAddress, reqDTO.getLoginNumber(), reqDTO.getTerminalTime());
 
         McAuthResp authResp = new McAuthResp();
         authResp.setTime(BCDUtils.bcdTime());

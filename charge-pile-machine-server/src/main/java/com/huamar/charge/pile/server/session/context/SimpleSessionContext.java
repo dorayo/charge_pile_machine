@@ -8,7 +8,12 @@ import com.huamar.charge.pile.server.session.SessionManager;
 import com.huamar.charge.pile.server.session.SimpleSessionChannel;
 import io.netty.channel.ChannelHandlerContext;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.exception.ExceptionUtils;
+import org.slf4j.MDC;
 import org.springframework.util.Assert;
+
+import java.util.Map;
+import java.util.Objects;
 
 /**
  * 默认的上下文管理 基于 netty
@@ -26,13 +31,16 @@ public class SimpleSessionContext implements MachineSessionContext {
      * @param packet  packet
      * @param channel channel
      */
+    @SuppressWarnings("DuplicatedCode")
     @Override
     public boolean writePacket(DataPacket packet, SessionChannel channel) {
         try {
             SimpleSessionChannel sessionChannel = (SimpleSessionChannel) channel;
             Assert.notNull(sessionChannel, "session is null");
-            sessionChannel.channel().writeAndFlush(packet).addListener(future -> {
-                log.info("ctx writePacket success:{} ", future.isSuccess(), future.cause());
+            ChannelHandlerContext ctx = sessionChannel.channel();
+            String sessionId = SessionManager.getSessionId(ctx);
+            ctx.writeAndFlush(packet).addListener(future -> {
+                log.info("SLX writePacket:{} idCode:{} success:{} case:{}", sessionId, new String(packet.getIdCode()), future.isSuccess(), ExceptionUtils.getMessage(future.cause()));
             });
         } catch (Exception e) {
             log.error("writePacket error", e);
@@ -47,17 +55,19 @@ public class SimpleSessionContext implements MachineSessionContext {
      * @param packet packet
      * @return boolean
      */
+    @SuppressWarnings("DuplicatedCode")
     @Override
     public boolean writePacket(DataPacket packet) {
         try {
             SimpleSessionChannel sessionChannel = (SimpleSessionChannel) SessionManager.get(new String(packet.getIdCode()));
-            ChannelHandlerContext channelHandlerContext = sessionChannel.channel();
+            Assert.notNull(sessionChannel, "session is null");
+            ChannelHandlerContext ctx = sessionChannel.channel();
             if (sessionChannel.getType() == McTypeEnum.C) {
                 return true;
             }
-            Assert.notNull(sessionChannel, "session is null");
-            channelHandlerContext.writeAndFlush(packet).addListener(future -> {
-                log.info("ctx writePacket success:{} ", future.isSuccess(), future.cause());
+            String sessionId = SessionManager.getSessionId(ctx);
+            ctx.writeAndFlush(packet).addListener(future -> {
+                log.info("SLX writePacket:{} idCode:{} success:{} case:{}", sessionId, new String(packet.getIdCode()), future.isSuccess(), ExceptionUtils.getMessage(future.cause()));
             });
         } catch (Exception e) {
             log.error("writePacket error", e);

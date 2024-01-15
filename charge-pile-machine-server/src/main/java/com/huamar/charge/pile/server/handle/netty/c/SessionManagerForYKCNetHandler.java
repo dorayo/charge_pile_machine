@@ -94,8 +94,8 @@ public class SessionManagerForYKCNetHandler extends SimpleChannelInboundHandler<
             String idCode = ctx.channel().attr(machineId).get();
             MDC.put(ConstEnum.ID_CODE.getCode(), idCode);
 
-            log.info("YKC channelInactive  连接不活跃 idCode:{} remoteAddress:{}", idCode, ctx.channel().remoteAddress());
-            authLog.info("YKC channelInactive 连接不活跃 idCode:{} remoteAddress:{}", idCode, ctx.channel().remoteAddress());
+            log.warn("YKC channelInactive  连接不活跃 idCode:{} remoteAddress:{}", idCode, ctx.channel().remoteAddress());
+            authLog.warn("YKC channelInactive 连接不活跃 idCode:{} remoteAddress:{}", idCode, ctx.channel().remoteAddress());
         }catch (Exception e){
             log.error("YKC channelInactive error:{}", e.getMessage(), e);
             authLog.error("YKC channelInactive error:{}", e.getMessage(), e);
@@ -111,6 +111,10 @@ public class SessionManagerForYKCNetHandler extends SimpleChannelInboundHandler<
      */
     @Override
     protected void channelRead0(ChannelHandlerContext channelHandlerContext, ProtocolCPacket packet) {
+        if(log.isDebugEnabled()){
+            log.debug("InboundHandler:{}", this.getClass().getSimpleName());
+        }
+
         String idCode;
         SessionChannel session = null;
         SocketAddress remotedAddress = channelHandlerContext.channel().remoteAddress();

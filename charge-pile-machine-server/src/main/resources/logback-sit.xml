@@ -6,9 +6,9 @@
 	
 	<include resource="org/springframework/boot/logging/logback/defaults.xml"/>
 	
-<!--	<property name="LOG_FILE" value="${LOG_FILE:-${LOG_PATH:-${LOG_TEMP:-${java.io.tmpdir:-/tmp}}}/spring.log}"/>-->
-<!--	<property name="LOG_PATH" value="${LOG_PATH:-${LOG_TEMP:-${java.io.tmpdir:-/tmp}}}"/>-->
-<!--	<springProperty scope="context" name="LOG_FILE_NAME" source="spring.application.name"/>-->
+	<!--	<property name="LOG_FILE" value="${LOG_FILE:-${LOG_PATH:-${LOG_TEMP:-${java.io.tmpdir:-/tmp}}}/spring.log}"/>-->
+	<!--	<property name="LOG_PATH" value="${LOG_PATH:-${LOG_TEMP:-${java.io.tmpdir:-/tmp}}}"/>-->
+	<!--	<springProperty scope="context" name="LOG_FILE_NAME" source="spring.application.name"/>-->
 	<property name="LOG_FILE" value="${LOG_FILE:-${LOG_PATH:-${LOG_TEMP:-${java.io.tmpdir:-/tmp}}}/application.log}"/>
 	<property name="LOG_PATH" value="${LOG_PATH:-${LOG_TEMP:-${java.io.tmpdir:-/tmp}}}"/>
 	<property name="LOG_FILE_NAME" value="application"/>
@@ -16,7 +16,7 @@
 	
 	<!-- 彩色日志格式 -->
 	<property name="LOG_PATTERN"
-			  value="%clr(%d{yyyy-MM-dd HH:mm:ss.SSS}){faint} %clr(${LOG_LEVEL_PATTERN:-%5p}) %clr(${PID:- }){magenta} %clr(---){faint} %clr(%-40.40logger{39}){cyan} %clr(:){faint} %clr([%-20t]){faint} [%-20X{X_SESSION_ID}] %m%n${LOG_EXCEPTION_CONVERSION_WORD:-%wEx}"/>
+			  value="%clr(%d{yyyy-MM-dd HH:mm:ss.SSS}){faint} %clr(${LOG_LEVEL_PATTERN:-%5p}) %clr(${PID:- }){magenta} %clr(---){faint} %clr(%-40.40logger{39}){cyan} %clr(:){faint} %clr([%t]){faint} [%X{X_SESSION_ID}] %m%n${LOG_EXCEPTION_CONVERSION_WORD:-%wEx}"/>
 	
 	<!--	<property name="CONSOLE_LOG_PATTERN"-->
 	<!--			  value="-%clr(%d{${LOG_DATEFORMAT_PATTERN:-yyyy-MM-dd HH:mm:ss.SSS}}){faint} %clr(${LOG_LEVEL_PATTERN:-%5p}) %clr(${PID:- }){magenta} %clr(-&#45;&#45;){faint} %clr([%15.15t]){faint} %clr(%X{thread_id: -}){cyan} %clr(%-40.40logger{39}){cyan} %clr(:){faint} %m%n${LOG_EXCEPTION_CONVERSION_WORD:-%wEx}"/>-->
@@ -41,12 +41,15 @@
 					converterClass="org.springframework.boot.logging.logback.ExtendedWhitespaceThrowableProxyConverter"/>
 	
 	
+	
+	
 	<!-- Spring日志级别控制  -->
 	<logger name="org.springframework" level="WARN"/>
 	<logger name="org.springframework.web.filter" level="INFO"/>
 	<logger name="org.springframework.web.filter" level="DEBUG"/>
 	<logger name="org.springframework.jdbc.core.JdbcTemplate" level="DEBUG"/>
 	<logger name="feign.Logger" level="DEBUG"/>
+	
 	
 	
 	<!--1. 输出到控制台-->
@@ -58,10 +61,115 @@
 		</encoder>
 	</appender>
 	
-
+	
+	<appender name="FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
+		<encoder>
+			<pattern>${FILE_LOG_PATTERN}</pattern>
+			<charset>${FILE_LOG_CHARSET}</charset>
+		</encoder>
+		<file>${LOG_PATH}/${LOG_FILE_NAME}.log</file>
+		<rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
+			<fileNamePattern>${LOG_PATH}/${LOG_FILE_NAME}-%d{yyyy-MM-dd}.%i.log</fileNamePattern>
+			<cleanHistoryOnStart>false</cleanHistoryOnStart>
+			<maxFileSize>128MB</maxFileSize>
+			<totalSizeCap>5GB</totalSizeCap>
+			<maxHistory>30</maxHistory>
+		</rollingPolicy>
+	</appender>
+	
+	
+	<!-- 自定义字段分割日志 -->
+	<appender name="PILE_SIFT_FILE" class="ch.qos.logback.classic.sift.SiftingAppender">
+		
+		<discriminator>
+			<key>idCode</key>
+			<defaultValue>0</defaultValue>
+		</discriminator>
+		
+		<sift>
+			<appender name="PILE_${idCode}" class="ch.qos.logback.core.rolling.RollingFileAppender">
+				
+				<encoder>
+					<pattern>${FILE_LOG_PATTERN}</pattern>
+					<charset>${FILE_LOG_CHARSET}</charset>
+				</encoder>
+				
+				<file>${LOG_PATH}/pile_${idCode}.log</file>
+				<rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
+					<fileNamePattern>${LOG_PATH}/%d/pile_${idCode}_%i.log</fileNamePattern>
+					<cleanHistoryOnStart>false</cleanHistoryOnStart>
+					<maxFileSize>32MB</maxFileSize>
+					<totalSizeCap>128MB</totalSizeCap>
+					<maxHistory>7</maxHistory>
+				</rollingPolicy>
+			
+			</appender>
+		</sift>
+	</appender>
+	
+	
+	<!-- 自定义字段分割日志 -->
+	<appender name="PILE_HEART_SIFT_FILE" class="ch.qos.logback.classic.sift.SiftingAppender">
+		
+		<discriminator>
+			<key>idCode</key>
+			<defaultValue>0</defaultValue>
+		</discriminator>
+		
+		<sift>
+			<appender name="PILE_HEART_LOG_${idCode}" class="ch.qos.logback.core.rolling.RollingFileAppender">
+				
+				<encoder>
+					<pattern>${FILE_LOG_PATTERN}</pattern>
+					<charset>${FILE_LOG_CHARSET}</charset>
+				</encoder>
+				
+				<file>${LOG_PATH}/pile_heart_${idCode}.log</file>
+				<rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
+					<fileNamePattern>${LOG_PATH}/%d/pile_heart_${idCode}_%i.log</fileNamePattern>
+					<cleanHistoryOnStart>false</cleanHistoryOnStart>
+					<maxFileSize>16MB</maxFileSize>
+					<totalSizeCap>32MB</totalSizeCap>
+					<maxHistory>1</maxHistory>
+				</rollingPolicy>
+			
+			</appender>
+		</sift>
+	</appender>
+	
+	
+	<!-- 自定义字段分割日志 -->
+	<appender name="PILE_PACKET_SIFT_FILE" class="ch.qos.logback.classic.sift.SiftingAppender">
+		
+		<discriminator>
+			<key>idCode</key>
+			<defaultValue>0</defaultValue>
+		</discriminator>
+		
+		<sift>
+			<appender name="pile_packet_log_${idCode}" class="ch.qos.logback.core.rolling.RollingFileAppender">
+				
+				<encoder>
+					<pattern>${FILE_LOG_PATTERN}</pattern>
+					<charset>${FILE_LOG_CHARSET}</charset>
+				</encoder>
+				
+				<file>${LOG_PATH}/pile_packet_${idCode}.log</file>
+				<rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
+					<fileNamePattern>${LOG_PATH}/%d/pile_packet_${idCode}_%i.log</fileNamePattern>
+					<cleanHistoryOnStart>false</cleanHistoryOnStart>
+					<maxFileSize>16MB</maxFileSize>
+					<totalSizeCap>32MB</totalSizeCap>
+					<maxHistory>3</maxHistory>
+				</rollingPolicy>
+			</appender>
+		</sift>
+	</appender>
+	
 	
 	<root level="INFO">
 		<appender-ref ref="STDOUT"/>
+		<appender-ref ref="FILE"/>
 	</root>
 	
 	<!-- 心跳包日志输出 -->
@@ -70,20 +178,29 @@
 	<logger name="com.huamar.charge.pile" level="OFF"/>
 	
 	
-	<!-- 设备心业务日志 -->
-	<logger level="INFO" name="com.huamar.charge.pile" additivity="true">
-	</logger>
+	
 	
 	<!-- 设备心跳包日志 -->
-	<logger level="INFO" name="MachineHeartbeatLogger" additivity="false">
+	<logger level="DEBUG" name="MachineHeartbeatLogger" additivity="false">
+		<!--		<appender-ref ref="PILE_HEART_SIFT_FILE"/>-->
+		<appender-ref ref="PILE_SIFT_FILE"/>
 	</logger>
 	
 	<!-- 设备数据包日志 -->
-	<logger level="INFO" name="MachinePacketLogger" additivity="false">
+	<logger level="DEBUG" name="MachinePacketLogger" additivity="true">
+		<!--		<appender-ref ref="PILE_PACKET_SIFT_FILE"/>-->
+		<appender-ref ref="PILE_SIFT_FILE"/>
 	</logger>
 	
 	<logger name="PileAuthLogger" level="DEBUG" additivity="false"/>
-	<logger name="com.huamar.charge.pile.ServerApplication" level="DEBUG"  additivity="true"/>
+	
+	<logger name="com.huamar.charge.pile.ServerApplication" level="DEBUG"  additivity="false"/>
+	
 	<logger name="ApplicationMainLogger" level="DEBUG"  additivity="true"/>
+	
+	<!-- 设备心业务日志 -->
+	<logger level="INFO" name="com.huamar.charge.pile" additivity="true">
+		<appender-ref ref="PILE_SIFT_FILE"/>
+	</logger>
 
 </configuration>

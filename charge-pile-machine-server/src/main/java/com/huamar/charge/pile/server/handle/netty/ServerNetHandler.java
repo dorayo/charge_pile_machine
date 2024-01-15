@@ -37,6 +37,9 @@ public class ServerNetHandler extends SimpleChannelInboundHandler<DataPacket> {
      */
     @Override
     protected void channelRead0(ChannelHandlerContext channelHandlerContext, DataPacket dataPacket) {
+        if(log.isDebugEnabled()){
+            log.debug("InboundHandler:{}", this.getClass().getSimpleName());
+        }
         String bsId = new String((dataPacket).getIdCode());
         SessionChannel sessionChannel = SessionManager.get(bsId);
         String code = HexExtUtil.encodeHexStr(dataPacket.getMsgId());
