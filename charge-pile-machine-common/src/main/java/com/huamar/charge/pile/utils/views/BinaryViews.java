@@ -16,15 +16,16 @@ public class BinaryViews {
      * @param bf the bf
      * @return the string
      */
+    @Deprecated
     static public String bcdViewsLe(byte[] bf) {
-        int resultLen = bf.length * 2;
-        byte[] s = new byte[resultLen];
+        int resultLen = bf.length;
+        byte[] s = new byte[resultLen * 2];
         for (int resultI = 0, bfI = 0; resultI < resultLen; ) {
             byte byteV = bf[bfI++];
             s[resultI++] = (byte) ((byteV >> 4) + 0x30);
             s[resultI++] = (byte) ((byteV & 0x0f) + 0x30);
         }
-        return new String(s);
+        return new String(s, StandardCharsets.UTF_8);
     }
 
     /**

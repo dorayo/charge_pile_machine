@@ -98,7 +98,7 @@
 				<rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
 					<fileNamePattern>${LOG_PATH}/%d/pile_${idCode}_%i.log</fileNamePattern>
 					<cleanHistoryOnStart>false</cleanHistoryOnStart>
-					<maxFileSize>32MB</maxFileSize>
+					<maxFileSize>64MB</maxFileSize>
 					<totalSizeCap>128MB</totalSizeCap>
 					<maxHistory>7</maxHistory>
 				</rollingPolicy>
@@ -177,26 +177,23 @@
 	<logger name="MachinePacketLogger" level="OFF"/>
 	<logger name="com.huamar.charge.pile" level="OFF"/>
 	
+	<!--  自定义包日志	-->
+	<logger name="PileAuthLogger" level="DEBUG" additivity="true"/>
+	<logger name="com.huamar.charge.pile.ServerApplication" level="DEBUG" additivity="true"/>
+	<logger name="ApplicationMainLogger" level="DEBUG" additivity="true"/>
 	
-
 	
 	<!-- 设备心跳包日志 -->
 	<logger level="INFO" name="MachineHeartbeatLogger" additivity="false">
-<!--		<appender-ref ref="PILE_HEART_SIFT_FILE"/>-->
 		<appender-ref ref="PILE_SIFT_FILE"/>
 	</logger>
+	
 	
 	<!-- 设备数据包日志 -->
 	<logger level="INFO" name="MachinePacketLogger" additivity="false">
-<!--		<appender-ref ref="PILE_PACKET_SIFT_FILE"/>-->
 		<appender-ref ref="PILE_SIFT_FILE"/>
 	</logger>
 	
-	<logger name="PileAuthLogger" level="DEBUG" additivity="true"/>
-	
-	<logger name="com.huamar.charge.pile.ServerApplication" level="DEBUG"  additivity="false"/>
-	
-	<logger name="ApplicationMainLogger" level="DEBUG"  additivity="true"/>
 	
 	<!-- 设备心业务日志 -->
 	<logger level="INFO" name="com.huamar.charge.pile" additivity="false">

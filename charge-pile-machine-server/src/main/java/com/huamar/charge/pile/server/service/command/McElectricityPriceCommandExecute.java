@@ -72,10 +72,7 @@ public class McElectricityPriceCommandExecute implements McCommandExecute<McElec
         ChannelHandlerContext ctx = sessionChannel.channel();
         Assert.notNull(ctx, "sessionChannel ctx is null");
 
-        AttributeKey<String> sessionKey = AttributeKey.valueOf(ConstEnum.X_SESSION_ID.getCode());
-        String sessionId = ctx.channel().attr(sessionKey).get();
-        MDC.put(ConstEnum.X_SESSION_ID.getCode(), sessionId);
-
+        
         //YKC 计费模型
         if (type == McTypeEnum.C) {
             log.info("YKC 充电计费 充电计费请求下发 0xA0 >>> ");

@@ -32,6 +32,24 @@ import java.util.stream.Collectors;
 @Slf4j
 public class BCDTest {
 
+    @DisplayName("test00")
+    @Test
+    public void test00(){
+        LocalTime startTime = LocalTime.parse("23:00:00");
+        LocalTime endTime = LocalTime.parse("24:00:00");
+
+        int startPeriodIndex = startTime.toSecondOfDay() / 1800;
+        int endPeriodIndex = endTime.toSecondOfDay() / 1800;
+
+        Map<BigDecimal, Byte> jfpgIndexMap = new HashMap<>();
+        byte[] priceBucketJFPG = new byte[48];
+        Byte index = jfpgIndexMap.getOrDefault(new BigDecimal("0"), (byte) 0);
+        Arrays.fill(priceBucketJFPG, startPeriodIndex, endPeriodIndex, (byte) 3);
+        //锁定在一个时间段 Arrays.fill无法填充
+        if(startPeriodIndex == endPeriodIndex){
+            priceBucketJFPG[startPeriodIndex] = index;
+        }
+    }
 
     @Data
     static class Demo {

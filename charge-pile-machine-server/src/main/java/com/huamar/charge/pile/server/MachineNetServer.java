@@ -160,13 +160,14 @@ public class MachineNetServer implements NetServer {
                                     }
 
                                     if (log.isDebugEnabled()) {
-                                        log.info("SLX channelRead into >>>>>>>>>>>>>>>>>> session:{} address:{} idCode:{} ", Optional.ofNullable(session).isPresent(), remotedAddress, idCode);
+                                        log.info("────────────────────────────────────────────────────────");
+                                        log.info("SLX channelRead into >>>>>>>>>>>>>>>>>> idCode:{} session:{} address:{}", idCode, Optional.ofNullable(session).isPresent(), remotedAddress);
                                     }
 
                                     ctx.fireChannelRead(msg);
 
                                     if (log.isDebugEnabled()) {
-                                        log.info("SLX channelRead end <<<<<<<<<<<<<<<<<<< session address:{} end idCode:{} ", remotedAddress, idCode);
+                                        log.info("SLX channelRead end <<<<<<<<<<<<<<<<<<< idCode:{} session address:{} end", idCode, remotedAddress);
                                     }
                                 }finally {
                                     MDC.clear();

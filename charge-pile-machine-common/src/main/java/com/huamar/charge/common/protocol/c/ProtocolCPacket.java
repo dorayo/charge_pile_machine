@@ -2,6 +2,7 @@ package com.huamar.charge.common.protocol.c;
 
 import cn.hutool.core.io.checksum.CRC16;
 import cn.hutool.core.util.ByteUtil;
+import com.huamar.charge.common.common.BCDUtils;
 import com.huamar.charge.common.util.ByteExtUtil;
 import com.huamar.charge.common.util.netty.NUtils;
 import com.huamar.charge.pile.utils.CRC16Util;
@@ -25,7 +26,7 @@ public class ProtocolCPacket {
 
     public String getId() {
         if (id.isEmpty() && idBody.length != 0) {
-            id = BinaryViews.bcdViewsLe(idBody);
+            id = BCDUtils.bcdToStr(idBody);
         }
         return id;
     }

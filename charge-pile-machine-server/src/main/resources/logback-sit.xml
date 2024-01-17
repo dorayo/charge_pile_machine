@@ -16,7 +16,7 @@
 	
 	<!-- 彩色日志格式 -->
 	<property name="LOG_PATTERN"
-			  value="%clr(%d{yyyy-MM-dd HH:mm:ss.SSS}){faint} %clr(${LOG_LEVEL_PATTERN:-%5p}) %clr(${PID:- }){magenta} %clr(---){faint} %clr(%-40.40logger{39}){cyan} %clr(:){faint} %clr([%t]){faint} [%X{X_SESSION_ID}] %m%n${LOG_EXCEPTION_CONVERSION_WORD:-%wEx}"/>
+			  value="%clr(%d{yyyy-MM-dd HH:mm:ss.SSS}){faint} %clr(${LOG_LEVEL_PATTERN:-%5p}) %clr(${PID:- }){magenta} %clr(---){faint} %clr(%-40.40logger{39}){cyan} %clr(:){faint} %clr([%-19.19t]){faint} [%-19.19X{X_SESSION_ID}] %m%n${LOG_EXCEPTION_CONVERSION_WORD:-%wEx}"/>
 	
 	<!--	<property name="CONSOLE_LOG_PATTERN"-->
 	<!--			  value="-%clr(%d{${LOG_DATEFORMAT_PATTERN:-yyyy-MM-dd HH:mm:ss.SSS}}){faint} %clr(${LOG_LEVEL_PATTERN:-%5p}) %clr(${PID:- }){magenta} %clr(-&#45;&#45;){faint} %clr([%15.15t]){faint} %clr(%X{thread_id: -}){cyan} %clr(%-40.40logger{39}){cyan} %clr(:){faint} %m%n${LOG_EXCEPTION_CONVERSION_WORD:-%wEx}"/>-->
@@ -25,7 +25,7 @@
 			  value="${CONSOLE_LOG_CHARSET:-${file.encoding:-UTF-8}}"/>
 	
 	<property name="FILE_LOG_PATTERN"
-			  value="%d{${LOG_DATEFORMAT_PATTERN:-yyyy-MM-dd HH:mm:ss.SSS}} ${LOG_LEVEL_PATTERN:-%5p} ${PID:- } --- %-40.40logger{39} : [%t] [%X{X_SESSION_ID}] %m%n${LOG_EXCEPTION_CONVERSION_WORD:-%wEx}"/>
+			  value="%d{${LOG_DATEFORMAT_PATTERN:-yyyy-MM-dd HH:mm:ss.SSS}} ${LOG_LEVEL_PATTERN:-%5p} ${PID:- } --- %-40.40logger{39} : [%-19.19t] [%-19.19X{X_SESSION_ID}] %m%n${LOG_EXCEPTION_CONVERSION_WORD:-%wEx}"/>
 	
 	<property name="FILE_LOG_CHARSET"
 			  value="${FILE_LOG_CHARSET:-${file.encoding:-UTF-8}}"/>
@@ -98,7 +98,7 @@
 				<rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
 					<fileNamePattern>${LOG_PATH}/%d/pile_${idCode}_%i.log</fileNamePattern>
 					<cleanHistoryOnStart>false</cleanHistoryOnStart>
-					<maxFileSize>32MB</maxFileSize>
+					<maxFileSize>64MB</maxFileSize>
 					<totalSizeCap>128MB</totalSizeCap>
 					<maxHistory>7</maxHistory>
 				</rollingPolicy>
@@ -177,26 +177,23 @@
 	<logger name="MachinePacketLogger" level="OFF"/>
 	<logger name="com.huamar.charge.pile" level="OFF"/>
 	
-	
+	<!--  自定义包日志	-->
+	<logger name="PileAuthLogger" level="DEBUG" additivity="false"/>
+	<logger name="com.huamar.charge.pile.ServerApplication" level="DEBUG" additivity="true"/>
+	<logger name="ApplicationMainLogger" level="DEBUG" additivity="true"/>
 	
 	
 	<!-- 设备心跳包日志 -->
-	<logger level="DEBUG" name="MachineHeartbeatLogger" additivity="false">
-		<!--		<appender-ref ref="PILE_HEART_SIFT_FILE"/>-->
+	<logger level="INFO" name="MachineHeartbeatLogger" additivity="true">
 		<appender-ref ref="PILE_SIFT_FILE"/>
 	</logger>
+	
 	
 	<!-- 设备数据包日志 -->
-	<logger level="DEBUG" name="MachinePacketLogger" additivity="true">
-		<!--		<appender-ref ref="PILE_PACKET_SIFT_FILE"/>-->
+	<logger level="INFO" name="MachinePacketLogger" additivity="true">
 		<appender-ref ref="PILE_SIFT_FILE"/>
 	</logger>
 	
-	<logger name="PileAuthLogger" level="DEBUG" additivity="false"/>
-	
-	<logger name="com.huamar.charge.pile.ServerApplication" level="DEBUG"  additivity="false"/>
-	
-	<logger name="ApplicationMainLogger" level="DEBUG"  additivity="true"/>
 	
 	<!-- 设备心业务日志 -->
 	<logger level="INFO" name="com.huamar.charge.pile" additivity="true">

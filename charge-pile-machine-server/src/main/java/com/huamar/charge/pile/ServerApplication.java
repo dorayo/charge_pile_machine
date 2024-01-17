@@ -31,7 +31,6 @@ import java.util.concurrent.TimeUnit;
 public class ServerApplication {
 
     private static final Logger logger = LoggerFactory.getLogger(LoggerEnum.APPLICATION_MAIN_LOGGER.getCode());
-    private static final Logger log = LoggerFactory.getLogger(ServerApplication.class);
 
     public static void main(String[] args) {
         Thread.currentThread().setName("main");

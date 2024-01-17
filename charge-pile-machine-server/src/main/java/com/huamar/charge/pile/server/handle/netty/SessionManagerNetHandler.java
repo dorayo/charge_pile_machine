@@ -51,19 +51,9 @@ public class SessionManagerNetHandler extends SimpleChannelInboundHandler<BasePa
      * @param ctx ctx
      */
     @Override
-    public void channelActive(ChannelHandlerContext ctx) {
-        MDC.clear();
-        Thread.currentThread().setName(IdUtil.getSnowflakeNextIdStr());
-        AttributeKey<String> sessionKey = AttributeKey.valueOf(ConstEnum.X_SESSION_ID.getCode());
-        String sessionId = ctx.channel().attr(sessionKey).get();
-        if(Objects.isNull(sessionId)){
-            sessionId = IdUtil.simpleUUID();
-            ctx.channel().attr(sessionKey).set(sessionId);
-        }
-        MDC.put(ConstEnum.X_SESSION_ID.getCode(), sessionId);
-        log.info("SLX {} 连上了服务器", ctx.channel().remoteAddress());
-        authLog.info("SLX {} 连上了服务器", ctx.channel().remoteAddress());
-        MDC.clear();
+    public void channelActive(ChannelHandlerContext ctx) throws Exception {
+        SessionManager.channelActive(ctx, "SLX");
+        super.channelActive(ctx);
     }
 
 
@@ -75,26 +65,10 @@ public class SessionManagerNetHandler extends SimpleChannelInboundHandler<BasePa
     @SuppressWarnings("DuplicatedCode")
     @Override
     public void channelInactive(ChannelHandlerContext ctx) throws Exception {
-        try {
-            Thread.currentThread().setName(IdUtil.getSnowflakeNextIdStr());
-            AttributeKey<String> sessionKey = AttributeKey.valueOf(ConstEnum.X_SESSION_ID.getCode());
-            String sessionId = ctx.channel().attr(sessionKey).get();
-            MDC.put(ConstEnum.X_SESSION_ID.getCode(), sessionId);
-
-            AttributeKey<String> machineId = AttributeKey.valueOf(ConstEnum.MACHINE_ID.getCode());
-            String bsId = ctx.channel().attr(machineId).get();
-            MDC.put(ConstEnum.ID_CODE.getCode(), bsId);
-
-            log.warn("SLX channelInactive 连接不活跃 idCode:{} remoteAddress:{}", bsId, ctx.channel().remoteAddress());
-            authLog.warn("SLX channelInactive 连接不活跃 idCode:{} remoteAddress:{}", bsId, ctx.channel().remoteAddress());
-        }catch (Exception e){
-            log.error("SLX channelInactive error:{}", e.getMessage(), e);
-            authLog.error("SLX channelInactive error:{}", e.getMessage(), e);
-        }finally {
-            MDC.clear();
-        }
+        SessionManager.channelInactive(ctx, "SLX");
         super.channelInactive(ctx);
     }
+
 
     /**
      * 退出移除 session
@@ -103,30 +77,7 @@ public class SessionManagerNetHandler extends SimpleChannelInboundHandler<BasePa
      */
     @Override
     public void handlerRemoved(ChannelHandlerContext ctx) throws Exception {
-        try {
-            AttributeKey<String> sessionKey = AttributeKey.valueOf(ConstEnum.X_SESSION_ID.getCode());
-            String sessionId = ctx.channel().attr(sessionKey).get();
-            if(Objects.nonNull(sessionId)){
-                MDC.put(ConstEnum.X_SESSION_ID.getCode(), sessionId);
-            }
-
-            AttributeKey<String> machineId = AttributeKey.valueOf(ConstEnum.MACHINE_ID.getCode());
-            String idCode = ctx.channel().attr(machineId).get();
-            log.warn("SLX handlerRemoved, idCode:{}, remoteAddress:{}", idCode, ctx.channel().remoteAddress());
-            authLog.warn("SLX handlerRemoved, idCode:{}, remoteAddress:{}", idCode, ctx.channel().remoteAddress());
-
-            if (StringUtils.isNotBlank(idCode)) {
-                MDC.put(ConstEnum.ID_CODE.getCode(), idCode);
-                SessionManager.remove(idCode);
-            }
-
-        } catch (Exception cause) {
-            log.error("SLX handlerRemoved error, idCode:{}, remoteAddress:{}", ctx.channel().remoteAddress(), cause.getMessage(), cause);
-            authLog.error("SLX handlerRemoved error, idCode:{}, remoteAddress:{}", ctx.channel().remoteAddress(), cause.getMessage(), cause);
-        } finally {
-            // 防止session 关闭不执行，始终执行一次
-            this.close(ctx);
-        }
+        SessionManager.handlerRemoved(ctx, "SLX");
         super.handlerRemoved(ctx);
     }
 

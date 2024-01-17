@@ -54,25 +54,10 @@ public class SessionManagerForYKCNetHandler extends SimpleChannelInboundHandler<
      */
     @SuppressWarnings("DuplicatedCode")
     @Override
-    public void channelActive(ChannelHandlerContext ctx) {
+    public void channelActive(ChannelHandlerContext ctx) throws Exception {
         //v240106 修改日志优化
-        try {
-            MDC.clear();
-            Thread.currentThread().setName(IdUtil.getSnowflakeNextIdStr());
-            AttributeKey<String> sessionKey = AttributeKey.valueOf(ConstEnum.X_SESSION_ID.getCode());
-            String sessionId = ctx.channel().attr(sessionKey).get();
-            if (Objects.isNull(sessionId)) {
-                sessionId = IdUtil.getSnowflakeNextIdStr();
-                ctx.channel().attr(sessionKey).set(sessionId);
-            }
-            MDC.put(ConstEnum.X_SESSION_ID.getCode(), sessionId);
-            log.info("YKC {} 连上了服务器", ctx.channel().remoteAddress());
-            authLog.info("YKC {} 连上了服务器", ctx.channel().remoteAddress());
-        } catch (Exception e) {
-            log.error("YKC channelActive error:{}", ExceptionUtils.getMessage(e), e);
-        } finally {
-            MDC.clear();
-        }
+        SessionManager.channelActive(ctx, "YKC");
+        super.channelActive(ctx);
     }
 
     /**
@@ -83,25 +68,21 @@ public class SessionManagerForYKCNetHandler extends SimpleChannelInboundHandler<
     @SuppressWarnings("DuplicatedCode")
     @Override
     public void channelInactive(ChannelHandlerContext ctx) throws Exception {
-        MDC.clear();
-        try {
-            Thread.currentThread().setName(IdUtil.getSnowflakeNextIdStr());
-            AttributeKey<String> sessionKey = AttributeKey.valueOf(ConstEnum.X_SESSION_ID.getCode());
-            String sessionId = ctx.channel().attr(sessionKey).get();
-            MDC.put(ConstEnum.X_SESSION_ID.getCode(), sessionId);
-
-            AttributeKey<String> machineId = AttributeKey.valueOf(ConstEnum.MACHINE_ID.getCode());
-            String idCode = ctx.channel().attr(machineId).get();
-            MDC.put(ConstEnum.ID_CODE.getCode(), idCode);
-
-            log.warn("YKC channelInactive  连接不活跃 idCode:{} remoteAddress:{}", idCode, ctx.channel().remoteAddress());
-            authLog.warn("YKC channelInactive 连接不活跃 idCode:{} remoteAddress:{}", idCode, ctx.channel().remoteAddress());
-        }catch (Exception e){
-            log.error("YKC channelInactive error:{}", e.getMessage(), e);
-            authLog.error("YKC channelInactive error:{}", e.getMessage(), e);
-        }
+        SessionManager.channelInactive(ctx, "YKC");
         super.channelInactive(ctx);
     }
+
+    /**
+     * 退出移除 session
+     *
+     * @param ctx ctx
+     */
+    @Override
+    public void handlerRemoved(ChannelHandlerContext ctx) throws Exception {
+        SessionManager.handlerRemoved(ctx, "YKC");
+        super.handlerRemoved(ctx);
+    }
+
 
     /**
      * 服务端读取数据
@@ -114,17 +95,8 @@ public class SessionManagerForYKCNetHandler extends SimpleChannelInboundHandler<
         if(log.isDebugEnabled()){
             log.debug("InboundHandler:{}", this.getClass().getSimpleName());
         }
-
-        String idCode;
-        SessionChannel session = null;
-        SocketAddress remotedAddress = channelHandlerContext.channel().remoteAddress();
         AttributeKey<String> machineId = AttributeKey.valueOf(ConstEnum.MACHINE_ID.getCode());
-        idCode = channelHandlerContext.channel().attr(machineId).get();
-        if(Objects.nonNull(idCode)){
-            session = SessionManager.get(idCode);
-        }
 
-        log.info("YKC channelRead0 >>>>>>>>>>>>>>>>>> start idCode:{} session:{} address:{} ", idCode,Optional.ofNullable(session).isPresent(), remotedAddress);
         // 设备认证
         if (packet.getBodyType() == 0x01) {
             channelHandlerContext.channel().attr(NAttrKeys.ID_BODY).set(packet.getIdBody());
@@ -133,10 +105,10 @@ public class SessionManagerForYKCNetHandler extends SimpleChannelInboundHandler<
             byte[] idBytes = new byte[7];
             body.readBytes(idBytes);
             // 旧方式解析
-            String id = BinaryViews.bcdViewsLe(idBytes);
+            //String id = BinaryViews.bcdViewsLe(idBytes);
             //新方式解析
-            String idCodeBcdString = "4710"  + BCDUtils.bcdToStr(idBytes);
-            String code = "4710" + id;
+            String idCodeBcdString = BCDUtils.bcdToStr(idBytes);
+            String code = "4710" + idCodeBcdString;
             channelHandlerContext.channel().attr(machineId).set(code);
             if(StringUtils.isNotBlank(code)){
                 MDC.put(ConstEnum.ID_CODE.getCode(), code);
@@ -153,7 +125,6 @@ public class SessionManagerForYKCNetHandler extends SimpleChannelInboundHandler<
         }
 
         channelHandlerContext.fireChannelRead(packet);
-        log.info("YKC channelRead0 <<<<<<<<<<<<<<<<<<< end session idCode:{} address:{} end ", idCode, remotedAddress);
     }
 
     /**
@@ -165,19 +136,16 @@ public class SessionManagerForYKCNetHandler extends SimpleChannelInboundHandler<
     @SuppressWarnings("DuplicatedCode")
     @Override
     public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) {
-        MDC.clear();
-        log.error("{} 连接出异常了,{}", ctx.channel().remoteAddress(), cause.getMessage(), cause);
         try {
-            AttributeKey<String> machineId = AttributeKey.valueOf(ConstEnum.MACHINE_ID.getCode());
-            String bsId = ctx.channel().attr(machineId).get();
-            if (StringUtils.isNotBlank(bsId)) {
-                MDC.put(ConstEnum.ID_CODE.getCode(), bsId);
-                SessionManager.remove(bsId);
+            log.error("{} 连接出异常了,{}", ctx.channel().remoteAddress(), cause.getMessage(), cause);
+            String idCode = SessionManager.setMDCParam(ctx);
+            if (StringUtils.isNotBlank(idCode)) {
+                SessionManager.remove(idCode);
             }
         } catch (Exception ignored) {
             log.error("{} exceptionCaught error,{}", ctx.channel().remoteAddress(), cause.getMessage(), cause);
         } finally {
-            ctx.close();
+            SessionManager.closeCtx(ctx, "YKC");
         }
     }
 
@@ -207,7 +175,7 @@ public class SessionManagerForYKCNetHandler extends SimpleChannelInboundHandler<
                 case READER_IDLE:
                     authLog.warn("YKC IdCode:{} READER_IDLE 读取数据空闲 心跳链接超时 关闭连接", idCode);
                     log.warn("YKC IdCode:{} READER_IDLE 读取数据空闲 心跳链接超时 关闭连接", idCode);
-                    this.close(ctx);
+                    SessionManager.closeCtx(ctx, "YKC");
                     break;
 
                 case WRITER_IDLE:
@@ -225,21 +193,5 @@ public class SessionManagerForYKCNetHandler extends SimpleChannelInboundHandler<
         }
     }
 
-    /**
-     * 关闭连接
-     *
-     * @param ctx ctx
-     */
-    @SuppressWarnings("DuplicatedCode")
-    private void close(ChannelHandlerContext ctx) {
-        ctx.channel().close().addListener(future -> {
-            authLog.error("YKC SessionManager ctx channel close:{} ", future.isSuccess(), future.cause());
-            log.error("YKC SessionManager ctx channel close:{} ", future.isSuccess(), future.cause());
-        });
 
-        ctx.close().addListener(future -> {
-            authLog.error("YKC SessionManager ctx close:{} ", future.isSuccess(), future.cause());
-            log.error("YKC SessionManager ctx close:{} ", future.isSuccess(), future.cause());
-        });
-    }
 }

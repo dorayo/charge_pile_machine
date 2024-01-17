@@ -247,6 +247,7 @@ public class PileElectricityPriceExecute implements PileMessageExecute {
             int startPeriodIndex = startTime.toSecondOfDay() / 1800;
             int endPeriodIndex = endTime.toSecondOfDay() / 1800;
 
+            // 开始时段紧跟结束时段 ，fill 填充 包含开始不包含结束
             Byte index = jfpgIndexMap.getOrDefault(var.getCharge(), (byte) 0);
             Arrays.fill(priceBucketJFPG, startPeriodIndex, endPeriodIndex, index);
 
@@ -254,9 +255,14 @@ public class PileElectricityPriceExecute implements PileMessageExecute {
             if(startPeriodIndex == endPeriodIndex){
                 priceBucketJFPG[startPeriodIndex] = index;
             }
+
+            // 结尾电价处理 23:30:00
+            if(endPeriodIndex == 47){
+                priceBucketJFPG[endPeriodIndex] = index;
+            }
         });
 
-        jsonLog.put("timeBucket", HexExtUtil.encodeHexStrFormat(priceBucketJFPG, StringPool.SPACE));
+        jsonLog.put("timeBucket >>> ", HexExtUtil.encodeHexStrFormat(priceBucketJFPG, StringPool.SPACE));
         commandJFPGDTO.setPriceBucketJFPG(priceBucketJFPG);
 
         if(log.isDebugEnabled()){

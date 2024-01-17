@@ -132,7 +132,7 @@ public class MachineCHandlers {
             pileMessageProduce.send(new MessageData<>(MessageCodeEnum.ELECTRICITY_PRICE, update));
 
         } catch (Exception e) {
-            log.error("handler0x09 error:{}", ExceptionUtils.getMessage(e), e);
+            log.error("handler0x09 error:{}", ExceptionUtils.getStackFrames(e)[0]);
         }
     }
 
@@ -328,6 +328,12 @@ public class MachineCHandlers {
             int currentMoneyNew = ByteExtUtil.bytesToInt(new byte[]{body[54], body[55], body[56], body[57]});
             infoDataNew.put("currentMoney", currentMoneyNew);
 
+
+            int remainChargeTime = ByteExtUtil.bytesToShortUnsignedLE(new byte[]{body[44], body[45]});
+            infoDataNew.put("remainChargeTime", remainChargeTime);
+            infoDataNew.put("resetTime", resetTime);
+            chargeStageDataDTO.setRemainChargeTime((remainChargeTime));
+
             int fault = ByteExtUtil.bytesToShortUnsignedLE(new byte[]{body[58], body[59]});
             infoDataNew.put("fault", fault);
             infoDataNew.put("faultBinary", Integer.toBinaryString(fault));
@@ -497,7 +503,7 @@ public class MachineCHandlers {
     public void handler0x9B(ProtocolCPacket packet, ChannelHandlerContext ctx) {
         try {
             byte[] body = packet.getBody();
-            log.info("{} set gun {}={} ctx:{}", packet.getId(), body[7], body[8], ctx.name());
+            log.info("handler0x9B idCode:{} set gun {}={} ctx:{}", packet.getId(), body[7], body[8], ctx.name());
         } catch (Exception e) {
             log.error("sendMessage send error e:{}", e.getMessage(), e);
         }
@@ -561,11 +567,10 @@ public class MachineCHandlers {
 
             int endReason = oldBody[bodyLen - 9];
 
-
-
             jsonLog.put("total", total);
             jsonLog.put("totalLE", totalLE);
             jsonLog.put("powerCountLE", powerCountLE);
+            jsonLog.put("powerCount", powerCount);
             jsonLog.put("endReason", endReason);
 
 
@@ -625,11 +630,85 @@ public class MachineCHandlers {
             eventPushDTO.setOrderSerialNumber(orderNumber);
             eventPushDTO.setCarIdentificationCode(vin);
 
+            if(chargeInfo.getCurChargeQuantity() != powerCountLE){
+                if(log.isDebugEnabled()){
+                    log.debug("YKC 充电订单结算(0x3b) 差异充电量服务费计算 充电中：{} kwh, 上报：{}", chargeInfo.getCurChargeQuantity(), powerCountLE);
+                }
+                try {
+                    AttributeKey<YKCChargePrice> priceAttributeKey = AttributeKey.valueOf(ConstEnum.YKC_CHARGE_PRICE.getCode());
+                    YKCChargePrice price = null;
+                    // 自旋等待电价
+                    long startTimeGo = System.currentTimeMillis();
+                    long maxWaitTime = Duration.ofSeconds(1).toMillis();
+                    while (System.currentTimeMillis() - startTimeGo < maxWaitTime) {
+                        price = ctx.channel().attr(priceAttributeKey).get();
+                        boolean nonNull = Objects.nonNull(price);
+                        if (nonNull) {
+                            break;
+                        }
+                        TimeUnit.MILLISECONDS.sleep(100);
+                    }
+                    if(Objects.isNull(price)){
+                        Integer station = (Integer) ctx.channel().attr(AttributeKey.valueOf(ConstEnum.STATION_ID.getCode())).get();
+                        Integer ele = (Integer) ctx.channel().attr(AttributeKey.valueOf(ConstEnum.ELE_CHARG_TYPE.getCode())).get();
+                        price = chargeInfoService.getPriceInfoForCache(station, ele);
+                    }
+
+                    Assert.notNull(price, "YKCChargePrice is null");
+
+                    // 获取当前时段的服务费价格
+                    LocalTime now = LocalTime.now();
+                    int index = now.toSecondOfDay() / 1800;
+                    int chargeS = price.getChargeS(price.getPriceBucketJFPG()[index]);
+
+                    jsonLog.put("chargeS", chargeS);
+                    jsonLog.put("chargeSIndex", index);
+
+                    // 当前节点的充电量
+                    int curChargeQuantity = chargeInfo.getCurChargeQuantity();
+                    long chargeStagePower = powerCountLE - curChargeQuantity;
+                    if(chargeStagePower <= 0){
+                        chargeStagePower = 0;
+                    }
+                    jsonLog.put("powerCountLE", powerCountLE);
+                    jsonLog.put("chargeStagePower", chargeStagePower);
+
+
+                    BigDecimal khUnit = BigDecimal.valueOf(10000);
+                    BigDecimal kwh = BigDecimal.valueOf(chargeStagePower)
+                            .setScale(4, RoundingMode.HALF_UP);
+
+                    kwh = kwh.divide(khUnit, 4, RoundingMode.HALF_UP);
+                    BigDecimal servicePrice = kwh.multiply(BigDecimal.valueOf(chargeS));
+
+                    //订单服务费重新计算
+                    int servicePriceF = servicePrice.intValue();
+                    servicePriceF = servicePriceF + chargeInfo.getServiceMoney();
+
+                    long chargePriceF = totalLE - servicePriceF;
+
+                    jsonLog.put("chargePriceF", chargePriceF);
+                    jsonLog.put("servicePriceF", servicePriceF);
+
+                    // 本地缓存订单，二级缓存
+                    chargeInfo.setCurMoney((int) chargePriceF);
+                    chargeInfo.setServiceMoney(servicePriceF);
+                    chargeInfo.setCurChargeQuantity((int) powerCountLE);
+                    chargeInfoService.put(chargeInfo);
+                }catch (Exception e){
+                    log.error("YKC 0x3B 订单结束服务费结算 error:{}", ExceptionUtils.getMessage(e), e);
+                }
+
+            }
+
             long chargeMoney = totalLE - chargeInfo.getServiceMoney();
             eventPushDTO.setServiceMoney(chargeInfo.getServiceMoney());
             eventPushDTO.setChargeMoney((int) chargeMoney);
-            jsonLog.put("chargeMoney", total);
+            jsonLog.put("total", total);
+            jsonLog.put("totalLe", totalLE);
+            jsonLog.put("chargeMoney", chargeMoney);
             jsonLog.put("serviceMoney", chargeInfo.getServiceMoney());
+
 
             this.endReasonJson(eventPushDTO);
 

@@ -6,11 +6,13 @@ import com.huamar.charge.common.common.StringPool;
 import com.huamar.charge.common.protocol.c.ProtocolCPacket;
 import com.huamar.charge.common.util.ByteExtUtil;
 import com.huamar.charge.common.util.HexExtUtil;
+import com.huamar.charge.net.core.SessionChannel;
 import com.huamar.charge.pile.config.ServerApplicationProperties;
 import com.huamar.charge.pile.enums.ConstEnum;
 import com.huamar.charge.pile.enums.McTypeEnum;
 import com.huamar.charge.pile.server.handle.netty.c.ServerNetHandlerForYKC;
 import com.huamar.charge.pile.server.handle.netty.c.SessionManagerForYKCNetHandler;
+import com.huamar.charge.pile.server.session.SessionManager;
 import com.huamar.charge.pile.server.session.context.SimpleSessionContext;
 import com.huamar.charge.pile.utils.views.BinaryViews;
 import io.netty.bootstrap.ServerBootstrap;
@@ -38,8 +40,10 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
 import org.springframework.context.event.ContextClosedEvent;
 
+import java.net.SocketAddress;
 import java.time.Duration;
 import java.util.List;
+import java.util.Optional;
 import java.util.StringJoiner;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -156,40 +160,40 @@ public class MachineCNetServer {
                             @Override
                             public void channelRead(ChannelHandlerContext ctx, Object msg) {
                                 Thread.currentThread().setName(IdUtil.getSnowflakeNextIdStr());
-
                                 try {
-                                    AttributeKey<String> machineId = AttributeKey.valueOf(ConstEnum.MACHINE_ID.getCode());
-                                    String idCode = ctx.channel().attr(machineId).get();
+                                    SocketAddress remotedAddress = ctx.channel().remoteAddress();
+                                    SessionChannel session = null;
+                                    String idCode = SessionManager.setMDCParam(ctx);
                                     if (StringUtils.isNotBlank(idCode)) {
-                                        MDC.put(ConstEnum.ID_CODE.getCode(), idCode);
+                                        session = SessionManager.get(idCode);
                                     }
-
-                                    AttributeKey<String> sessionKey = AttributeKey.valueOf(ConstEnum.X_SESSION_ID.getCode());
-                                    String sessionId = ctx.channel().attr(sessionKey).get();
-                                    if (StringUtils.isNotBlank(sessionId)) {
-                                        MDC.put(ConstEnum.X_SESSION_ID.getCode(), sessionId);
-                                    }
-
 
                                     if (log.isDebugEnabled()) {
-                                        log.info("YKC channelRead into >>>>>>>>>>>>>>>>>>");
+                                        log.info("────────────────────────────────────────────────────────");
+                                        log.info("YKC channelRead into >>>>>>>>>>>>>>>>>> idCode:{} session:{} address:{}", idCode, Optional.ofNullable(session).isPresent(), remotedAddress);
                                     }
 
                                     ctx.fireChannelRead(msg);
 
                                     if (log.isDebugEnabled()) {
-                                        log.info("YKC channelRead goto <<<<<<<<<<<<<<<<<<");
+                                        log.info("YKC channelRead end <<<<<<<<<<<<<<<<<<< session idCode:{} address:{} end", idCode, remotedAddress);
                                     }
                                 }finally {
                                     MDC.clear();
                                 }
-
                             }
 
                             @Override
-                            public void channelReadComplete(ChannelHandlerContext ctx) throws Exception {
-                                log.info("YKC channelReadComplete end <<<<<<<<<<<<<<<<<<");
-                                super.channelReadComplete(ctx);
+                            public void channelReadComplete(ChannelHandlerContext ctx) {
+                                try {
+                                    SessionManager.setMDCParam(ctx);
+                                    log.info("YKC channelReadComplete end <<<<<<<<<<<<<<<<<<");
+                                    super.channelReadComplete(ctx);
+                                }catch (Exception e){
+                                    log.error("YKC channelReadComplete error");
+                                }finally {
+                                    MDC.clear();
+                                }
                             }
 
                         });
@@ -230,17 +234,6 @@ public class MachineCNetServer {
 
         @Override
         protected void decode(ChannelHandlerContext ctx, ByteBuf byteBuf, List<Object> list) {
-
-            // 设备idCode 线程变量
-            AttributeKey<String> machineId = AttributeKey.valueOf(ConstEnum.MACHINE_ID.getCode());
-            String idCode = ctx.channel().attr(machineId).get();
-            if(StringUtils.isNotBlank(idCode)){
-                MDC.put(ConstEnum.ID_CODE.getCode(), idCode);
-            }
-
-            AttributeKey<String> sessionKey = AttributeKey.valueOf(ConstEnum.X_SESSION_ID.getCode());
-            String sessionId = ctx.channel().attr(sessionKey).get();
-            MDC.put(ConstEnum.X_SESSION_ID.getCode(), sessionId);
 
             byteBuf.markReaderIndex();
             int readableBytes = byteBuf.readableBytes();
@@ -297,11 +290,7 @@ public class MachineCNetServer {
             byteBuf.resetReaderIndex();
 
             // 设备idCode 线程变量
-            AttributeKey<String> machineId = AttributeKey.valueOf(ConstEnum.MACHINE_ID.getCode());
-            String idCode = ctx.channel().attr(machineId).get();
-            if(StringUtils.isNotBlank(idCode)){
-                MDC.put(ConstEnum.ID_CODE.getCode(), idCode);
-            }
+            String idCode = SessionManager.getIdCode(ctx);
 
             if(log.isDebugEnabled()){
                 log.debug("YKC Decode hex packet:{}", HexExtUtil.encodeHexStrFormat(bytes, StringPool.SPACE));
