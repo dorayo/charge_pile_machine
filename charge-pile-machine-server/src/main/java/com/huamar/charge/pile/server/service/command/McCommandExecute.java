@@ -59,7 +59,7 @@ public interface McCommandExecute<T extends McBaseCommandDTO> {
         writer.write(mcCommandDTO.getDataLength());
         writer.write(mcCommandDTO.getData());
         byte[] bytes = writer.toByteArray();
-        packet.setMsgBodyLen(bytes.length);
+        packet.setMsgBodyLen((short) bytes.length);
         packet.setMsgBody(bytes);
         return packet;
     }

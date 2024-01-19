@@ -121,7 +121,7 @@ public class PacketProtocolCodec implements ProtocolCodec {
             packet.setTag(reader.readByte());
             packet.setMsgId(reader.readByte());
             packet.setMsgBodyAttr(reader.readByte());
-            packet.setMsgBodyLen(reader.readUnsignedShort());
+            packet.setMsgBodyLen(reader.readShort());
 
             // 消息包中数据是否完整
             if (bytes.length < packet.getMsgBodyLen() + BODY_CHECK_LENGTH) {
@@ -129,7 +129,7 @@ public class PacketProtocolCodec implements ProtocolCodec {
                 return new FailMathPacket(bytes);
             }
 
-            packet.setMsgNumber(reader.readUnsignedShort());
+            packet.setMsgNumber(reader.readShort());
             packet.setIdCode(reader.readBytes(18));
             packet.setMsgBody(reader.readBytes(packet.getMsgBodyLen()));
             packet.setCheckTag(reader.readByte());
@@ -230,11 +230,11 @@ public class PacketProtocolCodec implements ProtocolCodec {
             packet.setTag(reader.readByte());
             packet.setMsgId(reader.readByte());
             packet.setMsgBodyAttr(reader.readByte());
-            packet.setMsgBodyLen(reader.readUnsignedShort());
+            packet.setMsgBodyLen(reader.readShort());
 
             // 不能小于0
-            if (packet.getMsgBodyLen() < 0) {
-                packet.setMsgBodyLen(0);
+            if (packet.getMsgBodyLen() < (short) 0) {
+                packet.setMsgBodyLen((short) 0);
             }
 
             // 消息包中数据是否完整
@@ -243,7 +243,7 @@ public class PacketProtocolCodec implements ProtocolCodec {
                 return new FailMathPacket(bytes);
             }
 
-            packet.setMsgNumber(reader.readUnsignedShort());
+            packet.setMsgNumber(reader.readShort());
             packet.setIdCode(reader.readBytes(18));
             packet.setMsgBody(reader.readBytes(packet.getMsgBodyLen()));
             packet.setCheckTag(reader.readByte());
@@ -288,8 +288,8 @@ public class PacketProtocolCodec implements ProtocolCodec {
         writer.write(packet.getMsgId());
         byte msgBodyAttr = packet.getMsgBodyAttr();
         writer.write(msgBodyAttr);
-        writer.write((short) packet.getMsgBodyLen());
-        writer.write((short) packet.getMsgNumber());
+        writer.write(packet.getMsgBodyLen());
+        writer.write(packet.getMsgNumber());
         writer.write(packet.getIdCode());
         writer.write(packet.getMsgBody());
 

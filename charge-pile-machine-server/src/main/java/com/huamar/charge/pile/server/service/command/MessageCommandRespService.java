@@ -23,7 +23,7 @@ public interface MessageCommandRespService {
      * @param msgNum msgNum
      * @return MessageCommonRespDTO
      */
-    MessageCommonRespDTO get(String idCode, Integer msgNum);
+    MessageCommonRespDTO get(String idCode, Short msgNum);
 
     /**
      * 发送远程命令响应

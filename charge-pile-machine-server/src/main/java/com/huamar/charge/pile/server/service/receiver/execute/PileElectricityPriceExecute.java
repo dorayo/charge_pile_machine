@@ -157,10 +157,6 @@ public class PileElectricityPriceExecute implements PileMessageExecute {
         commandDTO.setIdCode(pileElectricityPriceDTO.getIdCode());
         commandDTO.setTimeStage(new NumberFixStr(StringUtils.join(timePriceBucket).getBytes()));
 
-        if(log.isDebugEnabled()){
-            log.debug("commandDTO: {}", JSON.toJSONString(commandDTO));
-        }
-
         mcCommandFactory.getExecute(McCommandEnum.ELECTRICITY_PRICE).execute(commandDTO);
     }
 
@@ -185,7 +181,7 @@ public class PileElectricityPriceExecute implements PileMessageExecute {
 
         // 去重 计算 间峰平谷 电价 index 0 1 2 3
         List<BigDecimal> distinctPrice = priceList.stream()
-                .distinct().sorted(Comparator.reverseOrder()).collect(Collectors.toList());
+                .distinct().sorted().collect(Collectors.toList());
 
         // 解决重复键的冲突策略
         Map<BigDecimal, ChargPriceDTO> personMap = objects.stream()

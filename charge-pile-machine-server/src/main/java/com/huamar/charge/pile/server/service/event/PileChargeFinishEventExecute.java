@@ -1,6 +1,8 @@
 package com.huamar.charge.pile.server.service.event;
 
 import com.alibaba.fastjson.JSONObject;
+import com.huamar.charge.common.protocol.DataPacketReader;
+import com.huamar.charge.common.util.JSONParser;
 import com.huamar.charge.pile.convert.PileChargeFinishEventConvert;
 import com.huamar.charge.pile.entity.dto.MachineDataUpItem;
 import com.huamar.charge.pile.entity.dto.command.McElectricityPriceCommandDTO;
@@ -11,8 +13,6 @@ import com.huamar.charge.pile.entity.dto.platform.event.PileChargeFinishEventPus
 import com.huamar.charge.pile.enums.CacheKeyEnum;
 import com.huamar.charge.pile.enums.MessageCodeEnum;
 import com.huamar.charge.pile.enums.PileEventEnum;
-import com.huamar.charge.common.protocol.DataPacketReader;
-import com.huamar.charge.common.util.JSONParser;
 import com.huamar.charge.pile.server.service.produce.PileMessageProduce;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -22,7 +22,6 @@ import org.redisson.api.RedissonClient;
 import org.springframework.stereotype.Component;
 
 import java.nio.charset.StandardCharsets;
-import java.util.concurrent.TimeUnit;
 
 /**
  * 设备端数据汇报接口-充电结束统计
@@ -427,6 +426,13 @@ public class PileChargeFinishEventExecute implements PileEventExecute {
                 jsonObject.put("text","远程调用System关机");
                 jsonObject.put("tag","SLX");
                 break;
+
+            default:
+                jsonObject.put("code", eventDTO.getEndReason());
+                jsonObject.put("text","未记录原因：" + eventDTO.getEndReason());
+                jsonObject.put("tag","SLX");
+                break;
+
         }
 
 

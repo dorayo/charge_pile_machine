@@ -122,7 +122,7 @@ public class MachineAuthenticationHandler implements MachinePacketHandler<DataPa
 
                 // 多次鉴权并发问题，先返回成功，认证失败关闭连接
                 // 私有加密逻辑
-                this.encryptionSecretKey(reqDTO, authResp);
+                this.encryptionSecretKey(reqDTO, authResp, 0);
                 authResp.setStatus(MachineAuthStatus.SUCCESS.getCode());
                 answerExecute.execute(authResp, sessionChannel);
 
@@ -224,10 +224,14 @@ public class MachineAuthenticationHandler implements MachinePacketHandler<DataPa
      *
      * @param reqDTO reqDTO
      */
-    private void encryptionSecretKey(MachineAuthenticationReqDTO reqDTO, McAuthResp authResp) {
+    private void encryptionSecretKey(MachineAuthenticationReqDTO reqDTO, McAuthResp authResp, int encryption) {
         if ((reqDTO.getBoardNum() & 0xff) != 160) {
             log.info("SLX 终端权健 encryptionSecretKey isEncrypt :{}", false);
             authLog.info("SLX 终端权健 encryptionSecretKey isEncrypt :{}", false);
+            return;
+        }
+
+        if(encryption == 0){
             return;
         }
 

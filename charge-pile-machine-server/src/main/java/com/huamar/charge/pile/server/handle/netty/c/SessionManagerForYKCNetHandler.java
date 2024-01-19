@@ -57,7 +57,7 @@ public class SessionManagerForYKCNetHandler extends SimpleChannelInboundHandler<
     public void channelActive(ChannelHandlerContext ctx) throws Exception {
         //v240106 修改日志优化
         SessionManager.channelActive(ctx, "YKC");
-        super.channelActive(ctx);
+        ctx.fireChannelActive();
     }
 
     /**
@@ -69,7 +69,7 @@ public class SessionManagerForYKCNetHandler extends SimpleChannelInboundHandler<
     @Override
     public void channelInactive(ChannelHandlerContext ctx) throws Exception {
         SessionManager.channelInactive(ctx, "YKC");
-        super.channelInactive(ctx);
+        ctx.fireChannelInactive();
     }
 
     /**

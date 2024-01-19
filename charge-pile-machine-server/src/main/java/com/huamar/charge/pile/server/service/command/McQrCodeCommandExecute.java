@@ -40,10 +40,10 @@ public class McQrCodeCommandExecute implements McCommandExecute<McQrCodeCommandD
     @Override
     public void execute(McQrCodeCommandDTO command) {
         DataPacket packet = this.packet(command);
-        Integer messageNumber = SessionManager.getMessageNumber(command.getIdCode());
+        Short messageNumber = SessionManager.getMessageNumber(command.getIdCode());
         packet.setMsgNumber(messageNumber);
         boolean sendCommand = SessionManager.writePacket(packet);
-        log.info("QrCodeCommand idCode:{} sendCommand:{} msgNumber:{}", command.getIdCode(), sendCommand, messageNumber);
+        log.info("SLX QrCodeCommand idCode:{} sendCommand:{} msgNumber:{}", command.getIdCode(), sendCommand, messageNumber);
     }
 
     /**

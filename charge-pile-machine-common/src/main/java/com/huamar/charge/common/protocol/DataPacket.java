@@ -42,7 +42,7 @@ public class DataPacket extends BasePacket {
 	/**
 	 * 4.消息体长度（2）原始 short 无符号
 	 */
-	private int msgBodyLen;
+	private short msgBodyLen;
 
 	/**
 	 * <pre>
@@ -50,7 +50,7 @@ public class DataPacket extends BasePacket {
 	 * 从１开始，每包消息加１，当达到 65535 后，重新从 1 开始 原始 short 无符号
 	 * </pre>
 	 */
-	private int msgNumber;
+	private short msgNumber;
 
 	/**
 	 * 6.设备识别码（18）

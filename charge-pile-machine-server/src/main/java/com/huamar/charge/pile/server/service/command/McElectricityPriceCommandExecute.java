@@ -73,7 +73,7 @@ public class McElectricityPriceCommandExecute implements McCommandExecute<McElec
         ChannelHandlerContext ctx = sessionChannel.channel();
         Assert.notNull(ctx, "sessionChannel ctx is null");
 
-        
+
         //YKC 计费模型
         if (type == McTypeEnum.C) {
             log.info("YKC 充电计费 充电计费请求下发 0xA0 >>> ");
@@ -131,8 +131,6 @@ public class McElectricityPriceCommandExecute implements McCommandExecute<McElec
 
         //默认协议
         DataPacket packet = this.packet(command);
-        Integer messageNumber = SessionManager.getMessageNumber(command.getIdCode());
-        packet.setMsgNumber(messageNumber);
         boolean sendCommand = SessionManager.writePacket(packet);
         log.info("Electricity Price idCode:{} sendCommand:{} msgNumber:{} ", command.getIdCode(), sendCommand, packet.getMsgNumber());
     }
@@ -176,7 +174,6 @@ public class McElectricityPriceCommandExecute implements McCommandExecute<McElec
         McCommandEnum commandEnum = getCode();
         short typeCode = Short.parseShort(commandEnum.getCode());
         DataPacketWriter writer = new DataPacketWriter();
-        log.info("电价信息:{}", JSONParser.jsonString(command));
         if (Objects.requireNonNull(type) == McTypeEnum.B) {
             writer.write(command.getGunSort());
             writer.write((short) (command.getPrice1() / 100));
@@ -191,7 +188,7 @@ public class McElectricityPriceCommandExecute implements McCommandExecute<McElec
             RBucket<McElectricityPriceCommandDTO> bucket = redissonClient.getBucket(key);
             bucket.set(command, keyEnum.getDuration().toMillis(), TimeUnit.MILLISECONDS);
             McCommandDTO commandDTO = new McCommandDTO(typeCode, command.getFieldsByteLength(), writer.toByteArray());
-            log.info("Type B priceCommandDTO:{}", JSONParser.jsonString(commandDTO));
+            log.info("Type B ElectricityPriceCommandDTO:{}", JSONParser.jsonString(commandDTO));
             return commandDTO;
         }
 
@@ -214,12 +211,12 @@ public class McElectricityPriceCommandExecute implements McCommandExecute<McElec
             writer.write(command.getPriceStage().getBytes(StandardCharsets.UTF_8));
 
             McCommandDTO commandDTO = new McCommandDTO(typeCode, command.getFieldsByteLength(), writer.toByteArray());
-            log.info("SLX Type:A priceCommandDTO:{}", JSONParser.jsonString(commandDTO));
+            log.info("SLX Type:A ElectricityPriceCommandDTO:{}", JSONParser.jsonString(commandDTO));
             return commandDTO;
         }
 
         McCommandDTO commandDTO = new McCommandDTO(typeCode, command.getFieldsByteLength(), writer.toByteArray());
-        log.info("priceCommandDTO:{}", JSONParser.jsonString(commandDTO));
+        log.info("ElectricityPriceCommandDTO:{} type:{}", JSONParser.jsonString(commandDTO), type);
         return commandDTO;
     }
 

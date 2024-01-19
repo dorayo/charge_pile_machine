@@ -32,6 +32,15 @@ import java.util.stream.Collectors;
 @Slf4j
 public class BCDTest {
 
+
+    @DisplayName("test01")
+    @Test
+    public void test01(){
+        Short aShort = Convert.toShort(65500);
+        System.out.println(aShort);
+    }
+
+
     @DisplayName("test00")
     @Test
     public void test00(){
@@ -278,5 +287,9 @@ public class BCDTest {
         System.out.printf(vin);
 
         ByteBuf byteBuf = ByteBufAllocator.DEFAULT.buffer(256);
+        byteBuf.writeBytes(HexExtUtil.decodeHex("80 3E"));
+
+        short readUnsignedShort = byteBuf.readShortLE();
+
     }
 }

@@ -20,7 +20,6 @@ import io.netty.buffer.ByteBuf;
 import io.netty.buffer.ByteBufAllocator;
 import io.netty.channel.ChannelHandlerContext;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.log4j.Log4j;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.springframework.stereotype.Component;
@@ -119,7 +118,7 @@ public class PileStartChargeExecute implements PileMessageExecute {
             chargeCommand.setOrderSerialNumber(chargeControl.getOrderSerialNumber().getBytes());
             chargeCommand.setBalance(chargeControl.getBalance().intValue());
             chargeCommand.setIdCode(chargeControl.getIdCode());
-            log.info("开启充电参数下发：" + chargeCommand);
+            log.info("开启充电参数下发:{}, {}", new String(chargeCommand.getOrderSerialNumber()), chargeCommand);
             SimpleSessionChannel session = (SimpleSessionChannel) SessionManager.get(chargeControl.getIdCode());
             Assert.notNull(session, "开启充电参数下发 error 设备不在线");
 
@@ -136,7 +135,7 @@ public class PileStartChargeExecute implements PileMessageExecute {
             commonResp.setIdCode(chargeControl.getIdCode());
             commonResp.setCommandId(chargeControl.getCommandId());
             commonResp.setMsgResult(MessageCommonResultEnum.FAIL.getCode());
-            commonResp.setMsgNumber(chargeCommand.headMessageNum());
+            commonResp.setMsgNumber(chargeCommand.headMessageNum().intValue());
             commonResp.setCommandTypeCode(this.getCode().getCode());
             messageCommandRespService.put(commonResp);
 

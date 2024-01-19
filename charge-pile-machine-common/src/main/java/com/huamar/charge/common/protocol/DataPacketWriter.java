@@ -53,14 +53,6 @@ public class DataPacketWriter {
 		}
 	}
 
-	public void writeShort(int data) {
-		try {
-			buffer.putShort((short) data);
-		} catch (Exception e) {
-			log.error("", e);
-		}
-	}
-
 	public void write(int data) {
 		try {
 			buffer.putInt(data);

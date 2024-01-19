@@ -40,7 +40,7 @@ public class McChargeCommandExecute implements McCommandExecute<McChargeCommandD
      */
     @Override
     public void execute(McChargeCommandDTO command) {
-        Integer messageNumber = SessionManager.getMessageNumber(command.getIdCode());
+        Short messageNumber = SessionManager.getMessageNumber(command.getIdCode());
         DataPacket packet = this.packet(command);
         packet.setMsgNumber(messageNumber);
         boolean sendCommand = SessionManager.writePacket(packet);

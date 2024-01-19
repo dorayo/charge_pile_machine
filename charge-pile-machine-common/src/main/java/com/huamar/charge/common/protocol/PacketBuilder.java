@@ -44,7 +44,7 @@ public class PacketBuilder {
 		return this;
 	}
 
-	public PacketBuilder messageNumber(int number){
+	public PacketBuilder messageNumber(short number){
 		this.dataPacket.setMsgNumber(number);
 		return this;
 	}
@@ -77,7 +77,7 @@ public class PacketBuilder {
 	 */
 	public PacketBuilder body(DataPacketWriter writer){
 		byte[] byteArray = writer.toByteArray();
-		dataPacket.setMsgBodyLen(byteArray.length);
+		dataPacket.setMsgBodyLen((short) byteArray.length);
 		dataPacket.setMsgBody(byteArray);
 		return this;
 	}

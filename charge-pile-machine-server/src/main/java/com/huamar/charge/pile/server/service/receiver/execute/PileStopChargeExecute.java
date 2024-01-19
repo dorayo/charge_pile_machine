@@ -1,8 +1,5 @@
 package com.huamar.charge.pile.server.service.receiver.execute;
 
-import com.alibaba.druid.sql.visitor.functions.Bin;
-import com.alibaba.fastjson.JSONObject;
-import com.huamar.charge.common.protocol.c.ProtocolCPacket;
 import com.huamar.charge.common.util.JSONParser;
 import com.huamar.charge.common.util.netty.NUtils;
 import com.huamar.charge.pile.entity.dto.command.McChargeCommandDTO;
@@ -10,8 +7,8 @@ import com.huamar.charge.pile.entity.dto.command.MessageCommonRespDTO;
 import com.huamar.charge.pile.entity.dto.mq.MessageData;
 import com.huamar.charge.pile.entity.dto.platform.PileChargeControlDTO;
 import com.huamar.charge.pile.enums.*;
-import com.huamar.charge.pile.server.service.factory.McCommandFactory;
 import com.huamar.charge.pile.server.service.command.MessageCommandRespService;
+import com.huamar.charge.pile.server.service.factory.McCommandFactory;
 import com.huamar.charge.pile.server.service.receiver.PileMessageExecute;
 import com.huamar.charge.pile.server.session.SessionManager;
 import com.huamar.charge.pile.server.session.SimpleSessionChannel;
@@ -23,8 +20,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.springframework.stereotype.Component;
-
-import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * 充电控制
@@ -109,7 +104,7 @@ public class PileStopChargeExecute implements PileMessageExecute {
             commonResp.setIdCode(chargeControl.getIdCode());
             commonResp.setCommandId(chargeControl.getCommandId());
             commonResp.setMsgResult(MessageCommonResultEnum.FAIL.getCode());
-            commonResp.setMsgNumber(chargeCommand.headMessageNum());
+            commonResp.setMsgNumber(chargeCommand.headMessageNum().intValue());
             commonResp.setCommandTypeCode(this.getCode().getCode());
             messageCommandRespService.put(commonResp);
             if (!commandState) {

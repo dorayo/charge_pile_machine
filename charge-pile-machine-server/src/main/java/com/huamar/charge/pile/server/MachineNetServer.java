@@ -6,7 +6,6 @@ import com.huamar.charge.common.protocol.DataPacket;
 import com.huamar.charge.common.util.HexExtUtil;
 import com.huamar.charge.net.core.SessionChannel;
 import com.huamar.charge.pile.config.ServerApplicationProperties;
-import com.huamar.charge.pile.enums.ConstEnum;
 import com.huamar.charge.pile.server.handle.netty.ServerNetHandler;
 import com.huamar.charge.pile.server.handle.netty.SessionManagerNetHandler;
 import com.huamar.charge.pile.server.protocol.ProtocolCodecFactory;
@@ -23,7 +22,6 @@ import io.netty.channel.socket.nio.NioServerSocketChannel;
 import io.netty.handler.codec.ByteToMessageDecoder;
 import io.netty.handler.codec.MessageToByteEncoder;
 import io.netty.handler.timeout.IdleStateHandler;
-import io.netty.util.AttributeKey;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
@@ -38,7 +36,6 @@ import org.springframework.context.event.ContextClosedEvent;
 
 import java.net.SocketAddress;
 import java.nio.ByteOrder;
-import java.time.Duration;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
@@ -244,7 +241,7 @@ public class MachineNetServer implements NetServer {
                 DataPacket var = (DataPacket) packet;
                 byte[] bytes = ByteBufUtil.getBytes(byteBuf);
                 String hexStrFormat = HexExtUtil.encodeHexStrFormat(bytes, " ");
-                log.info("SLX write packet msgId:{} msgNumber:{} hex:{}", HexExtUtil.encodeHexStr(var.getMsgId()), var.getMsgNumber(), hexStrFormat);
+                log.info("SLX write byteBuf:{} packet msgId:{} msgNumber:{} hex:{}", byteBuf, HexExtUtil.encodeHexStr(var.getMsgId()), var.getMsgNumber(), hexStrFormat);
             }
         }
     }

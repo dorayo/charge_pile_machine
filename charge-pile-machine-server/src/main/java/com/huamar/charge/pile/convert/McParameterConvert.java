@@ -27,7 +27,7 @@ public interface McParameterConvert {
 	default PileParameterReqDTO convert(DataPacket dataPacket){
 		DataPacketReader reader = new DataPacketReader(dataPacket.getMsgBody());
 		PileParameterReqDTO reqDTO = new PileParameterReqDTO();
-		reqDTO.setMsgNumber(reader.readUnsignedShort());
+		reqDTO.setMsgNumber(reader.readShort());
 		reqDTO.setMeterType((int) reader.readUnsignedByte());
 		reqDTO.setModuleType((int) (reader.readUnsignedByte()));
 		reqDTO.setModuleCurrent((int)(reader.readUnsignedByte()));

@@ -36,7 +36,7 @@ public interface MachineDataUploadConvert {
 		for (int i = 0; i < reqDTO.listLen; i++) {
 			byte unitId = reader.readByte();
 			// 数据项字节长度
-			int dataLen = reader.readUnsignedShort();
+			short dataLen = reader.readShort();
 			byte[] bytes = reader.readBytes(dataLen);
 			reqDTO.getDataUnitList().add(new MachineDataUpItem(unitId, dataLen, bytes));
 		}

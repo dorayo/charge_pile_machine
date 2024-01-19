@@ -111,7 +111,7 @@ public class ADLampCommandExecute implements McCommandExecute<ADLampCommandDTO> 
         packetWriter.write(commandDTO.getDataLength());
         packetWriter.write(commandDTO.getData());
         byte[] bytes = packetWriter.toByteArray();
-        packet.setMsgBodyLen(bytes.length);
+        packet.setMsgBodyLen((short) bytes.length);
         packet.setMsgBody(bytes);
         return packet;
     }
