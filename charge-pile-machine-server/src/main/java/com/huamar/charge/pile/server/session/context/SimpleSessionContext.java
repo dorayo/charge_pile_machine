@@ -40,7 +40,7 @@ public class SimpleSessionContext implements MachineSessionContext {
             ChannelHandlerContext ctx = sessionChannel.channel();
             String sessionId = SessionManager.getSessionId(ctx);
             ctx.writeAndFlush(packet).addListener(future -> {
-                log.info("SLX writePacket:{} idCode:{} success:{} case:{}", sessionId, new String(packet.getIdCode()), future.isSuccess(), ExceptionUtils.getMessage(future.cause()));
+                log.info("SLX writePacket session:{} idCode:{} success:{} case:{}", sessionId, new String(packet.getIdCode()), future.isSuccess(), ExceptionUtils.getMessage(future.cause()));
             });
         } catch (Exception e) {
             log.error("writePacket error", e);

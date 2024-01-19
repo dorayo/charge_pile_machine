@@ -63,7 +63,7 @@ public class DataPacketReader {
      * @return int
      */
     public int readUnsignedShort() {
-        return (buffer.getShort() & 0xFFFF);
+        return buffer.getShort() & 0xFFFF;
     }
 
 

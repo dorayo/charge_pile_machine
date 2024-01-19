@@ -121,6 +121,8 @@ public class MachineAuthenticationHandler implements MachinePacketHandler<DataPa
                 pileMessageProduce.send(new MessageData<>(MessageCodeEnum.PILE_AUTH, idCode));
 
                 // 多次鉴权并发问题，先返回成功，认证失败关闭连接
+                // 私有加密逻辑
+                this.encryptionSecretKey(reqDTO, authResp);
                 authResp.setStatus(MachineAuthStatus.SUCCESS.getCode());
                 answerExecute.execute(authResp, sessionChannel);
 
@@ -180,12 +182,11 @@ public class MachineAuthenticationHandler implements MachinePacketHandler<DataPa
                     pile.setPileVersion(reqDTO.getProgramVersionNum());
                 }
 
-                // 私有加密逻辑
-                this.encryptionSecretKey(reqDTO, authResp);
+
                 authResp.setStatus(MachineAuthStatus.SUCCESS.getCode());
-                answerExecute.execute(authResp, sessionChannel);
                 // 标记此连接鉴权成功
                 sessionChannel.setAttribute("auth", "ok");
+                //answerExecute.execute(authResp, sessionChannel);
 
                 update.setStationId(pile.getStationId());
                 update.setPileCode(pile.getPileCode());
@@ -225,19 +226,21 @@ public class MachineAuthenticationHandler implements MachinePacketHandler<DataPa
      */
     private void encryptionSecretKey(MachineAuthenticationReqDTO reqDTO, McAuthResp authResp) {
         if ((reqDTO.getBoardNum() & 0xff) != 160) {
-            log.info("encryptionSecretKey isEncrypt :{}", false);
-            authLog.info("encryptionSecretKey isEncrypt :{}", false);
+            log.info("SLX 终端权健 encryptionSecretKey isEncrypt :{}", false);
+            authLog.info("SLX 终端权健 encryptionSecretKey isEncrypt :{}", false);
             return;
         }
-        authResp.setEncryptionType((byte) 1);
+
+        authResp.setEncryptionType((byte) 0);
         String src = reqDTO.getIdCode() + authResp.getTime() + reqDTO.getMacAddress().toString();
         HMac mac = new HMac(HmacAlgorithm.HmacMD5, "VB6dQCFh2F9ZyNg7".getBytes());
         byte[] digest = mac.digest(src);
-        authResp.setSecretKey(new FixString(digest));
-        authResp.setSecretKeyLength((short) digest.length);
         String encodeHexStr = HexExtUtil.encodeHexStr(digest, false);
-        log.info("encryption :{}", encodeHexStr);
-        authLog.info("encryption :{}", encodeHexStr);
+        log.info("SLX 终端权健 encryption :{}", encodeHexStr);
+        authLog.info("SLX 终端权健 encryption :{}", encodeHexStr);
+//        authResp.setSecretKey(new FixString(digest));
+//        authResp.setSecretKeyLength((short) digest.length);
+
     }
 
     /**

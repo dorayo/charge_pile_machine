@@ -2,6 +2,8 @@ package com.huamar.charge.pile.server;
 
 import cn.hutool.core.util.IdUtil;
 import com.huamar.charge.common.protocol.BasePacket;
+import com.huamar.charge.common.protocol.DataPacket;
+import com.huamar.charge.common.util.HexExtUtil;
 import com.huamar.charge.net.core.SessionChannel;
 import com.huamar.charge.pile.config.ServerApplicationProperties;
 import com.huamar.charge.pile.enums.ConstEnum;
@@ -13,6 +15,7 @@ import com.huamar.charge.pile.server.session.SessionManager;
 import com.huamar.charge.pile.server.session.context.SimpleSessionContext;
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.buffer.ByteBuf;
+import io.netty.buffer.ByteBufUtil;
 import io.netty.channel.*;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.SocketChannel;
@@ -160,7 +163,6 @@ public class MachineNetServer implements NetServer {
                                     }
 
                                     if (log.isDebugEnabled()) {
-                                        log.info("────────────────────────────────────────────────────────");
                                         log.info("SLX channelRead into >>>>>>>>>>>>>>>>>> idCode:{} session:{} address:{}", idCode, Optional.ofNullable(session).isPresent(), remotedAddress);
                                     }
 
@@ -192,6 +194,7 @@ public class MachineNetServer implements NetServer {
 
                         pipeline.addLast("decoder", new MessageDecodeHandler());
                         pipeline.addLast("encoder", new MessageEncodeHandler());
+
                         // IdleStateHandler 下一个 handler 必须实现 userEventTriggered 方法处理对应事件
                         pipeline.addLast(new IdleStateHandler(properties.getTimeout().getSeconds(), 0, 0, TimeUnit.SECONDS));
                         pipeline.addLast("sessionManager", new SessionManagerNetHandler());
@@ -232,9 +235,17 @@ public class MachineNetServer implements NetServer {
 
         @SneakyThrows
         @Override
-        protected void encode(ChannelHandlerContext channelHandlerContext, BasePacket packet, ByteBuf byteBuf) {
+        protected void encode(ChannelHandlerContext ctx, BasePacket packet, ByteBuf byteBuf) {
             //byteBuf.order(byteOrder); 不推荐使用，已经废弃
             ProtocolCodecFactory.encode(packet, byteBuf);
+            SessionManager.setMDCParam(ctx);
+
+            if(packet instanceof DataPacket){
+                DataPacket var = (DataPacket) packet;
+                byte[] bytes = ByteBufUtil.getBytes(byteBuf);
+                String hexStrFormat = HexExtUtil.encodeHexStrFormat(bytes, " ");
+                log.info("SLX write packet msgId:{} msgNumber:{} hex:{}", HexExtUtil.encodeHexStr(var.getMsgId()), var.getMsgNumber(), hexStrFormat);
+            }
         }
     }
 

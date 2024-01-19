@@ -68,6 +68,13 @@ public class McElectricityPriceCommandDTO extends McBaseCommandDTO {
 	//ykc 峰谷4时段电价
 	private byte[] priceBucketJFPG = new byte[48];
 
+
+	private int[] slxChargePrice = new int[6];
+
+	private int[] slxServicePrice = new int[6];
+
+	private String priceStage = "";
+
 	public McElectricityPriceCommandDTO() {
 		// 设置命令行字节长度，SLX 协议使用
 		this.fieldsByteLength = (byte) (1 + 2 + 2 + 2 + 2 + 2 + 2 +2 + 2 + 2 + 2 + 2 + 2 + 48);

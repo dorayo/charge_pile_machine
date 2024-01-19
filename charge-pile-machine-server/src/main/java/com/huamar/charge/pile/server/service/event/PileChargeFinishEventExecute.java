@@ -16,6 +16,7 @@ import com.huamar.charge.common.util.JSONParser;
 import com.huamar.charge.pile.server.service.produce.PileMessageProduce;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.redisson.api.RBucket;
 import org.redisson.api.RedissonClient;
 import org.springframework.stereotype.Component;
@@ -98,6 +99,7 @@ public class PileChargeFinishEventExecute implements PileEventExecute {
             byte[] utf8Bytes = vin.getBytes(StandardCharsets.UTF_8);
             // 将 UTF-8 字节序列转换回字符串
             String utf8Vin = new String(utf8Bytes, StandardCharsets.UTF_8);
+            utf8Vin = StringUtils.replace(utf8Vin, "\u0000", "");
             eventDTO.setCarIdentificationCode(utf8Vin);
         }catch (Exception e){
             eventDTO.setCarIdentificationCode(vin);

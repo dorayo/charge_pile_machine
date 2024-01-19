@@ -98,14 +98,14 @@ public class PileMessageReceiver implements ChannelAwareMessageListener {
         } catch (DuplicateKeyException e) {
             log.info("message 已经消费了,lockKey: {}", lockKey);
         } catch (IllegalArgumentException e) {
-            StringJoiner joiner = new StringJoiner(StringPool.COMMA, StringPool.EMPTY, StringPool.EMPTY);
+            StringJoiner joiner = new StringJoiner(StringPool.EMPTY, StringPool.EMPTY, StringPool.EMPTY);
             StackTraceElement traceElement = e.getStackTrace()[0];
             joiner.add("methName:").add(traceElement.getMethodName());
             joiner.add("line:").add(String.valueOf(traceElement.getLineNumber()));
             joiner.add("message:").add(e.getMessage());
-            log.error("error e:{} ==> ", joiner);
+            log.error("控制下发 onMessage error e:{} ==> ", joiner);
         } catch (Exception e) {
-            log.error("error e:{} ==> ", e.getMessage(), e);
+            log.error("控制下发 error e:{} ==> ", e.getMessage(), e);
         } finally {
             try {
                 channel.basicAck(message.getMessageProperties().getDeliveryTag(), false);

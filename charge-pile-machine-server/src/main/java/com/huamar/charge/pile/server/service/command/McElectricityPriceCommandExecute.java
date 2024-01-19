@@ -30,6 +30,7 @@ import org.slf4j.MDC;
 import org.springframework.stereotype.Component;
 import org.springframework.util.Assert;
 
+import java.nio.charset.StandardCharsets;
 import java.util.Objects;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -130,6 +131,8 @@ public class McElectricityPriceCommandExecute implements McCommandExecute<McElec
 
         //默认协议
         DataPacket packet = this.packet(command);
+        Integer messageNumber = SessionManager.getMessageNumber(command.getIdCode());
+        packet.setMsgNumber(messageNumber);
         boolean sendCommand = SessionManager.writePacket(packet);
         log.info("Electricity Price idCode:{} sendCommand:{} msgNumber:{} ", command.getIdCode(), sendCommand, packet.getMsgNumber());
     }
@@ -170,9 +173,9 @@ public class McElectricityPriceCommandExecute implements McCommandExecute<McElec
             type = sessionChannel.getType();
         }
 
-        short typeCode = Convert.toShort(getCode().getCode());
+        McCommandEnum commandEnum = getCode();
+        short typeCode = Short.parseShort(commandEnum.getCode());
         DataPacketWriter writer = new DataPacketWriter();
-        //noinspection SwitchStatementWithTooFewBranches
         log.info("电价信息:{}", JSONParser.jsonString(command));
         if (Objects.requireNonNull(type) == McTypeEnum.B) {
             writer.write(command.getGunSort());
@@ -187,24 +190,36 @@ public class McElectricityPriceCommandExecute implements McCommandExecute<McElec
             key = keyEnum.joinKey(key);
             RBucket<McElectricityPriceCommandDTO> bucket = redissonClient.getBucket(key);
             bucket.set(command, keyEnum.getDuration().toMillis(), TimeUnit.MILLISECONDS);
-        } else {
-            writer.write(command.getGunSort());
-            writer.write(command.getPrice1());
-            writer.write(command.getPrice2());
-            writer.write(command.getPrice3());
-            writer.write(command.getPrice4());
-            writer.write(command.getPrice5());
-            writer.write(command.getPrice6());
-            writer.write(command.getServicePrice1());
-            writer.write(command.getServicePrice2());
-            writer.write(command.getServicePrice3());
-            writer.write(command.getServicePrice4());
-            writer.write(command.getServicePrice5());
-            writer.write(command.getServicePrice6());
-            writer.write(command.getTimeStage());
+            McCommandDTO commandDTO = new McCommandDTO(typeCode, command.getFieldsByteLength(), writer.toByteArray());
+            log.info("Type B priceCommandDTO:{}", JSONParser.jsonString(commandDTO));
+            return commandDTO;
         }
+
+        if (Objects.requireNonNull(type) == McTypeEnum.A) {
+            writer.write(command.getGunSort());
+            writer.write((short) command.getSlxChargePrice()[0]);
+            writer.write((short) command.getSlxChargePrice()[1]);
+            writer.write((short) command.getSlxChargePrice()[2]);
+            writer.write((short) command.getSlxChargePrice()[3]);
+            writer.write((short) command.getSlxChargePrice()[4]);
+            writer.write((short) command.getSlxChargePrice()[5]);
+
+
+            writer.write((short) command.getSlxServicePrice()[0]);
+            writer.write((short) command.getSlxServicePrice()[1]);
+            writer.write((short) command.getSlxServicePrice()[2]);
+            writer.write((short) command.getSlxServicePrice()[3]);
+            writer.write((short) command.getSlxServicePrice()[4]);
+            writer.write((short) command.getSlxServicePrice()[5]);
+            writer.write(command.getPriceStage().getBytes(StandardCharsets.UTF_8));
+
+            McCommandDTO commandDTO = new McCommandDTO(typeCode, command.getFieldsByteLength(), writer.toByteArray());
+            log.info("SLX Type:A priceCommandDTO:{}", JSONParser.jsonString(commandDTO));
+            return commandDTO;
+        }
+
         McCommandDTO commandDTO = new McCommandDTO(typeCode, command.getFieldsByteLength(), writer.toByteArray());
-        log.info("McCommandDTO:{}", JSONParser.jsonString(commandDTO));
+        log.info("priceCommandDTO:{}", JSONParser.jsonString(commandDTO));
         return commandDTO;
     }
 

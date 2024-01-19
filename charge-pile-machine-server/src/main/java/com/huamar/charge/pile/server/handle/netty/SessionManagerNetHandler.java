@@ -51,9 +51,9 @@ public class SessionManagerNetHandler extends SimpleChannelInboundHandler<BasePa
      * @param ctx ctx
      */
     @Override
-    public void channelActive(ChannelHandlerContext ctx) throws Exception {
+    public void channelActive(ChannelHandlerContext ctx) {
         SessionManager.channelActive(ctx, "SLX");
-        super.channelActive(ctx);
+        ctx.fireChannelActive();
     }
 
 
@@ -64,9 +64,9 @@ public class SessionManagerNetHandler extends SimpleChannelInboundHandler<BasePa
      */
     @SuppressWarnings("DuplicatedCode")
     @Override
-    public void channelInactive(ChannelHandlerContext ctx) throws Exception {
+    public void channelInactive(ChannelHandlerContext ctx) {
         SessionManager.channelInactive(ctx, "SLX");
-        super.channelInactive(ctx);
+        ctx.fireChannelInactive();
     }
 
 
@@ -76,9 +76,8 @@ public class SessionManagerNetHandler extends SimpleChannelInboundHandler<BasePa
      * @param ctx ctx
      */
     @Override
-    public void handlerRemoved(ChannelHandlerContext ctx) throws Exception {
+    public void handlerRemoved(ChannelHandlerContext ctx) {
         SessionManager.handlerRemoved(ctx, "SLX");
-        super.handlerRemoved(ctx);
     }
 
     /**

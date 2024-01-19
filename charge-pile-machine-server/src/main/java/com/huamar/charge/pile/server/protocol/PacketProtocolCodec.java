@@ -288,8 +288,8 @@ public class PacketProtocolCodec implements ProtocolCodec {
         writer.write(packet.getMsgId());
         byte msgBodyAttr = packet.getMsgBodyAttr();
         writer.write(msgBodyAttr);
-        writer.writeShort(packet.getMsgBodyLen());
-        writer.writeShort(packet.getMsgNumber());
+        writer.write((short) packet.getMsgBodyLen());
+        writer.write((short) packet.getMsgNumber());
         writer.write(packet.getIdCode());
         writer.write(packet.getMsgBody());
 

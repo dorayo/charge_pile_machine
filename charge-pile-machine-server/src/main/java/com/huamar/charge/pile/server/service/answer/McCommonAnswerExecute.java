@@ -42,7 +42,7 @@ public class McCommonAnswerExecute implements McAnswerExecute<McCommonResp> {
      */
     @Override
     public void execute(McCommonResp resp, SessionChannel channelContext) {
-        log.info("设备通用应答：idCode:{} resp：{}", resp.getIdCode(), JSONParser.jsonString(resp));
+        log.info("设备通用应答-响应：idCode:{} resp：{}", resp.getIdCode(), JSONParser.jsonString(resp));
         DataPacketWriter writer = this.writer(resp);
         PacketBuilder builder = PacketBuilder.builder();
         builder.body(writer)

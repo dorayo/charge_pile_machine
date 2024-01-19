@@ -169,7 +169,6 @@ public class MachineCNetServer {
                                     }
 
                                     if (log.isDebugEnabled()) {
-                                        log.info("────────────────────────────────────────────────────────");
                                         log.info("YKC channelRead into >>>>>>>>>>>>>>>>>> idCode:{} session:{} address:{}", idCode, Optional.ofNullable(session).isPresent(), remotedAddress);
                                     }
 
