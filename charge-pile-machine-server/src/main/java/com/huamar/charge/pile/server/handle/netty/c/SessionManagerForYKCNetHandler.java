@@ -117,7 +117,7 @@ public class SessionManagerForYKCNetHandler extends SimpleChannelInboundHandler<
             sessionChannelNew.setId(code);
             sessionChannelNew.setType(this.type);
             SessionManager.put(code, sessionChannelNew);
-
+            SessionManager.setLoginTimeNow(channelHandlerContext);
             if (log.isDebugEnabled()) {
                 log.info("YKC 设备认证 存放会话 idCode:{} pileCode:{}", code, idCodeBcdString);
             }

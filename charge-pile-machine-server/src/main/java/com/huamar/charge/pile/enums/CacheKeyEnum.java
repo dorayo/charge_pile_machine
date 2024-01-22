@@ -27,6 +27,10 @@ public enum CacheKeyEnum {
      */
     CHARGE_ORDER_INFO("charge:mc:order_info", "充电中订单信息", Duration.ofHours(30)),
 
+    CHARGE_PILE_AUTH_LOG("charge:mc:auth-log", "设备认证记录", Duration.ofHours(30)),
+
+    CHARGE_PILE_INVALID_CONNECTION("charge:mc:invalid-connection", "设备无效连接", Duration.ofHours(30)),
+
     ;
     private final String code;
 

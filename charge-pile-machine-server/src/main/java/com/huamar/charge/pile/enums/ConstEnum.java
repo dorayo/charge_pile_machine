@@ -17,6 +17,8 @@ public enum ConstEnum {
 
     X_SESSION_ID("X_SESSION_ID", "会话ID"),
 
+    X_LOGIN_TIME("X_LOGIN_TIME", "设备登录时间"),
+
     PROTOCOL_C_PRICE_ORDER_ID("PROTOCOL_C_PRICE_ORDER_ID", "电价单号"),
 
     YKC_CHARGE_PRICE("YKC_CHARGE_PRICE", "YKC 电价信息"),

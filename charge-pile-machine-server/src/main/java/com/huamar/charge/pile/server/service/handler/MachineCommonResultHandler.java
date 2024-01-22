@@ -62,7 +62,7 @@ public class MachineCommonResultHandler implements MachinePacketHandler<DataPack
             String ip = sessionChannel.getIp();
             commonReq = this.reader(packet);
             resCode = String.format("%04X", commonReq.getMsgResult());
-            log.info("通用应答接收，ip={}, idCode:{}, resCode:{}, msgNumber:{}", ip, commonReq.getIdCode(), resCode, commonReq.getMsgNumber());
+            log.info("通用应答-接收，ip={}, idCode:{}, resCode:{}, msgNumber:{}", ip, commonReq.getIdCode(), resCode, commonReq.getMsgNumber());
             PileCommonResultEnum commonResultEnum = PileCommonResultEnum.getByCode(resCode);
             if(Objects.isNull(commonResultEnum)){
                 commonResultEnum = PileCommonResultEnum.UNKNOWN;

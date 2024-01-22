@@ -215,7 +215,7 @@ public class MachineNetServer implements NetServer {
             try {
                 channelFuture.channel().close().sync();
             } catch (InterruptedException exception) {
-                log.info("MachineNetServer channelFuture close error e:{}", exception.getMessage(), exception);
+                log.error("MachineNetServer channelFuture close error e:{}", exception.getMessage(), exception);
             }
         }
         boosGroup.shutdownGracefully();

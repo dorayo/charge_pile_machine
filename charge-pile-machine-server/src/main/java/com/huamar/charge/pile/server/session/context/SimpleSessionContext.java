@@ -8,6 +8,7 @@ import com.huamar.charge.pile.server.session.SessionManager;
 import com.huamar.charge.pile.server.session.SimpleSessionChannel;
 import io.netty.channel.ChannelHandlerContext;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.slf4j.MDC;
 import org.springframework.util.Assert;
@@ -69,7 +70,13 @@ public class SimpleSessionContext implements MachineSessionContext {
             ctx.writeAndFlush(packet).addListener(future -> {
                 log.info("SLX writePacket:{} idCode:{} success:{} case:{}", sessionId, new String(packet.getIdCode()), future.isSuccess(), ExceptionUtils.getMessage(future.cause()));
             });
-        } catch (Exception e) {
+        }
+        catch (IllegalArgumentException e){
+            String[] stackFrames = ExceptionUtils.getStackFrames(e);
+            log.warn("writePacket ERROR:{}", ExceptionUtils.getMessage(e));
+            log.warn("writePacket stackTrace:{}", StringUtils.join(stackFrames, ",", 0, Math.min(stackFrames.length, 3)));
+        }
+        catch (Exception e) {
             log.error("writePacket error", e);
             return false;
         }

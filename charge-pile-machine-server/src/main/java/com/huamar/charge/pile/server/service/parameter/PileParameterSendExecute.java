@@ -43,7 +43,7 @@ public class PileParameterSendExecute implements PileParameterExecute<PileParame
         DataPacket packet = this.packet(command);
         packet.setMsgId(ProtocolCodeEnum.PARAMETER_SEND.codeByte());
         boolean sendCommand = SessionManager.writePacket(packet);
-        log.info("Parameter Send idCode:{} sendCommand:{} ", command.getIdCode(), sendCommand);
+        log.info("远程参数下发 Parameter Send idCode:{}, data:{} ,success:{} ", command.getIdCode(), command, sendCommand);
     }
 
 
@@ -67,7 +67,7 @@ public class PileParameterSendExecute implements PileParameterExecute<PileParame
             String paramData = item.getParamData();
             writer.write(id);
             writer.write(len);
-            writer.write(paramData,len);
+            writer.write(paramData, len);
         });
         return writer;
     }

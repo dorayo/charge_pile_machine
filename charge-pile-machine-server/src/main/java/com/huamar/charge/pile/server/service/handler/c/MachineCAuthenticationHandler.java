@@ -3,6 +3,7 @@ package com.huamar.charge.pile.server.service.handler.c;
 import cn.hutool.core.date.StopWatch;
 import com.huamar.charge.common.common.BCDUtils;
 import com.huamar.charge.common.protocol.c.ProtocolCPacket;
+import com.huamar.charge.common.util.ByteExtUtil;
 import com.huamar.charge.common.util.Cp56Time2aUtil;
 import com.huamar.charge.common.util.HexExtUtil;
 import com.huamar.charge.common.util.netty.NUtils;
@@ -13,6 +14,7 @@ import com.huamar.charge.pile.enums.*;
 import com.huamar.charge.pile.server.service.machine.MachineService;
 import com.huamar.charge.pile.server.service.produce.PileMessageProduce;
 import com.huamar.charge.pile.server.session.SessionManager;
+import com.huamar.charge.pile.server.session.SimpleSessionChannel;
 import com.huamar.charge.pile.utils.binaryBuilder.BinaryBuilders;
 import com.huamar.charge.pile.utils.views.BinaryViews;
 import io.netty.buffer.ByteBuf;
@@ -29,7 +31,9 @@ import org.slf4j.MDC;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.task.TaskExecutor;
 import org.springframework.stereotype.Service;
+import org.springframework.util.Assert;
 
+import java.nio.ByteOrder;
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.time.LocalDateTime;
@@ -88,9 +92,11 @@ public class MachineCAuthenticationHandler {
         byte[] idBody = channelHandlerContext.channel().attr(NAttrKeys.ID_BODY).get();
         String mId = channelHandlerContext.channel().attr(machineId).get();
         final int gunCount = packet.getBody()[8];
+        byte[] orderVBf = packet.getOrderVBf();
+        int loginNumber = ByteExtUtil.bytesToShortUnsignedLE(orderVBf);
 
-        log.info("YKC 终端鉴权 {}，loginNumber={} time={}", BCDUtils.bcdToStr(idBody) ,idBody, LocalDateTime.now());
-        authLog.info("YKC 终端鉴权 {}，loginNumber={} time={}", BCDUtils.bcdToStr(idBody),idBody, LocalDateTime.now());
+        log.info("YKC 终端鉴权:{} loginNumber:{} gunCount:{} time:{}", BCDUtils.bcdToStr(idBody), loginNumber, gunCount, LocalDateTime.now());
+        authLog.info("YKC 终端鉴权:{} loginNumber:{} gunCount:{} time:{}", BCDUtils.bcdToStr(idBody), loginNumber, gunCount, LocalDateTime.now());
 
         ByteBuf bfB = ByteBufAllocator.DEFAULT.heapBuffer();
         bfB.writeBytes(idBody);
@@ -156,12 +162,19 @@ public class MachineCAuthenticationHandler {
                     return;
                 }
 
+                //v2024/01/22 记录登录日志
                 try {
-                    channelHandlerContext.channel().attr(AttributeKey.valueOf(ConstEnum.STATION_ID.getCode())).set(pile.getStationId());
-                    channelHandlerContext.channel().attr(AttributeKey.valueOf(ConstEnum.ELE_CHARG_TYPE.getCode())).set(Integer.parseInt(pile.getElectricType()));
-                }catch (Exception ignored){
-
+                    if(sessionChannel instanceof SimpleSessionChannel){
+                        SimpleSessionChannel simpleSessionChannel = (SimpleSessionChannel) sessionChannel;
+                        simpleSessionChannel.channel().channel().attr(AttributeKey.valueOf(ConstEnum.STATION_ID.getCode())).set(pile.getStationId().toString());
+                        simpleSessionChannel.channel().channel().attr(AttributeKey.valueOf(ConstEnum.ELE_CHARG_TYPE.getCode())).set(Integer.parseInt(pile.getElectricType()));
+                    }
+                    //v2024/01/22 记录登录日志
+                    SessionManager.pileAuthLogSum(sessionChannel);
+                }catch (Exception e){
+                    log.error("pileAuthLogSum error", e);
                 }
+
 
                 PileDTO update = new PileDTO();
                 update.setId(pile.getId());
@@ -169,8 +182,8 @@ public class MachineCAuthenticationHandler {
                 update.setStationId(pile.getStationId());
                 update.setPileCode(pile.getPileCode());
                 pileMessageProduce.send(new MessageData<>(MessageCodeEnum.ELECTRICITY_PRICE, update));
-                this.sendQrCode(channelHandlerContext, gunCount);
                 this.syncTime(channelHandlerContext);
+                this.sendQrCode(channelHandlerContext, gunCount);
             } catch (Exception e) {
                 log.error("YKC 终端鉴权  auth execute error:{}", e.getMessage(), e);
             }
@@ -213,15 +226,16 @@ public class MachineCAuthenticationHandler {
      */
     private void syncTime(ChannelHandlerContext ctx) {
         byte type = (byte) 0x56;
-        byte[] idBody = ctx.channel().attr(NAttrKeys.ID_BODY).get();
-        Integer latestOrderV = ctx.channel().attr(NAttrKeys.PROTOCOL_C_LATEST_ORDER_V).get();
-        latestOrderV++;
-        ctx.channel().attr(NAttrKeys.PROTOCOL_C_LATEST_ORDER_V).set(latestOrderV);
+        String idCode = SessionManager.getIdCode(ctx);
+        Assert.notNull(idCode, "syncTime idCode is null");
+        Short serialNumber = SessionManager.getYKCSerialNumber(ctx);
+        byte[] cp56Time = Cp56Time2aUtil.dateToByte(new Date());
+
         ByteBuf bfB = ByteBufAllocator.DEFAULT.heapBuffer();
-        bfB.writeBytes(idBody);
-        bfB.writeBytes(Cp56Time2aUtil.dateToByte(new Date()));
-        ByteBuf responseB = BinaryBuilders.protocolCLeResponseBuilder(NUtils.nBFToBf(bfB), latestOrderV, type);
-        log.info("YKC syncTime write 0x56 Hex {} ", BinaryViews.bfToHexStr(responseB));
+        bfB.writeBytes(new String(idCode.getBytes(), StandardCharsets.US_ASCII).getBytes());
+        bfB.writeBytes(cp56Time);
+        ByteBuf responseB = BinaryBuilders.protocolCLeResponseBuilder(NUtils.nBFToBf(bfB), ByteExtUtil.shortToBytes(serialNumber, ByteOrder.LITTLE_ENDIAN), type);
+        log.info("YKC syncTime write 0x56 syncTime:{} Hex {} ", Cp56Time2aUtil.toDate(cp56Time), BinaryViews.bfToHexStr(responseB));
 
         ctx.writeAndFlush(responseB).addListener((f) -> {
             if (!f.isSuccess()) {

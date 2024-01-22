@@ -58,7 +58,7 @@ public class PrintDocInfo {
         at.addRow(properties.getHost(), properties.getPort(), properties.getTimeout().getSeconds() + "s", properties.getNetSocketModel());
         at.addRule();
 
-        logger.info(System.getProperty("line.separator") + at.render());
+        logger.info(System.lineSeparator() + at.render());
 
 
         at = new AsciiTable();
@@ -76,6 +76,6 @@ public class PrintDocInfo {
         at.addRow("Swagger Api :", swagger.build().toString());
         at.addRule();
 
-        logger.info(System.getProperty("line.separator") + at.render());
+        logger.info(System.lineSeparator() + at.render());
     }
 }

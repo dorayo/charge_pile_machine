@@ -6,19 +6,19 @@ import com.github.benmanes.caffeine.cache.Cache;
 import com.github.benmanes.caffeine.cache.Caffeine;
 import com.huamar.charge.common.protocol.DataPacket;
 import com.huamar.charge.net.core.SessionChannel;
+import com.huamar.charge.pile.entity.dto.PileLoginLogDTO;
 import com.huamar.charge.pile.entity.dto.mq.MessageData;
-import com.huamar.charge.pile.enums.CacheKeyEnum;
-import com.huamar.charge.pile.enums.ConstEnum;
-import com.huamar.charge.pile.enums.LoggerEnum;
-import com.huamar.charge.pile.enums.MessageCodeEnum;
+import com.huamar.charge.pile.enums.*;
 import com.huamar.charge.pile.server.service.produce.PileMessageProduce;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.util.AttributeKey;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.redisson.api.RAtomicLong;
+import org.redisson.api.RMap;
 import org.redisson.api.RedissonClient;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -27,9 +27,18 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationListener;
 import org.springframework.context.event.ContextRefreshedEvent;
 import org.springframework.lang.NonNull;
+import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.stereotype.Component;
 
+import java.net.InetSocketAddress;
+import java.net.SocketAddress;
+import java.time.Duration;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
+import java.util.HashSet;
 import java.util.Objects;
+import java.util.Set;
+import java.util.concurrent.atomic.AtomicInteger;
 
 
 /**
@@ -56,6 +65,11 @@ public class SessionManager implements ApplicationListener<ContextRefreshedEvent
      * 消息投递
      */
     private static PileMessageProduce pileMessageProduce;
+
+    /**
+     * 异步线程池
+     */
+    private static ThreadPoolTaskExecutor taskExecutor;
 
     /**
      * 根据业务Id获取Session
@@ -105,6 +119,7 @@ public class SessionManager implements ApplicationListener<ContextRefreshedEvent
         redissonClient = applicationContext.getBean(RedissonClient.class);
         sessionContext = applicationContext.getBean(MachineSessionContext.class);
         pileMessageProduce = applicationContext.getBean(PileMessageProduce.class);
+        taskExecutor = applicationContext.getBean(ThreadPoolTaskExecutor.class);
     }
 
     /**
@@ -146,8 +161,29 @@ public class SessionManager implements ApplicationListener<ContextRefreshedEvent
             incremented = 0;
             atomicLong.expire(CacheKeyEnum.MACHINE_MESSAGE_NUM_INCR.getDuration());
         }
+        //noinspection VulnerableCodeUsages
         return Convert.toShort(incremented);
     }
+
+    /**
+     * 获取流水号
+     * @param ctx ctx
+     * @return Short
+     */
+    public static Short getYKCSerialNumber(ChannelHandlerContext ctx){
+        AtomicInteger orderV = ctx.channel().attr(NAttrKeys.SERIAL_NUMBER).get();
+        if(Objects.isNull(orderV)){
+            orderV = new AtomicInteger(0);
+            ctx.channel().attr(NAttrKeys.SERIAL_NUMBER).set(orderV);
+        }
+        int incrementAndGet = orderV.incrementAndGet();
+        if(incrementAndGet >= Short.MAX_VALUE){
+            orderV.set(0);
+            incrementAndGet = orderV.incrementAndGet();
+        }
+        return (short) incrementAndGet;
+    }
+
 
     /**
      * 关闭客户端连接
@@ -201,6 +237,34 @@ public class SessionManager implements ApplicationListener<ContextRefreshedEvent
         return null;
     }
 
+    /**
+     * 获取登录时间
+     * @param ctx ctx
+     * @return String
+     */
+    public static LocalDateTime getLoginTime(ChannelHandlerContext ctx){
+        try {
+            AttributeKey<LocalDateTime> sessionKey = AttributeKey.valueOf(ConstEnum.X_LOGIN_TIME.getCode());
+            return ctx.channel().attr(sessionKey).get();
+        }catch (Exception e){
+            log.error("setLoginTimeNow error:{}", ExceptionUtils.getMessage(e));
+        }
+        return null;
+    }
+
+    /**
+     * 设置登录时间
+     * @param ctx ctx
+     */
+    public static void setLoginTimeNow(ChannelHandlerContext ctx){
+        try {
+            AttributeKey<LocalDateTime> sessionKey = AttributeKey.valueOf(ConstEnum.X_LOGIN_TIME.getCode());
+            ctx.channel().attr(sessionKey).set(LocalDateTime.now());
+        }catch (Exception e){
+            log.error("setLoginTimeNow error:{}", ExceptionUtils.getMessage(e));
+        }
+    }
+
 
     /**
      * 获取 sessionId
@@ -213,6 +277,21 @@ public class SessionManager implements ApplicationListener<ContextRefreshedEvent
             return ctx.channel().attr(var).get();
         }catch (Exception e){
             log.error("getIdCode error:{}", ExceptionUtils.getMessage(e));
+        }
+        return null;
+    }
+
+    /**
+     * 获取 sessionId
+     * @param ctx ctx
+     * @return String
+     */
+    public static String getStationId(ChannelHandlerContext ctx){
+        try {
+            AttributeKey<String> var = AttributeKey.valueOf(ConstEnum.STATION_ID.getCode());
+            return ctx.channel().attr(var).get();
+        }catch (Exception e){
+            log.error("getStationId error:{}", ExceptionUtils.getMessage(e));
         }
         return null;
     }
@@ -235,8 +314,10 @@ public class SessionManager implements ApplicationListener<ContextRefreshedEvent
                 ctx.channel().attr(sessionKey).set(sessionId);
             }
             MDC.put(ConstEnum.X_SESSION_ID.getCode(), sessionId);
-            log.info("{} {} channelActive 连上了服务器", type, ctx.channel().remoteAddress());
-            authLog.info("{} {} channelActive 连上了服务器", type, ctx.channel().remoteAddress());
+            SocketAddress remoteAddress = ctx.channel().remoteAddress();
+            log.info("{} IP:{} channelActive 连上了服务器", type, remoteAddress);
+            authLog.info("{} IP:{} channelActive 连上了服务器", type, remoteAddress);
+
         }catch (Exception e){
             log.error("{} channelActive error:{}", type, ExceptionUtils.getMessage(e), e);
         }finally {
@@ -257,6 +338,7 @@ public class SessionManager implements ApplicationListener<ContextRefreshedEvent
             String idCode = SessionManager.setMDCParam(ctx);
             log.warn("{} channelInactive 连接不活跃 idCode:{} remoteAddress:{}", type, idCode, ctx.channel().remoteAddress());
             authLog.warn("{} channelInactive 连接不活跃 idCode:{} remoteAddress:{}", type, idCode, ctx.channel().remoteAddress());
+            SessionManager.pileOffLineLogSum(idCode, ctx, type);
         }catch (Exception e){
             log.error("{} channelInactive error:{}", type, ExceptionUtils.getMessage(e), e);
             authLog.error("{} channelInactive error:{}", type, ExceptionUtils.getMessage(e), e);
@@ -328,4 +410,154 @@ public class SessionManager implements ApplicationListener<ContextRefreshedEvent
     }
 
 
+    /**
+     * 登陆历史记录
+     * @param pileLoginLogDTO pileLoginLogDTO
+     */
+    public static void pileAuthLogSum(PileLoginLogDTO pileLoginLogDTO){
+        if(Objects.isNull(pileLoginLogDTO)){
+            log.warn("pileAuthLogSum is null");
+            return;
+        }
+
+        if(Objects.isNull(pileLoginLogDTO.getStationId())){
+            pileLoginLogDTO.setStationId(-1);
+        }
+
+        // 获取当前时间
+        LocalDateTime currentTime = LocalDateTime.now();
+        // 获取下一个凌晨的时间（00:00:00）
+        LocalDateTime nextMidnight = currentTime.toLocalDate().plusDays(1).atTime(LocalTime.MIDNIGHT);
+        // 计算当前时间到下一个凌晨的时间差（以秒为单位）
+        long secondsUntilNextMidnight = currentTime.until(nextMidnight, java.time.temporal.ChronoUnit.SECONDS);
+
+        String key = CacheKeyEnum.CHARGE_PILE_AUTH_LOG.joinKey(String.valueOf(pileLoginLogDTO.getStationId()));
+
+        RMap<String, PileLoginLogDTO> map = redissonClient.getMap(key);
+
+        PileLoginLogDTO loginLogDTO = map.get(pileLoginLogDTO.getIdCode());
+        if(Objects.isNull(loginLogDTO)){
+            loginLogDTO = pileLoginLogDTO;
+        }
+
+        loginLogDTO.setConCount(loginLogDTO.getConCount()+1);
+
+        Set<String> ipAddrList = pileLoginLogDTO.getIpAddrList();
+        if(CollectionUtils.isEmpty(ipAddrList)){
+            ipAddrList = new HashSet<>();
+        }
+
+        String ipAddr = loginLogDTO.getLastConIpAddr();
+        if(StringUtils.isNotBlank(ipAddr)){
+            ipAddrList.add(ipAddr);
+        }
+
+        loginLogDTO.setIpAddrList(ipAddrList);
+        loginLogDTO.setAuthStatus(1);
+        loginLogDTO.setStatus(1);
+        map.put(pileLoginLogDTO.getIdCode(), loginLogDTO);
+
+        // 每天清空数据，只保留一天
+        long expireTime = map.remainTimeToLive();
+        if(expireTime < 0){
+            map.expire(Duration.ofSeconds(secondsUntilNextMidnight));
+        }
+    }
+
+
+    /**
+     * 记录设备登录日志
+     *
+     * @param sessionChannel sessionChannel
+     */
+    public static void pileAuthLogSum(SessionChannel sessionChannel){
+        try {
+            if(sessionChannel instanceof SimpleSessionChannel){
+                ChannelHandlerContext ctx = (ChannelHandlerContext) sessionChannel.channel();
+                String idCode = SessionManager.getIdCode(ctx);
+                String stationId = SessionManager.getStationId(ctx);
+                String hostAddress = sessionChannel.remoteAddress().getAddress().getHostAddress();
+                taskExecutor.execute(() -> {
+                    PileLoginLogDTO log = new PileLoginLogDTO();
+                    log.setStationId(Objects.isNull(stationId) ? -1 : Integer.parseInt(stationId));
+                    log.setType(((SimpleSessionChannel) sessionChannel).getType().name());
+                    log.setIdCode(idCode);
+                    log.setLastConTime(LocalDateTime.now());
+                    log.setLastConIpAddr(hostAddress);
+                    SessionManager.pileAuthLogSum(log);
+                });
+            }
+        }catch (Exception e){
+            log.error("pileAuthLogSum error", e);
+        }
+    }
+
+    /**
+     *
+     * 设备离线记录
+     *
+     * @param idCode idCode
+     * @param ctx ctx
+     * @param type type
+     */
+    public static void pileOffLineLogSum(String idCode, ChannelHandlerContext ctx, String type){
+        try {
+            // 获取当前时间
+            LocalDateTime currentTime = LocalDateTime.now();
+            // 获取下一个凌晨的时间（00:00:00）
+            LocalDateTime nextMidnight = currentTime.toLocalDate().plusDays(1).atTime(LocalTime.MIDNIGHT);
+            // 计算当前时间到下一个凌晨的时间差（以秒为单位）
+            long secondsUntilNextMidnight = currentTime.until(nextMidnight, java.time.temporal.ChronoUnit.SECONDS);
+
+            if(StringUtils.isBlank(idCode)){
+                String key = CacheKeyEnum.CHARGE_PILE_INVALID_CONNECTION.joinKey("0");
+                RMap<String, Integer> map = redissonClient.getMap(key);
+                InetSocketAddress inetSocketAddress = (InetSocketAddress) ctx.channel().remoteAddress();
+                String hostAddress = inetSocketAddress.getAddress().getHostAddress();
+                if (StringUtils.isBlank(hostAddress)){
+                    hostAddress = "blank";
+                }
+                Integer conCount = map.get(hostAddress);
+                if(Objects.isNull(conCount)){
+                    conCount = 0;
+                }else {
+                    conCount = conCount + 1;
+                }
+                map.put(hostAddress, conCount);
+
+                // 每天清空数据，只保留一天 !!! 最后执行
+                long expireTime = map.remainTimeToLive();
+                if(expireTime < 0){
+                    map.expire(Duration.ofSeconds(secondsUntilNextMidnight));
+                }
+                authLog.warn("{} channelInactive 连接不活跃,无效链接 idCode:{} remoteAddress:{}", type, idCode, ctx.channel().remoteAddress());
+                return;
+            }
+
+
+            // 进入认证
+            String stationId = SessionManager.getStationId(ctx);
+            InetSocketAddress inetSocketAddress = (InetSocketAddress) ctx.channel().remoteAddress();
+            String hostAddress = inetSocketAddress.getAddress().getHostAddress();
+            if(StringUtils.isBlank(stationId)){
+                stationId = "-1";
+            }
+
+            String key = CacheKeyEnum.CHARGE_PILE_AUTH_LOG.joinKey(stationId);
+            RMap<String, PileLoginLogDTO> map = redissonClient.getMap(key);
+            PileLoginLogDTO loginLogDTO = map.get(idCode);
+            if(Objects.isNull(loginLogDTO)){
+                loginLogDTO = new PileLoginLogDTO();
+                loginLogDTO.setIdCode(idCode);
+                loginLogDTO.setLastConIpAddr(hostAddress);
+                loginLogDTO.setType(type);
+                loginLogDTO.setStationId(Integer.valueOf(stationId));
+                loginLogDTO.setAuthStatus(0);
+            }
+            loginLogDTO.setStatus(0);
+            map.put(idCode, loginLogDTO);
+        }catch (Exception e){
+            log.error("pileOffLineLogSum error:{}", ExceptionUtils.getMessage(e), e);
+        }
+    }
 }

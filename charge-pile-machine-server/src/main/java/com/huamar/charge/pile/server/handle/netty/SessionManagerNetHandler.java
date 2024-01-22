@@ -1,6 +1,5 @@
 package com.huamar.charge.pile.server.handle.netty;
 
-import cn.hutool.core.util.IdUtil;
 import com.huamar.charge.common.common.StringPool;
 import com.huamar.charge.common.protocol.BasePacket;
 import com.huamar.charge.common.protocol.DataPacket;

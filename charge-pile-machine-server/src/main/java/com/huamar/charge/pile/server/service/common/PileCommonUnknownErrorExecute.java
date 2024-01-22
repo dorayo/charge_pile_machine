@@ -37,6 +37,6 @@ public class PileCommonUnknownErrorExecute implements McCommonResultExecute<McCo
     public void execute(McCommonReq command) {
         String hexCodeStr = String.format("%04X", command.getMsgResult());
         log.info("hexCodeStr:{}", hexCodeStr);
-        log.info("通用应答结果处理 CommonResul:{}-{} start ==> command：{}", PileCommonResultEnum.SUCCESS.name(), getCode().getDesc(),JSONParser.jsonString(command));
+        log.info("通用应答-执行结果 result:{}:{} ==> command：{}", PileCommonResultEnum.SUCCESS.name(), getCode().getDesc(),JSONParser.jsonString(command));
     }
 }

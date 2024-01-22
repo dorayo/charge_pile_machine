@@ -25,6 +25,7 @@ import com.huamar.charge.pile.server.service.charge.ChargeInfoService;
 import com.huamar.charge.pile.server.service.command.MessageCommandRespService;
 import com.huamar.charge.pile.server.service.machine.MachineService;
 import com.huamar.charge.pile.server.service.produce.PileMessageProduce;
+import com.huamar.charge.pile.server.session.SessionManager;
 import com.huamar.charge.pile.utils.binaryBuilder.BinaryBuilders;
 import com.huamar.charge.pile.utils.views.BinaryViews;
 import io.netty.buffer.ByteBuf;
@@ -718,6 +719,7 @@ public class MachineCHandlers {
 
             pileMessageProduce.send(messageData);
             log.info("YKC-订单结束事件：{}, data:{}", 0x3b, JSONParser.jsonString(eventPushDTO));
+
         } catch (Exception e) {
             log.error("YKC-订单结束事件 error：sendMessage send error e:{}", ExceptionUtils.getMessage(e), e);
         }finally {

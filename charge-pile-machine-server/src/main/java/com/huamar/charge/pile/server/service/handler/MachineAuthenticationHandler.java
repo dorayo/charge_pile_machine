@@ -22,6 +22,8 @@ import com.huamar.charge.pile.server.service.factory.McCommandFactory;
 import com.huamar.charge.pile.server.service.machine.MachineService;
 import com.huamar.charge.pile.server.service.produce.PileMessageProduce;
 import com.huamar.charge.pile.server.session.SessionManager;
+import com.huamar.charge.pile.server.session.SimpleSessionChannel;
+import io.netty.util.AttributeKey;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
@@ -190,6 +192,19 @@ public class MachineAuthenticationHandler implements MachinePacketHandler<DataPa
 
                 update.setStationId(pile.getStationId());
                 update.setPileCode(pile.getPileCode());
+
+                //v2024/01/22 记录登录日志
+                try {
+                    if(sessionChannel instanceof SimpleSessionChannel){
+                        SimpleSessionChannel simpleSessionChannel = (SimpleSessionChannel) sessionChannel;
+                        simpleSessionChannel.channel().channel().attr(AttributeKey.valueOf(ConstEnum.STATION_ID.getCode())).set(pile.getStationId().toString());
+                        simpleSessionChannel.channel().channel().attr(AttributeKey.valueOf(ConstEnum.ELE_CHARG_TYPE.getCode())).set(Integer.parseInt(pile.getElectricType()));
+                    }
+                    //v2024/01/22 记录登录日志
+                    SessionManager.pileAuthLogSum(sessionChannel);
+                }catch (Exception e){
+                    log.error("pileAuthLogSum error", e);
+                }
 
                 // 二维码下发
                 this.sendQrCode(authResp);
