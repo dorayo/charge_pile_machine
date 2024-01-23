@@ -85,8 +85,8 @@ public class MachineCHeartbeatHandler {
                 }
             }catch (Exception e){
                 String[] stackFrames = ExceptionUtils.getStackFrames(e);
-                log.warn("writePacket error:{}", ExceptionUtils.getMessage(e));
-                log.warn("writePacket stackTrace:{}", StringUtils.join(stackFrames, ",", 0, Math.min(stackFrames.length, 3)));
+                log.warn("heartbeat syncTime error:{}", ExceptionUtils.getMessage(e));
+                log.warn("heartbeat syncTime stackTrace:{}", StringUtils.join(stackFrames, ",", 0, Math.min(stackFrames.length, 3)));
             }
         } catch (Exception e) {
             log.info("YKC 设备心跳包 heartbeat Error:{}", ExceptionUtils.getMessage(e), e);

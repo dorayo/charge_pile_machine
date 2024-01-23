@@ -93,4 +93,9 @@ public class PileDTO implements Serializable {
      */
     private String backlight;
 
+    /**
+     * 备注字段
+     */
+    private String remark;
+
 }

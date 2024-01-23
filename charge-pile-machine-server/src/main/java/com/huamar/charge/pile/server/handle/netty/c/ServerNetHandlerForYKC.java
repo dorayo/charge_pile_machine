@@ -100,16 +100,24 @@ public class ServerNetHandlerForYKC extends SimpleChannelInboundHandler<Protocol
                 machineCHandlers.handler0x3b(cPacket, ctx);
                 break;
 
+            case (byte) 0x9B:
+                machineCHandlers.handler0x9B(cPacket, ctx);
+                break;
+
+            case (byte) 0x59:
+                machineCHandlers.handler0x59(cPacket, ctx);
+                break;
+
+            case (byte) 0xF1:
+                machineCHandlers.handler0xF1(cPacket, ctx);
+                break;
+
             case (byte) 0x63:
             case (byte) 0x91:
             case (byte) 0x92:
             case (byte) 0x93:
             case (byte) 0x94:
-            case (byte) 0x9B:
-                //  qrcode set response
-
                 log.error("YCK 不明协议类型，请关注 type={}", HexExtUtil.encodeHexStr(cPacket.getBodyType()));
-                machineCHandlers.handler0x9B(cPacket, ctx);
                 break;
         }
     }

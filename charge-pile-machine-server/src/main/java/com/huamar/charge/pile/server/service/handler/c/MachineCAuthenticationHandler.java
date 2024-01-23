@@ -24,6 +24,7 @@ import io.netty.channel.ChannelHandlerContext;
 import io.netty.util.AttributeKey;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -183,7 +184,7 @@ public class MachineCAuthenticationHandler {
                 update.setPileCode(pile.getPileCode());
                 pileMessageProduce.send(new MessageData<>(MessageCodeEnum.ELECTRICITY_PRICE, update));
                 this.syncTime(channelHandlerContext);
-                this.sendQrCode(channelHandlerContext, gunCount);
+                this.sendQrCode(channelHandlerContext, gunCount, pile);
             } catch (Exception e) {
                 log.error("YKC 终端鉴权  auth execute error:{}", e.getMessage(), e);
             }
@@ -194,27 +195,79 @@ public class MachineCAuthenticationHandler {
     /**
      * 二维码下发
      */
-    private void sendQrCode(ChannelHandlerContext ctx, int gunCount) {
-        byte type = (byte) 0x9c;
-        String url = machineService.getQrCode();
-        byte[] urlB = url.getBytes(StandardCharsets.US_ASCII);
-        byte urlLen = (byte) urlB.length;
-        for (int i = 0; i <= gunCount; i++) {
-            Integer latestOrderV = ctx.channel().attr(NAttrKeys.PROTOCOL_C_LATEST_ORDER_V).get();
-            if(Objects.isNull(latestOrderV)){
-                latestOrderV = 0;
-            }
-            latestOrderV++;
-            ctx.channel().attr(NAttrKeys.PROTOCOL_C_LATEST_ORDER_V).set(latestOrderV);
+    private void sendQrCode(ChannelHandlerContext ctx, int gunCount, PileDTO pileDTO) {
+        String version = pileDTO.getRemark();
+        if(StringUtils.contains(version, "易电创新")){
+            String qrCode =  "https://chcdzsm.lychxny.com?no=4710";
+            byte type = (byte) 0xF0;
+            Short serialNumber = SessionManager.getYKCSerialNumber(ctx);
+            byte[] idBody = ctx.channel().attr(NAttrKeys.ID_BODY).get();
+            byte[] commandV = ByteExtUtil.shortToBytes(serialNumber, ByteOrder.LITTLE_ENDIAN);
+
+            byte[] urlB = qrCode.getBytes(StandardCharsets.US_ASCII);
             ByteBuf bfB = ByteBufAllocator.DEFAULT.heapBuffer();
-            bfB.writeByte(i);
-            bfB.writeByte(urlLen);
+            bfB.writeBytes(idBody);
+            bfB.writeByte(1);
+            bfB.writeByte(urlB.length);
             bfB.writeBytes(urlB);
-            ByteBuf responseB = BinaryBuilders.protocolCLeResponseBuilder(NUtils.nBFToBf(bfB), latestOrderV, type);
-            log.info("YKC sendQrCode write 0x9c {} ", BinaryViews.bfToHexStr(responseB));
+            ByteBuf responseB = BinaryBuilders.protocolCLeResponseBuilder(NUtils.nBFToBf(bfB), commandV, type);
+            log.info("YKC 0xF0 sendQrCode hex{} ", BinaryViews.bfToHexStr(responseB));
+            log.info("YKC 0xF0 易电创新 sendQrCode:{} ", qrCode);
             ctx.writeAndFlush(responseB).addListener((f) -> {
                 if (!f.isSuccess()) {
-                    log.error("YKC sendQrCode write error:{}", ExceptionUtils.getMessage(f.cause()), f.cause());
+                    log.error("YKC 0xF0 sendQrCode write error:{}", ExceptionUtils.getMessage(f.cause()), f.cause());
+                }
+            });
+            return;
+        }
+
+        if(StringUtils.contains(version, "欣瑞达")){
+            byte type = (byte) 0x5A;
+            byte[] idBody = ctx.channel().attr(NAttrKeys.ID_BODY).get();
+            for (int i = 0; i <= gunCount; i++) {
+                String idCode = SessionManager.getIdCode(ctx);
+                String qrCode =  "https://chcdzsm.lychxny.com?no=" + idCode + String.format("%02d", i + 1) + "&end=";
+                // 补零到指定长度
+                qrCode = String.format("%-" + 150 + "s", qrCode).replace(' ', '0');
+                byte[] urlBytes = qrCode.getBytes(StandardCharsets.US_ASCII);
+
+                Short serialNumber = SessionManager.getYKCSerialNumber(ctx);
+                byte[] commandV = ByteExtUtil.shortToBytes(serialNumber, ByteOrder.LITTLE_ENDIAN);
+                ByteBuf bfB = ByteBufAllocator.DEFAULT.heapBuffer();
+                bfB.writeBytes(idBody);
+                bfB.writeByte(i + 1);
+                bfB.writeBytes(urlBytes);
+                ByteBuf responseB = BinaryBuilders.protocolCLeResponseBuilder(NUtils.nBFToBf(bfB), commandV, type);
+                log.info("YKC 0x5A sendQrCode hex{} ", BinaryViews.bfToHexStr(responseB));
+                log.info("YKC 0x5A 欣瑞达 sendQrCode:{} ", qrCode);
+                ctx.writeAndFlush(responseB).addListener((f) -> {
+                    if (!f.isSuccess()) {
+                        log.error("YKC 0x5A sendQrCode error:{}", ExceptionUtils.getMessage(f.cause()), f.cause());
+                    }
+                });
+            }
+            return;
+        }
+
+
+        byte type = (byte) 0x9c;
+        for (int i = 0; i <= gunCount; i++) {
+            String idCode = SessionManager.getIdCode(ctx);
+            String qrCode =  "https://chcdzsm.lychxny.com?no=" + idCode + String.format("%02d", i + 1) + "&end=0";
+            byte[] urlBytes = qrCode.getBytes(StandardCharsets.US_ASCII);
+
+            Short serialNumber = SessionManager.getYKCSerialNumber(ctx);
+            byte[] commandV = ByteExtUtil.shortToBytes(serialNumber, ByteOrder.LITTLE_ENDIAN);
+            ByteBuf bfB = ByteBufAllocator.DEFAULT.heapBuffer();
+            bfB.writeByte(i + 1);
+            bfB.writeByte(urlBytes.length);
+            bfB.writeBytes(urlBytes);
+            ByteBuf responseB = BinaryBuilders.protocolCLeResponseBuilder(NUtils.nBFToBf(bfB), commandV, type);
+            log.info("YKC 0x9c sendQrCode hex{} ", BinaryViews.bfToHexStr(responseB));
+            log.info("YKC 0x9c 默认 sendQrCode:{} ", qrCode);
+            ctx.writeAndFlush(responseB).addListener((f) -> {
+                if (!f.isSuccess()) {
+                    log.error("YKC 0x9c sendQrCode error:{}", ExceptionUtils.getMessage(f.cause()), f.cause());
                 }
             });
         }

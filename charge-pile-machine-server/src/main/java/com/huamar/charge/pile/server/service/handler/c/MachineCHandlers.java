@@ -429,9 +429,9 @@ public class MachineCHandlers {
                 TimeUnit.MILLISECONDS.sleep(100);
             }
             if(Objects.isNull(price)){
-                Integer station = (Integer) ctx.channel().attr(AttributeKey.valueOf(ConstEnum.STATION_ID.getCode())).get();
+                String station = (String) ctx.channel().attr(AttributeKey.valueOf(ConstEnum.STATION_ID.getCode())).get();
                 Integer ele = (Integer) ctx.channel().attr(AttributeKey.valueOf(ConstEnum.ELE_CHARG_TYPE.getCode())).get();
-                price = chargeInfoService.getPriceInfoForCache(station, ele);
+                price = chargeInfoService.getPriceInfoForCache(Integer.valueOf(station), ele);
             }
 
 
@@ -504,9 +504,40 @@ public class MachineCHandlers {
     public void handler0x9B(ProtocolCPacket packet, ChannelHandlerContext ctx) {
         try {
             byte[] body = packet.getBody();
-            log.info("handler0x9B idCode:{} set gun {}={} ctx:{}", packet.getId(), body[7], body[8], ctx.name());
+            log.info("QR Code ack handler 0x9B idCode:{} gun:{} ok:{} ctx:{}", packet.getId(), body[7], body[8], ctx.name());
         } catch (Exception e) {
-            log.error("sendMessage send error e:{}", e.getMessage(), e);
+            log.error("handler 0x9B error e:{}", e.getMessage(), e);
+        }
+    }
+
+    /**
+     * Handler 0xF1 二维码下发
+     *
+     * @param packet the packet
+     * @param ctx    the ctx
+     */
+    public void handler0xF1(ProtocolCPacket packet, ChannelHandlerContext ctx) {
+        try {
+            byte[] body = packet.getBody();
+            log.info("QR Code ack handler 0xF1 idCode:{} ok:{} ctx:{}", packet.getId(), body[7], ctx.name());
+        } catch (Exception e) {
+            log.error("QR Code ack handler0xF1 error e:{}", e.getMessage(), e);
+        }
+    }
+
+
+    /**
+     * Handler 0x59 二维码下发
+     *
+     * @param packet the packet
+     * @param ctx    the ctx
+     */
+    public void handler0x59(ProtocolCPacket packet, ChannelHandlerContext ctx) {
+        try {
+            byte[] body = packet.getBody();
+            log.info("QR Code ack handler 0x59 idCode:{} gun:{} ok:{} ctx:{}", packet.getId(), body[7], body[8], ctx.name());
+        } catch (Exception e) {
+            log.error("QR Code ack handler0xF1 error e:{}", e.getMessage(), e);
         }
     }
 
@@ -536,16 +567,16 @@ public class MachineCHandlers {
             jsonLog.put("orderNumber", orderNumber);
 
             long firstPrice = BinaryViews.intViewLe(oldBody, 50);
-            jsonLog.put("firstPrice", firstPrice);
+            jsonLog.put("priceJ", firstPrice);
 
             long secondPrice = BinaryViews.intViewLe(oldBody, 50 + 16);
-            jsonLog.put("secondPrice", secondPrice);
+            jsonLog.put("priceF", secondPrice);
 
             long thirdPrice = BinaryViews.intViewLe(oldBody, 50 + 16 * 2);
-            jsonLog.put("thirdPrice", thirdPrice);
+            jsonLog.put("priceP", thirdPrice);
 
             long forthPrice = BinaryViews.intViewLe(oldBody, 50 + 16 * 3);
-            jsonLog.put("forthPrice", forthPrice);
+            jsonLog.put("priceG", forthPrice);
 
             // 旧版本金额读取
             int totalPriceStartIndex = bodyLen - 8 - 1 - 7 - 1 - 17 - 4;
@@ -650,9 +681,9 @@ public class MachineCHandlers {
                         TimeUnit.MILLISECONDS.sleep(100);
                     }
                     if(Objects.isNull(price)){
-                        Integer station = (Integer) ctx.channel().attr(AttributeKey.valueOf(ConstEnum.STATION_ID.getCode())).get();
+                        String station = (String) ctx.channel().attr(AttributeKey.valueOf(ConstEnum.STATION_ID.getCode())).get();
                         Integer ele = (Integer) ctx.channel().attr(AttributeKey.valueOf(ConstEnum.ELE_CHARG_TYPE.getCode())).get();
-                        price = chargeInfoService.getPriceInfoForCache(station, ele);
+                        price = chargeInfoService.getPriceInfoForCache(Integer.valueOf(station), ele);
                     }
 
                     Assert.notNull(price, "YKCChargePrice is null");

@@ -1,5 +1,7 @@
 package com.huamar.charge.pile.server.service.receiver.execute;
 
+import cn.hutool.core.util.ByteUtil;
+import com.huamar.charge.common.util.ByteExtUtil;
 import com.huamar.charge.common.util.JSONParser;
 import com.huamar.charge.common.util.netty.NUtils;
 import com.huamar.charge.pile.entity.dto.command.McChargeCommandDTO;
@@ -54,14 +56,18 @@ public class PileStopChargeExecute implements PileMessageExecute {
         log.info("YKC 下发结束充电 idCode:{}, gunCode:{}", chargeCommand.getIdCode(), chargeCommand.getGunSort());
         byte type = 0x36;
         SimpleSessionChannel session = (SimpleSessionChannel) SessionManager.get(idCode);
-        Integer latestOrderV = session.channel().channel().attr(NAttrKeys.PROTOCOL_C_LATEST_ORDER_V).get();
-        latestOrderV++;
-        session.channel().channel().attr(NAttrKeys.PROTOCOL_C_LATEST_ORDER_V).set(latestOrderV);
+//        Integer latestOrderV = session.channel().channel().attr(NAttrKeys.PROTOCOL_C_LATEST_ORDER_V).get();
+//        latestOrderV++;
+
+        Short number = NAttrKeys.getSerialNumber(session);
+        byte[] serialNumber = ByteExtUtil.shortToBytes(number, ByteUtil.DEFAULT_ORDER);
+
+//        session.channel().channel().attr(NAttrKeys.PROTOCOL_C_LATEST_ORDER_V).set(latestOrderV);
         byte[] idBody = session.channel().channel().attr(NAttrKeys.ID_BODY).get();
         ByteBuf responseBody = ByteBufAllocator.DEFAULT.heapBuffer(7 + 1);
         responseBody.writeBytes(idBody);
         responseBody.writeByte(chargeCommand.getGunSort());
-        ByteBuf response = BinaryBuilders.protocolCLeResponseBuilder(NUtils.nBFToBf(responseBody), latestOrderV, type);
+        ByteBuf response = BinaryBuilders.protocolCLeResponseBuilder(NUtils.nBFToBf(responseBody), serialNumber, type);
         log.info("YKC 下发结束充电 send 停机0x36 body={}", BinaryViews.bfToHexStr(response));
         session.channel().writeAndFlush(response).addListener((f) -> {
             if (f.isSuccess()) {
