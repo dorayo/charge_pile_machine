@@ -40,7 +40,7 @@ public enum ProtocolCodeEnum {
 
 
     // 国花协议 >>>>>>>>>>>>>>>>>>>
-    AUTH_B("b:32", "终端鉴权 (0x33)"),
+    AUTH_B("b:32", "终端鉴权 (0x32)"),
 
     HEART_BEAT_B("b:31", "终端心跳 (0x31)"),
 

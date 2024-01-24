@@ -101,8 +101,8 @@ public class MachineBAuthenticationHandler implements MachinePacketHandler<DataP
         InetSocketAddress remoteAddress = sessionChannel.remoteAddress();
         MachineAuthenticationReqDTO reqDTO = this.reader(packet);
         String idCode = reqDTO.getIdCode();
-        log.info("终端鉴权（GH） idCode:{}, remoteAddress:{}, loginNumber={}, time={}", idCode, remoteAddress, reqDTO.getLoginNumber(), reqDTO.getTerminalTime());
-        authLog.info("终端鉴权（GH） idCode:{}, remoteAddress:{}, loginNumber={}, time={}", idCode, remoteAddress, reqDTO.getLoginNumber(), reqDTO.getTerminalTime());
+        log.info("GH 终端鉴权 idCode:{}, remoteAddress:{}, loginNumber={}, time={}", idCode, remoteAddress, reqDTO.getLoginNumber(), reqDTO.getTerminalTime());
+        authLog.info("GH 终端鉴权 idCode:{}, remoteAddress:{}, loginNumber={}, time={}", idCode, remoteAddress, reqDTO.getLoginNumber(), reqDTO.getTerminalTime());
 
         McAuthResp authResp = new McAuthResp();
         authResp.setTime(BCDUtils.bcdTime());
@@ -132,27 +132,27 @@ public class MachineBAuthenticationHandler implements MachinePacketHandler<DataP
                     TimeUnit.MILLISECONDS.sleep(300);
                     pile = machineService.getCache(idCode);
                     boolean nonNull = Objects.nonNull(pile);
-                    log.warn("终端鉴权 （GH） auth wait pile time await:{} success:{}", System.currentTimeMillis() - startTime, nonNull);
-                    authLog.warn("终端鉴权 （GH） auth wait pile time await:{} success:{}", System.currentTimeMillis() - startTime, nonNull);
+                    log.warn("GH 终端鉴权 auth wait pile time await:{} success:{}", System.currentTimeMillis() - startTime, nonNull);
+                    authLog.warn("GH 终端鉴权 auth wait pile time await:{} success:{}", System.currentTimeMillis() - startTime, nonNull);
                     if (nonNull) {
                         break;
                     }
                 }
                 stopWatch.stop();
-                log.info("终端鉴权 （GH）auth pile isSuccess:{}, time:{}", Optional.ofNullable(pile).isPresent(), stopWatch.getTotalTimeSeconds());
-                authLog.info("终端鉴权 （SLX）auth pile isSuccess:{}, time:{}", Optional.ofNullable(pile).isPresent(), stopWatch.getTotalTimeSeconds());
+                log.info("GH 终端鉴权 auth pile isSuccess:{}, time:{}", Optional.ofNullable(pile).isPresent(), stopWatch.getTotalTimeSeconds());
+                authLog.info("GH 终端鉴权 auth pile isSuccess:{}, time:{}", Optional.ofNullable(pile).isPresent(), stopWatch.getTotalTimeSeconds());
 
                 // 多次鉴权并发问题
                 // 多次鉴权并发问题
                 Object auth = sessionChannel.getAttribute("auth");
                 if (Objects.nonNull(auth)) {
-                    log.info("终端鉴权 （GH） pile auth session attribute:{}", auth);
-                    authLog.info("终端鉴权 （GH） pile auth session attribute:{}", auth);
+                    log.info("GH 终端鉴权 pile auth session attribute:{}", auth);
+                    authLog.info("GH 终端鉴权 pile auth session attribute:{}", auth);
                 }
 
                 if (Objects.isNull(pile)) {
-                    log.info("终端鉴权失败 （GH） pile auth session attribute:{}", auth);
-                    authLog.info("终端鉴权失败 （GH） pile auth session attribute:{}", auth);
+                    log.info("GH 终端鉴权 失败  pile auth session attribute:{}", auth);
+                    authLog.info("终端鉴权失败  pile auth session attribute:{}", auth);
                     authResp.setStatus(MachineAuthStatus.TERMINAL_NOT_REGISTER.getCode());
                     answerExecute.execute(authResp, sessionChannel);
                     SessionManager.close(sessionChannel);
@@ -182,9 +182,8 @@ public class MachineBAuthenticationHandler implements MachinePacketHandler<DataP
                 }
 
                 // 私有加密逻辑
-                this.encryptionSecretKey(reqDTO, authResp);
-                authResp.setStatus(MachineAuthStatus.SUCCESS.getCode());
-                answerExecute.execute(authResp, sessionChannel);
+                // v2024/01/24 去除加密逻辑
+                //this.encryptionSecretKey(reqDTO, authResp);
                 // 标记此连接鉴权成功
                 sessionChannel.setAttribute("auth", "ok");
 
