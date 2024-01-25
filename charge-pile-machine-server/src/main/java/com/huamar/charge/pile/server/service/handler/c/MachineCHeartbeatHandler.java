@@ -9,6 +9,7 @@ import com.huamar.charge.pile.entity.dto.mq.MessageData;
 import com.huamar.charge.pile.entity.dto.platform.PileHeartbeatDTO;
 import com.huamar.charge.pile.enums.ConstEnum;
 import com.huamar.charge.pile.enums.MessageCodeEnum;
+import com.huamar.charge.pile.enums.NAttrKeys;
 import com.huamar.charge.pile.server.service.produce.PileMessageProduce;
 import com.huamar.charge.pile.server.session.SessionManager;
 import com.huamar.charge.pile.utils.binaryBuilder.BinaryBuilders;
@@ -109,16 +110,17 @@ public class MachineCHeartbeatHandler {
     @SuppressWarnings("DuplicatedCode")
     public void syncTime(ChannelHandlerContext ctx) {
         byte type = (byte) 0x56;
-        String idCode = SessionManager.getIdCode(ctx);
+        byte[] idBody = ctx.channel().attr(NAttrKeys.ID_BODY).get();
+        String idCode = new String(idBody, StandardCharsets.US_ASCII);
         Assert.notNull(idCode, "syncTime idCode is null");
         Short serialNumber = SessionManager.getYKCSerialNumber(ctx);
         byte[] cp56Time = Cp56Time2aUtil.dateToByte(new Date());
 
         ByteBuf bfB = ByteBufAllocator.DEFAULT.heapBuffer();
-        bfB.writeBytes(new String(idCode.getBytes(), StandardCharsets.US_ASCII).getBytes());
+        bfB.writeBytes(idBody);
         bfB.writeBytes(cp56Time);
         ByteBuf responseB = BinaryBuilders.protocolCLeResponseBuilder(NUtils.nBFToBf(bfB), ByteExtUtil.shortToBytes(serialNumber, ByteOrder.LITTLE_ENDIAN), type);
-        String dateStr = DateFormatUtils.format(Cp56Time2aUtil.toDate(cp56Time), "yyyy-MM-dd'T'HH:mm:ss");
+        String dateStr = DateFormatUtils.format(Cp56Time2aUtil.toDate(cp56Time), "yyyy-MM-dd HH:mm:ss");
         log.info("YKC Heartbeat syncTime write 0x56 serialNumber:{} syncTime:{} Hex {} ", serialNumber, dateStr, BinaryViews.bfToHexStr(responseB));
 
         ctx.writeAndFlush(responseB).addListener((f) -> {
@@ -127,5 +129,4 @@ public class MachineCHeartbeatHandler {
             }
         });
     }
-
 }

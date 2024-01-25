@@ -10,6 +10,8 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
+import java.nio.charset.StandardCharsets;
+
 /**
  * 远程控制执行-充电控制
  * 2023/07/24
@@ -55,7 +57,7 @@ public class McQrCodeCommandExecute implements McCommandExecute<McQrCodeCommandD
     public McCommandDTO convert(McQrCodeCommandDTO command) {
         DataPacketWriter writer = new DataPacketWriter();
         writer.write(command.getUrlLength());
-        writer.write(command.getUrl(), command.getUrlLength());
+        writer.write(command.getUrl().getBytes(StandardCharsets.US_ASCII));
 
         McCommandEnum commandEnum = getCode();
         short typeCode = Short.parseShort(commandEnum.getCode());

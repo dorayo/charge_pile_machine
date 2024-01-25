@@ -119,6 +119,9 @@ public class ServerNetHandlerForYKC extends SimpleChannelInboundHandler<Protocol
             case (byte) 0x94:
                 log.error("YCK 不明协议类型，请关注 type={}", HexExtUtil.encodeHexStr(cPacket.getBodyType()));
                 break;
+            default:
+                log.error("YCK 不明协议，请关注 type={}", HexExtUtil.encodeHexStr(cPacket.getBodyType()));
+                break;
         }
     }
 

@@ -100,7 +100,7 @@
 					<cleanHistoryOnStart>false</cleanHistoryOnStart>
 					<maxFileSize>64MB</maxFileSize>
 					<totalSizeCap>128MB</totalSizeCap>
-					<maxHistory>7</maxHistory>
+					<maxHistory>3</maxHistory>
 				</rollingPolicy>
 			
 			</appender>

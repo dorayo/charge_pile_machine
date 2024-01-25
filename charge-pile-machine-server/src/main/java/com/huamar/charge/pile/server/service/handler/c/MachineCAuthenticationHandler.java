@@ -24,6 +24,7 @@ import io.netty.channel.ChannelHandlerContext;
 import io.netty.util.AttributeKey;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringEscapeUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.slf4j.Logger;
@@ -198,7 +199,7 @@ public class MachineCAuthenticationHandler {
     private void sendQrCode(ChannelHandlerContext ctx, int gunCount, PileDTO pileDTO) {
         String version = pileDTO.getRemark();
         if(StringUtils.contains(version, "易电创新")){
-            String qrCode =  "https://chcdzsm.lychxny.com?no=4710";
+            String qrCode =  "http://weixin.qq.com/r/dBGEnM3E3JCjrYn-90Rm?pileId=";
             byte type = (byte) 0xF0;
             Short serialNumber = SessionManager.getYKCSerialNumber(ctx);
             byte[] idBody = ctx.channel().attr(NAttrKeys.ID_BODY).get();
@@ -226,7 +227,7 @@ public class MachineCAuthenticationHandler {
             byte[] idBody = ctx.channel().attr(NAttrKeys.ID_BODY).get();
             for (int i = 0; i <= gunCount; i++) {
                 String idCode = SessionManager.getIdCode(ctx);
-                String qrCode =  "https://chcdzsm.lychxny.com?no=" + idCode + String.format("%02d", i + 1) + "&end=";
+                String qrCode =  "http://weixin.qq.com/r/dBGEnM3E3JCjrYn-90Rm?xDatetime=20231023&pileId=" + idCode + String.format("%02d", i + 1) + "&end=";
                 // 补零到指定长度
                 qrCode = String.format("%-" + 150 + "s", qrCode).replace(' ', '0');
                 byte[] urlBytes = qrCode.getBytes(StandardCharsets.US_ASCII);
@@ -253,14 +254,15 @@ public class MachineCAuthenticationHandler {
         byte type = (byte) 0x9c;
         for (int i = 0; i <= gunCount; i++) {
             String idCode = SessionManager.getIdCode(ctx);
-            String qrCode =  "https://chcdzsm.lychxny.com?no=" + idCode + String.format("%02d", i + 1) + "&end=0";
+            String qrCode =  "http://weixin.qq.com/r/dBGEnM3E3JCjrYn-90Rm?&pileId=" + idCode + String.format("%02d", i + 1);
             byte[] urlBytes = qrCode.getBytes(StandardCharsets.US_ASCII);
 
             Short serialNumber = SessionManager.getYKCSerialNumber(ctx);
             byte[] commandV = ByteExtUtil.shortToBytes(serialNumber, ByteOrder.LITTLE_ENDIAN);
             ByteBuf bfB = ByteBufAllocator.DEFAULT.heapBuffer();
             bfB.writeByte(i + 1);
-            bfB.writeByte(urlBytes.length);
+            bfB.writeShortLE(urlBytes.length);
+
             bfB.writeBytes(urlBytes);
             ByteBuf responseB = BinaryBuilders.protocolCLeResponseBuilder(NUtils.nBFToBf(bfB), commandV, type);
             log.info("YKC 0x9c sendQrCode hex{} ", BinaryViews.bfToHexStr(responseB));
@@ -279,13 +281,14 @@ public class MachineCAuthenticationHandler {
      */
     private void syncTime(ChannelHandlerContext ctx) {
         byte type = (byte) 0x56;
-        String idCode = SessionManager.getIdCode(ctx);
+        byte[] idBody = ctx.channel().attr(NAttrKeys.ID_BODY).get();
+        String idCode = new String(idBody, StandardCharsets.US_ASCII);
         Assert.notNull(idCode, "syncTime idCode is null");
         Short serialNumber = SessionManager.getYKCSerialNumber(ctx);
         byte[] cp56Time = Cp56Time2aUtil.dateToByte(new Date());
 
         ByteBuf bfB = ByteBufAllocator.DEFAULT.heapBuffer();
-        bfB.writeBytes(new String(idCode.getBytes(), StandardCharsets.US_ASCII).getBytes());
+        bfB.writeBytes(idBody);
         bfB.writeBytes(cp56Time);
         ByteBuf responseB = BinaryBuilders.protocolCLeResponseBuilder(NUtils.nBFToBf(bfB), ByteExtUtil.shortToBytes(serialNumber, ByteOrder.LITTLE_ENDIAN), type);
         log.info("YKC syncTime write 0x56 syncTime:{} Hex {} ", Cp56Time2aUtil.toDate(cp56Time), BinaryViews.bfToHexStr(responseB));
