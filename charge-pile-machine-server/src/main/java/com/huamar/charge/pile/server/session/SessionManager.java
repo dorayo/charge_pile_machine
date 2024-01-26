@@ -397,6 +397,7 @@ public class SessionManager implements ApplicationListener<ContextRefreshedEvent
      */
     @SuppressWarnings("DuplicatedCode")
     public static void closeCtx(ChannelHandlerContext ctx, String type) {
+        authLog.error("{} SessionManager closeCtx channel close", type);
         // 防止session 关闭不执行，始终执行一次
         ctx.channel().close().addListener(future -> {
             authLog.error("{} SessionManager ctx channel close:{} ", type, future.isSuccess(), future.cause());

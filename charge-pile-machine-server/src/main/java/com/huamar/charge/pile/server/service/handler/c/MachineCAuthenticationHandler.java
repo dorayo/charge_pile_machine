@@ -24,7 +24,6 @@ import io.netty.channel.ChannelHandlerContext;
 import io.netty.util.AttributeKey;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.StringEscapeUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.slf4j.Logger;
@@ -227,7 +226,7 @@ public class MachineCAuthenticationHandler {
             byte[] idBody = ctx.channel().attr(NAttrKeys.ID_BODY).get();
             for (int i = 0; i <= gunCount; i++) {
                 String idCode = SessionManager.getIdCode(ctx);
-                String qrCode =  "http://weixin.qq.com/r/dBGEnM3E3JCjrYn-90Rm?xDatetime=20231023&pileId=" + idCode + String.format("%02d", i + 1) + "&end=";
+                String qrCode =  "http://weixin.qq.com/r/dBGEnM3E3JCjrYn-90Rm?pileId=" + idCode + String.format("%02d", i + 1) + "&end=";
                 // 补零到指定长度
                 qrCode = String.format("%-" + 150 + "s", qrCode).replace(' ', '0');
                 byte[] urlBytes = qrCode.getBytes(StandardCharsets.US_ASCII);

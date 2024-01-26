@@ -166,27 +166,4 @@ public class CRC16Util {
         crcBytes[1] = (byte) (crc & 0xFF);   // 低字节
         return crcBytes;
     }
-
-
-
-
-    public static void main(String[] args) {
-
-
-        byte[] data = HexExtUtil.decodeHex("6300000147112020200920000210315e000000000000000000000000000000000000");
-        int crc = calculate(data);
-        System.out.printf("CRC: %s", crc);
-
-        String hexString = "68226300000147112020200920000210315e00000000000000000000000000000000000075ac";
-
-        ByteBuf byteBuf = ByteBufAllocator.DEFAULT.buffer(256);
-        byteBuf.writeBytes(HexExtUtil.decodeHex("75ac"));
-
-        byte[] lastTwoBytes = new byte[2];
-//        byteBuf.getBytes(byteBuf.readableBytes() - 2, lastTwoBytes);
-//        System.out.println(Integer.toHexString(lastTwoBytes[0]) + Integer.toHexString(lastTwoBytes[1]));
-        System.out.println();
-        System.out.printf("CRC: %s", byteBuf.readUnsignedShortLE());
-
-    }
 }

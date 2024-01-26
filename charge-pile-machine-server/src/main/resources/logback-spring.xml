@@ -70,10 +70,10 @@
 		<file>${LOG_PATH}/${LOG_FILE_NAME}.log</file>
 		<rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
 			<fileNamePattern>${LOG_PATH}/${LOG_FILE_NAME}-%d{yyyy-MM-dd}.%i.log</fileNamePattern>
-			<cleanHistoryOnStart>false</cleanHistoryOnStart>
+			<cleanHistoryOnStart>true</cleanHistoryOnStart>
 			<maxFileSize>128MB</maxFileSize>
 			<totalSizeCap>5GB</totalSizeCap>
-			<maxHistory>30</maxHistory>
+			<maxHistory>7</maxHistory>
 		</rollingPolicy>
 	</appender>
 	
@@ -97,10 +97,10 @@
 				<file>${LOG_PATH}/pile_${idCode}.log</file>
 				<rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
 					<fileNamePattern>${LOG_PATH}/%d/pile_${idCode}_%i.log</fileNamePattern>
-					<cleanHistoryOnStart>false</cleanHistoryOnStart>
+					<cleanHistoryOnStart>true</cleanHistoryOnStart>
 					<maxFileSize>64MB</maxFileSize>
 					<totalSizeCap>128MB</totalSizeCap>
-					<maxHistory>3</maxHistory>
+					<maxHistory>2</maxHistory>
 				</rollingPolicy>
 			
 			</appender>
@@ -127,8 +127,8 @@
 				<file>${LOG_PATH}/pile_heart_${idCode}.log</file>
 				<rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
 					<fileNamePattern>${LOG_PATH}/%d/pile_heart_${idCode}_%i.log</fileNamePattern>
-					<cleanHistoryOnStart>false</cleanHistoryOnStart>
-					<maxFileSize>16MB</maxFileSize>
+					<cleanHistoryOnStart>true</cleanHistoryOnStart>
+					<maxFileSize>32MB</maxFileSize>
 					<totalSizeCap>32MB</totalSizeCap>
 					<maxHistory>1</maxHistory>
 				</rollingPolicy>
@@ -157,10 +157,10 @@
 				<file>${LOG_PATH}/pile_packet_${idCode}.log</file>
 				<rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
 					<fileNamePattern>${LOG_PATH}/%d/pile_packet_${idCode}_%i.log</fileNamePattern>
-					<cleanHistoryOnStart>false</cleanHistoryOnStart>
-					<maxFileSize>16MB</maxFileSize>
+					<cleanHistoryOnStart>true</cleanHistoryOnStart>
+					<maxFileSize>32MB</maxFileSize>
 					<totalSizeCap>32MB</totalSizeCap>
-					<maxHistory>3</maxHistory>
+					<maxHistory>1</maxHistory>
 				</rollingPolicy>
 			</appender>
 		</sift>

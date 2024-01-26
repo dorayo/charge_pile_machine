@@ -74,6 +74,7 @@ public class ProtocolCPacket {
         int checkLen = byteBuf.readableBytes() - 2;
         ByteBuf checkBuf = byteBuf.readBytes(checkLen);
         byte[] checkData = ByteBufUtil.getBytes(checkBuf);
+        checkBuf.release();
         //localRealCheckBit = ProtocolChecks.modbusCRC(checkBuf);
 
         byteBuf.resetReaderIndex();

@@ -549,6 +549,7 @@ public class MachineCHandlers {
      */
     public void handler0x3b(ProtocolCPacket packet, ChannelHandlerContext ctx) {
         JSONObject jsonLog = new JSONObject();
+        ByteBuf bodyBuf = ByteBufAllocator.DEFAULT.heapBuffer(256);
         try {
 
             AttributeKey<String> machineId = AttributeKey.valueOf(ConstEnum.MACHINE_ID.getCode());
@@ -557,7 +558,6 @@ public class MachineCHandlers {
             int bodyLen = oldBody.length;
             int gunShort = oldBody[16 + 7];
 
-            ByteBuf bodyBuf = ByteBufAllocator.DEFAULT.buffer(256);
             bodyBuf.writeBytes(oldBody);
 
             // 流水号
@@ -607,24 +607,29 @@ public class MachineCHandlers {
 
 
             //v2024/01/08 结束充电无效
-            ByteBuf byteBuf = ByteBufAllocator.DEFAULT.buffer(256);
-            byteBuf.writeBytes(oldBody, 0, 16);
-            byteBuf.writeByte(0x00);
+            ByteBuf responseNew = null;
+            ByteBuf byteBuf = ByteBufAllocator.DEFAULT.heapBuffer(256);
+            try {
+                byteBuf.writeBytes(oldBody, 0, 16);
+                byteBuf.writeByte(0x00);
 
-            jsonLog.put("orderNumber", BCDUtils.bcdToStr(ByteBufUtil.getBytes(byteBuf, 0, 16)));
-            jsonLog.put("ok", 0x00);
+                jsonLog.put("orderNumber", BCDUtils.bcdToStr(ByteBufUtil.getBytes(byteBuf, 0, 16)));
+                jsonLog.put("ok", 0x00);
 
-            byte[] newBody = ByteBufUtil.getBytes(byteBuf);
-            log.info("YKC YKC 充电订单上报 回执 response newBody {} type=0x40 readIndex:{}", BinaryViews.bfToHexStr(newBody), byteBuf.readerIndex());
-            ByteBuf responseNew = BinaryBuilders.protocolCLeResponseBuilder(newBody, packet.getOrderVBf(), (byte) 0x40);
+                byte[] newBody = ByteBufUtil.getBytes(byteBuf);
+                log.info("YKC YKC 充电订单上报 回执 response newBody {} type=0x40 readIndex:{}", BinaryViews.bfToHexStr(newBody), byteBuf.readerIndex());
+                responseNew = BinaryBuilders.protocolCLeResponseBuilder(newBody, packet.getOrderVBf(), (byte) 0x40);
+            }finally {
+                byteBuf.release();
+            }
 
             // 旧响应值
-            byte[] body = new byte[17];
-            System.arraycopy(oldBody, 0, body, 0, 16);
-            ByteBuf response = BinaryBuilders.protocolCLeResponseBuilder(body, packet.getOrderVBf(), (byte) 0x40);
-            if(log.isDebugEnabled()){
-                log.debug("YKC 充电订单上报 V1 response:{}", response);
-            }
+//            byte[] body = new byte[17];
+//            System.arraycopy(oldBody, 0, body, 0, 16);
+//            ByteBuf response = BinaryBuilders.protocolCLeResponseBuilder(body, packet.getOrderVBf(), (byte) 0x40);
+//            if(log.isDebugEnabled()){
+//                log.debug("YKC 充电订单上报 V1 response:{}", response);
+//            }
 
             ctx.channel().writeAndFlush(responseNew).addListener((f) -> {
                 if (f.isSuccess()) {
@@ -754,6 +759,7 @@ public class MachineCHandlers {
         } catch (Exception e) {
             log.error("YKC-订单结束事件 error：sendMessage send error e:{}", ExceptionUtils.getMessage(e), e);
         }finally {
+            bodyBuf.release();
             log.info("YKC-订单结束事件 params:{}", jsonLog);
         }
     }

@@ -3,6 +3,7 @@ package com.huamar.charge.pile.server.handle.netty;
 import com.huamar.charge.common.protocol.DataPacket;
 import com.huamar.charge.common.util.HexExtUtil;
 import com.huamar.charge.net.core.SessionChannel;
+import com.huamar.charge.pile.enums.LoggerEnum;
 import com.huamar.charge.pile.enums.ProtocolCodeEnum;
 import com.huamar.charge.pile.server.service.factory.MachinePacketFactory;
 import com.huamar.charge.pile.server.service.handler.MachinePacketHandler;
@@ -11,6 +12,9 @@ import io.netty.channel.ChannelHandler;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.Objects;
 
@@ -22,6 +26,9 @@ import java.util.Objects;
 @Slf4j
 @ChannelHandler.Sharable
 public class ServerNetHandler extends SimpleChannelInboundHandler<DataPacket> {
+
+    private final Logger authLog = LoggerFactory.getLogger(LoggerEnum.PILE_AUTH_LOGGER.getCode());
+
 
     private final MachinePacketFactory machinePacketFactory;
 
@@ -57,6 +64,32 @@ public class ServerNetHandler extends SimpleChannelInboundHandler<DataPacket> {
             return;
         }
         handler.handler(dataPacket, sessionChannel);
+    }
+
+    /**
+     * 异常发生时候调用
+     *
+     * @param ctx   ctx
+     * @param cause cause
+     */
+    @SuppressWarnings("DuplicatedCode")
+    @Override
+    public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) {
+        try {
+            authLog.error("SLX BsExceptionCaught,{}", "连接出现异常，请关注");
+            authLog.error("SLX BsExceptionCaught {} error:{}", ctx.channel().remoteAddress(), cause.getMessage(), cause);
+            log.error("SLX BsExceptionCaught {} error:{}", ctx.channel().remoteAddress(), cause.getMessage(), cause);
+            String idCode = SessionManager.setMDCParam(ctx);
+            if (StringUtils.isNotBlank(idCode)) {
+                SessionManager.remove(idCode);
+            }
+        } catch (Exception ignored) {
+            authLog.error("SLX BsExceptionCaught,{}", "连接出现异常，请关注");
+            authLog.error("SLX BsExceptionCaught {} error:{}", ctx.channel().remoteAddress(), cause.getMessage(), cause);
+            log.error("SLX BsExceptionCaught {} error:{}", ctx.channel().remoteAddress(), cause.getMessage(), cause);
+        } finally {
+            SessionManager.closeCtx(ctx, "YKC");
+        }
     }
 
 }

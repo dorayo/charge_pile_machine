@@ -3,9 +3,6 @@ package com.huamar.charge.common.util;
 import cn.hutool.core.util.ByteUtil;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.ByteBufAllocator;
-import io.netty.buffer.ByteBufUtil;
-
-import java.nio.ByteOrder;
 
 /**
  * Byte校验工具
@@ -34,22 +31,12 @@ public class ByteExtUtil extends ByteUtil {
      * @return short
      */
     public static int bytesToShortUnsignedLE(byte[] bytes) {
-        ByteBuf checkCrcBuf = ByteBufAllocator.DEFAULT.buffer(2);
-        checkCrcBuf.writeBytes(bytes);
-        return checkCrcBuf.readUnsignedShortLE();
+        ByteBuf checkCrcBuf = ByteBufAllocator.DEFAULT.heapBuffer(2);
+        try {
+            checkCrcBuf.writeBytes(bytes);
+            return checkCrcBuf.readUnsignedShortLE();
+        }finally {
+            checkCrcBuf.release();
+        }
     }
-
-
-    /**
-     *
-     * @param var var
-     * @return static
-     */
-    public static byte[] unsignedShortToBytes(int var) {
-        ByteBuf byteBuf = ByteBufAllocator.DEFAULT.buffer(4);
-        byteBuf.writeShortLE(var);
-        return ByteBufUtil.getBytes(byteBuf);
-    }
-
-
 }

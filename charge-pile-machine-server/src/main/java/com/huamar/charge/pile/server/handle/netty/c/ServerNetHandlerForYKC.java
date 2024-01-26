@@ -4,6 +4,7 @@ import com.huamar.charge.common.protocol.c.ProtocolCPacket;
 import com.huamar.charge.common.util.HexExtUtil;
 import com.huamar.charge.net.core.SessionChannel;
 import com.huamar.charge.pile.enums.ConstEnum;
+import com.huamar.charge.pile.enums.LoggerEnum;
 import com.huamar.charge.pile.enums.NAttrKeys;
 import com.huamar.charge.pile.server.service.handler.c.MachineCAuthenticationHandler;
 import com.huamar.charge.pile.server.service.handler.c.MachineCHandlers;
@@ -15,6 +16,9 @@ import io.netty.channel.SimpleChannelInboundHandler;
 import io.netty.util.AttributeKey;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
 
@@ -32,6 +36,9 @@ public class ServerNetHandlerForYKC extends SimpleChannelInboundHandler<Protocol
     private final MachineCHeartbeatHandler machineCHeartbeatHandler;
 
     private final MachineCHandlers machineCHandlers;
+
+    private final Logger authLog = LoggerFactory.getLogger(LoggerEnum.PILE_AUTH_LOGGER.getCode());
+
 
     /**
      * 消息生产者
@@ -122,6 +129,32 @@ public class ServerNetHandlerForYKC extends SimpleChannelInboundHandler<Protocol
             default:
                 log.error("YCK 不明协议，请关注 type={}", HexExtUtil.encodeHexStr(cPacket.getBodyType()));
                 break;
+        }
+    }
+
+    /**
+     * 异常发生时候调用
+     *
+     * @param ctx   ctx
+     * @param cause cause
+     */
+    @SuppressWarnings("DuplicatedCode")
+    @Override
+    public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) {
+        try {
+            authLog.error("YKC BsExceptionCaught,{}", "连接出现异常，请关注");
+            authLog.error("YKC BsExceptionCaught {} error:{}", ctx.channel().remoteAddress(), cause.getMessage(), cause);
+            log.error("YKC BsExceptionCaught {} error:{}", ctx.channel().remoteAddress(), cause.getMessage(), cause);
+            String idCode = SessionManager.setMDCParam(ctx);
+            if (StringUtils.isNotBlank(idCode)) {
+                SessionManager.remove(idCode);
+            }
+        } catch (Exception ignored) {
+            authLog.error("YKC BsExceptionCaught,{}", "连接出现异常，请关注");
+            authLog.error("YKC BsExceptionCaught {} error:{}", ctx.channel().remoteAddress(), cause.getMessage(), cause);
+            log.error("YKC BsExceptionCaught {} error:{}", ctx.channel().remoteAddress(), cause.getMessage(), cause);
+        } finally {
+            SessionManager.closeCtx(ctx, "YKC");
         }
     }
 
