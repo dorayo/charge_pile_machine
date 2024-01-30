@@ -7,6 +7,7 @@ import com.huamar.charge.pile.enums.ProtocolCodeEnum;
 import com.huamar.charge.common.protocol.DataPacket;
 import com.huamar.charge.common.protocol.DataPacketWriter;
 import com.huamar.charge.common.util.HexExtUtil;
+import com.huamar.charge.pile.server.session.SessionManager;
 
 /**
  * 远程控制执行接口
@@ -44,6 +45,11 @@ public interface McCommandExecute<T extends McBaseCommandDTO> {
      * @return DataPacket
      */
     default DataPacket packet(T command){
+
+
+        Short messageNumber = SessionManager.getMessageNumber(command.getIdCode());
+        command.headMessageNum(messageNumber);
+
         //noinspection DuplicatedCode
         DataPacket packet= new DataPacket();
         packet.setTag(DataPacket.TAG);

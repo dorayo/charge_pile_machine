@@ -47,6 +47,8 @@ public enum MessageCodeEnum {
 
     EVENT_CHARGE_FINISH("EVENT_CHARGE_FINISH", "充电完成事件"),
 
+    SWIPE_CARD_QUERY("SWIPE_CARD_QUERY", "刷卡查询事件"),
+
     // <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< 事件汇报 <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
 
 

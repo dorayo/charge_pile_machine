@@ -48,6 +48,12 @@ public class McCardQueryCommandDTO extends McBaseCommandDTO {
 	 */
 	public byte gunSort;
 
+
+	/**
+	 * 命令请求ID，联系上下文的id
+	 */
+	protected String commandId;
+
 	public McCardQueryCommandDTO() {
 		// 设置命令行字节长度
 		this.fieldsByteLength = (byte) (1 + 1 + 4 + 2 + descLen + 32 + 1);

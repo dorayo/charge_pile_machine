@@ -59,7 +59,9 @@ public class McCardQueryCommandExecute implements McCommandExecute<McCardQueryCo
         writer.write(command.getCardState());
         writer.write(command.getMoney());
         writer.write(command.getDescLen());
-        writer.write(command.getDesc());
+        if(command.getDescLen() > 0){
+            writer.write(command.getDesc());
+        }
         writer.write(command.getOrderSerialNumber(), 32);
         writer.write(command.getGunSort());
         return new McCommandDTO(typeCode, command.getFieldsByteLength(), writer.toByteArray());

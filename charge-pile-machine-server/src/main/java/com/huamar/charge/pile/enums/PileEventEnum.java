@@ -27,6 +27,8 @@ public enum PileEventEnum {
 
     STARTUP("21", "充电桩主动请求重启 (0x21)"),
 
+    SWIPE_CARD_QUERY("13", "刷卡查询事件 (0x13)"),
+
     ;
     private final String code;
     private final String desc;

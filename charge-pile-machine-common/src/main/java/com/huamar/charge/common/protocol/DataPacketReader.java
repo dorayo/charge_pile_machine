@@ -131,6 +131,12 @@ public class DataPacketReader {
         return new BCD(bytes);
     }
 
+    @SuppressWarnings("AlibabaLowerCamelCaseVariableNaming")
+    public BCD readBCD8(int len) {
+        byte[] bytes = readBytes(len);
+        return new BCD(bytes);
+    }
+
 
     public void reset() {
         buffer.flip();
