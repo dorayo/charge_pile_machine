@@ -72,24 +72,29 @@ public class MachineBDataUploadHandler implements MachinePacketHandler<DataPacke
         for (MachineDataUpItem item : unitList) {
             item.setIdCode(new String(packet.getIdCode()));
             switch (item.getUnitId()) {
+
                 // 充电记录上传
                 case 0x02:
-                    pileChargeFinishEventExecute.execute(item);
+                    pileChargeFinishEventExecute.executeGH(item, sessionChannel);
                     //implementation at platform
                     break;
+
                 // 地面充电机数据
                 case 0x07:
                     mcDataUploadOnlineExecute.chargerExecute(dataUploadReqDTO.getTime(), item);
                     //implementation at platform
                     break;
+
                 // 充电机实时状态信息
                 case 0x08:
                     mcDataUploadOnlineExecute.execute(dataUploadReqDTO.getTime(), item);
                     break;
+
                 // 充电阶段信息
                 case 0x0A:
-                    mcDataUploadStageExecute.executeB(dataUploadReqDTO.getTime(), item);
+                    mcDataUploadStageExecute.executeGH(dataUploadReqDTO.getTime(), item);
                     break;
+
                 default:
                     log.error("MachineDataUpItem unKnown unitId " + item.getUnitId());
             }

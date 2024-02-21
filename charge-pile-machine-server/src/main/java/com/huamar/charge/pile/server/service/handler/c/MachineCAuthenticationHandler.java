@@ -164,6 +164,7 @@ public class MachineCAuthenticationHandler {
                 }
 
                 //v2024/01/22 记录登录日志
+                //noinspection DuplicatedCode
                 try {
                     if(sessionChannel instanceof SimpleSessionChannel){
                         SimpleSessionChannel simpleSessionChannel = (SimpleSessionChannel) sessionChannel;

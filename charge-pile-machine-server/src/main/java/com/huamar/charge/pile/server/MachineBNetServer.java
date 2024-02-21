@@ -1,12 +1,14 @@
 package com.huamar.charge.pile.server;
 
+import cn.hutool.core.util.IdUtil;
 import com.huamar.charge.common.protocol.BasePacket;
+import com.huamar.charge.net.core.SessionChannel;
 import com.huamar.charge.pile.config.ServerApplicationProperties;
-import com.huamar.charge.pile.enums.McTypeEnum;
-import com.huamar.charge.pile.server.handle.netty.SessionManagerNetHandler;
+import com.huamar.charge.pile.server.handle.netty.SessionManagerGHNetHandler;
 import com.huamar.charge.pile.server.handle.netty.b.ServerNetBHandler;
 import com.huamar.charge.pile.server.protocol.ProtocolCodecFactory;
 import com.huamar.charge.pile.server.service.factory.b.MachineBPacketFactory;
+import com.huamar.charge.pile.server.session.SessionManager;
 import com.huamar.charge.pile.server.session.context.SimpleSessionContext;
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.buffer.ByteBuf;
@@ -19,6 +21,8 @@ import io.netty.handler.codec.MessageToByteEncoder;
 import io.netty.handler.timeout.IdleStateHandler;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
+import org.slf4j.MDC;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.event.ApplicationReadyEvent;
 import org.springframework.context.ApplicationListener;
@@ -27,10 +31,12 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
 import org.springframework.context.event.ContextClosedEvent;
 
+import java.net.SocketAddress;
 import java.nio.ByteOrder;
 import java.time.Duration;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 
@@ -135,13 +141,61 @@ public class MachineBNetServer implements NetServer {
                 .childHandler(new ChannelInitializer<SocketChannel>() {
                     @Override
                     protected void initChannel(SocketChannel socketChannel) {
+                        String prefix = "GH";
+
                         ServerNetBHandler serverNetHandler = new ServerNetBHandler(machinePacketFactory);
                         ChannelPipeline pipeline = socketChannel.pipeline();
+
+                        pipeline.addLast("InboundFirst", new ChannelInboundHandlerAdapter(){
+
+                            @SuppressWarnings("DuplicatedCode")
+                            @Override
+                            public void channelRead(ChannelHandlerContext ctx, Object msg) {
+                                Thread.currentThread().setName(IdUtil.getSnowflakeNextIdStr());
+                                try {
+                                    SocketAddress remotedAddress = ctx.channel().remoteAddress();
+                                    SessionChannel session = null;
+                                    String idCode = SessionManager.setMDCParam(ctx);
+                                    if (StringUtils.isNotBlank(idCode)) {
+                                        session = SessionManager.get(idCode);
+                                    }
+
+                                    if (log.isDebugEnabled()) {
+                                        log.info("{} channelRead into >>>>>>>>>>>>>>>>>> idCode:{} session:{} address:{}", prefix, idCode, Optional.ofNullable(session).isPresent(), remotedAddress);
+                                    }
+
+                                    ctx.fireChannelRead(msg);
+
+                                    if (log.isDebugEnabled()) {
+                                        log.info("{} channelRead end <<<<<<<<<<<<<<<<<<< idCode:{} session address:{} end", prefix, idCode, remotedAddress);
+                                    }
+                                }finally {
+                                    MDC.clear();
+                                }
+
+                            }
+
+                            @Override
+                            public void channelReadComplete(ChannelHandlerContext ctx) {
+                                try {
+                                    SessionManager.setMDCParam(ctx);
+                                    log.info("{} channelReadComplete end <<<<<<<<<<<<<<<<<<", prefix);
+                                    super.channelReadComplete(ctx);
+                                }catch (Exception e){
+                                    log.error("{} channelReadComplete error", prefix);
+                                }finally {
+                                    MDC.clear();
+                                }
+                            }
+
+                        });
+
+
                         pipeline.addLast("decoder", new MessageDecodeHandler());
                         pipeline.addLast("encoder", new MessageEncodeHandler());
                         // IdleStateHandler 下一个 handler 必须实现 userEventTriggered 方法处理对应事件
                         pipeline.addLast(new IdleStateHandler(properties.getTimeout().getSeconds(), 0, 0, TimeUnit.SECONDS));
-                        pipeline.addLast("sessionManager", new SessionManagerNetHandler(McTypeEnum.B));
+                        pipeline.addLast("sessionManager", new SessionManagerGHNetHandler());
                         pipeline.addLast("serverNetHandler", serverNetHandler);
                     }
                 });

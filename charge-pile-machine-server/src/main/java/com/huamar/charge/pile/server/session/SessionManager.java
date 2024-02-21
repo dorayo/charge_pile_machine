@@ -413,15 +413,16 @@ public class SessionManager implements ApplicationListener<ContextRefreshedEvent
 
     /**
      * 登陆历史记录
+     *
      * @param pileLoginLogDTO pileLoginLogDTO
      */
-    public static void pileAuthLogSum(PileLoginLogDTO pileLoginLogDTO){
-        if(Objects.isNull(pileLoginLogDTO)){
+    public static void pileAuthLogSum(PileLoginLogDTO pileLoginLogDTO) {
+        if (Objects.isNull(pileLoginLogDTO)) {
             log.warn("pileAuthLogSum is null");
             return;
         }
 
-        if(Objects.isNull(pileLoginLogDTO.getStationId())){
+        if (Objects.isNull(pileLoginLogDTO.getStationId())) {
             pileLoginLogDTO.setStationId(-1);
         }
 
@@ -437,22 +438,26 @@ public class SessionManager implements ApplicationListener<ContextRefreshedEvent
         RMap<String, PileLoginLogDTO> map = redissonClient.getMap(key);
 
         PileLoginLogDTO loginLogDTO = map.get(pileLoginLogDTO.getIdCode());
-        if(Objects.isNull(loginLogDTO)){
+        if (Objects.isNull(loginLogDTO)) {
             loginLogDTO = pileLoginLogDTO;
         }
 
-        loginLogDTO.setConCount(loginLogDTO.getConCount()+1);
+        loginLogDTO.setConCount(loginLogDTO.getConCount() + 1);
 
         Set<String> ipAddrList = pileLoginLogDTO.getIpAddrList();
-        if(CollectionUtils.isEmpty(ipAddrList)){
+        if (CollectionUtils.isEmpty(ipAddrList)) {
             ipAddrList = new HashSet<>();
         }
 
         String ipAddr = loginLogDTO.getLastConIpAddr();
-        if(StringUtils.isNotBlank(ipAddr)){
+        if (StringUtils.isNotBlank(ipAddr)) {
             ipAddrList.add(ipAddr);
         }
 
+        loginLogDTO.setType(pileLoginLogDTO.getType());
+        loginLogDTO.setStationId(pileLoginLogDTO.getStationId());
+        loginLogDTO.setLastConTime(pileLoginLogDTO.getLastConTime());
+        loginLogDTO.setLastConIpAddr(pileLoginLogDTO.getLastConIpAddr());
         loginLogDTO.setIpAddrList(ipAddrList);
         loginLogDTO.setAuthStatus(1);
         loginLogDTO.setStatus(1);
@@ -460,7 +465,7 @@ public class SessionManager implements ApplicationListener<ContextRefreshedEvent
 
         // 每天清空数据，只保留一天
         long expireTime = map.remainTimeToLive();
-        if(expireTime < 0){
+        if (expireTime < 0) {
             map.expire(Duration.ofSeconds(secondsUntilNextMidnight));
         }
     }

@@ -88,7 +88,7 @@ public class ServerNetHandler extends SimpleChannelInboundHandler<DataPacket> {
             authLog.error("SLX BsExceptionCaught {} error:{}", ctx.channel().remoteAddress(), cause.getMessage(), cause);
             log.error("SLX BsExceptionCaught {} error:{}", ctx.channel().remoteAddress(), cause.getMessage(), cause);
         } finally {
-            SessionManager.closeCtx(ctx, "YKC");
+            SessionManager.closeCtx(ctx, "SLX");
         }
     }
 

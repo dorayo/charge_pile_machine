@@ -3,6 +3,7 @@ package com.huamar.charge.pile.server.service.event;
 import com.alibaba.fastjson.JSONObject;
 import com.huamar.charge.common.protocol.DataPacketReader;
 import com.huamar.charge.common.util.JSONParser;
+import com.huamar.charge.net.core.SessionChannel;
 import com.huamar.charge.pile.convert.PileChargeFinishEventConvert;
 import com.huamar.charge.pile.entity.dto.MachineDataUpItem;
 import com.huamar.charge.pile.entity.dto.command.McElectricityPriceCommandDTO;
@@ -10,18 +11,24 @@ import com.huamar.charge.pile.entity.dto.event.PileChargeFinishEventDTO;
 import com.huamar.charge.pile.entity.dto.event.PileEventReqDTO;
 import com.huamar.charge.pile.entity.dto.mq.MessageData;
 import com.huamar.charge.pile.entity.dto.platform.event.PileChargeFinishEventPushDTO;
-import com.huamar.charge.pile.enums.CacheKeyEnum;
+import com.huamar.charge.pile.enums.ConstEnum;
 import com.huamar.charge.pile.enums.MessageCodeEnum;
 import com.huamar.charge.pile.enums.PileEventEnum;
 import com.huamar.charge.pile.server.service.produce.PileMessageProduce;
+import com.huamar.charge.pile.server.session.SimpleSessionChannel;
+import io.netty.channel.Channel;
+import io.netty.channel.ChannelHandlerContext;
+import io.netty.util.AttributeKey;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
-import org.redisson.api.RBucket;
-import org.redisson.api.RedissonClient;
 import org.springframework.stereotype.Component;
+import org.springframework.util.Assert;
 
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.nio.charset.StandardCharsets;
+import java.util.Objects;
 
 /**
  * 设备端数据汇报接口-充电结束统计
@@ -37,7 +44,6 @@ public class PileChargeFinishEventExecute implements PileEventExecute {
 
     private final PileMessageProduce messageProduce;
 
-    private final RedissonClient redissonClient;
 
     /**
      * 协议编码
@@ -440,56 +446,93 @@ public class PileChargeFinishEventExecute implements PileEventExecute {
         return eventDTO;
     }
 
+
     /**
      * 执行方法
      *
      * @param reqDTO reqDTO
+     * @param sessionChannel SessionChannel
      */
-    public void execute(MachineDataUpItem reqDTO) {
-        log.info("事件汇报：{}", getCode().getDesc());
-        PileChargeFinishEventDTO eventDTO = this.parse(reqDTO);
+    public void executeGH(MachineDataUpItem reqDTO, SessionChannel sessionChannel) {
 
-        log.info("事件汇报：{}, data:{}", getCode().getDesc(), JSONParser.jsonString(eventDTO));
+        Assert.notNull(sessionChannel, "executeGH sessionChannel is null + idCode:" + reqDTO.getIdCode());
+        PileChargeFinishEventDTO eventDTO = null;
 
 
-        PileChargeFinishEventPushDTO eventPushDTO = PileChargeFinishEventConvert.INSTANCE.convert(eventDTO);
-        //计算国花服务费
-        CacheKeyEnum keyEnum = CacheKeyEnum.MACHINE_SERVICE_PRICE;
-        String key = reqDTO.getIdCode();
-        key = keyEnum.joinKey(key);
-        RBucket<McElectricityPriceCommandDTO> bucket = redissonClient.getBucket(key);
-        McElectricityPriceCommandDTO mcElectricityPriceCommandDTO = bucket.get();
-        if (mcElectricityPriceCommandDTO != null) {
-            int money = (int) ((mcElectricityPriceCommandDTO.getServicePrice1() * eventDTO.getOutPower() )/ 10000 );
-            eventPushDTO.setServiceMoney(money);
-            eventPushDTO.setChargeMoney(eventPushDTO.getChargeMoney() - money);
+        if(sessionChannel instanceof SimpleSessionChannel){
+            //noinspection DuplicatedCode
+            SimpleSessionChannel simpleSessionChannel = (SimpleSessionChannel) sessionChannel;
+            ChannelHandlerContext context = simpleSessionChannel.channel();
+            Channel channel = context.channel();
+
+            AttributeKey<Integer> elePriceType = AttributeKey.valueOf(ConstEnum.ELE_CHARG_TYPE.getCode());
+            Integer priceType = channel.attr(elePriceType).get();
+
+
+            AttributeKey<McElectricityPriceCommandDTO> priceAttr = AttributeKey.valueOf(ConstEnum.COMMON_CHARGE_PRICE.getCode());
+            McElectricityPriceCommandDTO priceCommandDTO = channel.attr(priceAttr).get();
+
+            Assert.notNull(priceType, "parseGH priceType is null");
+            Assert.notNull(priceCommandDTO, "parseGH priceCommandDTO is null");
+
+            // v2014/02/20 当前版本国花协议服务费固定费率, so 电价=总价-服务费*度数，暂时简化处理
+            if(Objects.equals(priceType, 1)){
+
+                eventDTO = this.parseGHDirectCurrent(reqDTO);
+
+                BigDecimal chargePower = BigDecimal.valueOf(eventDTO.getOutPower());
+                chargePower = chargePower.divide(BigDecimal.valueOf(1000), RoundingMode.HALF_UP);
+
+                BigDecimal money = BigDecimal.valueOf(eventDTO.getChargeMoney());
+                BigDecimal serviceMoney = chargePower.multiply(BigDecimal.valueOf(priceCommandDTO.getSlxServicePrice()[0]));
+                BigDecimal chargePrice = money.subtract(serviceMoney);
+
+                eventDTO.setChargeMoney(chargePrice.intValue());
+                eventDTO.setServiceMoney(serviceMoney.intValue());
+            }
+
+            //v2014/02/20 当前版本国花交流协议服务费是硕力新协议格式，信任设备上报的服务费
+            if(Objects.equals(priceType, 2)){
+                eventDTO = this.parseGHAlternatingCurrent(reqDTO);
+            }
+
+
+            Assert.notNull(eventDTO, "executeGH eventDTO is null priceType:" + priceType);
+
+            if(log.isDebugEnabled()){
+                log.debug("事件汇报：{}, data:{}", getCode().getDesc(), JSONParser.jsonString(eventDTO));
+            }
+
+            PileChargeFinishEventPushDTO eventPushDTO = PileChargeFinishEventConvert.INSTANCE.convert(eventDTO);
+
+            PileEventReqDTO reqDTOTemp = new PileEventReqDTO();
+            reqDTOTemp.setIdCode(reqDTO.getIdCode());
+            reqDTOTemp.setEventStartTime(eventDTO.getStartTime());
+            reqDTOTemp.setEventEndTime(eventDTO.getEndTime());
+            reqDTOTemp.setEventState((byte) 2);
+            PileChargeFinishEventConvert.INSTANCE.copyBaseField(eventPushDTO, reqDTOTemp);
+
+            MessageData<PileChargeFinishEventPushDTO> messageData = new MessageData<>(eventPushDTO);
+            messageData.setBusinessCode(MessageCodeEnum.EVENT_CHARGE_FINISH.getCode());
+            messageData.setBusinessId(reqDTO.getIdCode());
+            messageProduce.send(messageData);
         }
-
-        PileEventReqDTO reqDTOTemp = new PileEventReqDTO();
-        reqDTOTemp.setIdCode(reqDTO.getIdCode());
-        reqDTOTemp.setEventStartTime(eventDTO.getStartTime());
-        reqDTOTemp.setEventEndTime(eventDTO.getEndTime());
-        reqDTOTemp.setEventState((byte) 2);
-        PileChargeFinishEventConvert.INSTANCE.copyBaseField(eventPushDTO, reqDTOTemp);
-
-        MessageData<PileChargeFinishEventPushDTO> messageData = new MessageData<>(eventPushDTO);
-        messageData.setBusinessCode(MessageCodeEnum.EVENT_CHARGE_FINISH.getCode());
-        messageData.setBusinessId(reqDTO.getIdCode());
-        messageProduce.send(messageData);
     }
 
+
     /**
-     * 解析元数据
+     * 解析元数据 国花直流协议
      *
      * @param reqDTO reqDTO
      * @return McEventBaseDTO
      */
-    private PileChargeFinishEventDTO parse(MachineDataUpItem reqDTO) {
+    private PileChargeFinishEventDTO parseGHDirectCurrent(MachineDataUpItem reqDTO) {
         DataPacketReader reader = new DataPacketReader(reqDTO.getData());
         PileChargeFinishEventDTO eventDTO = new PileChargeFinishEventDTO();
         eventDTO.setGunSort(reader.readByte());
         eventDTO.setOutPower(reader.readInt() * 100);
         eventDTO.setChargeMoney(reader.readInt() * 100);
+        //noinspection DuplicatedCode
         eventDTO.setEndReason(reader.readUnsignedShort());
         eventDTO.setStartTime(reader.readBCD());
         eventDTO.setEndTime(reader.readBCD());
@@ -499,7 +542,67 @@ public class PileChargeFinishEventExecute implements PileEventExecute {
         eventDTO.setOrderSerialNumber(reader.readString(32));
         reader.readByte();
         reader.readString(4);
-        eventDTO.setCarIdentificationCode(reader.readString(17));
+        //noinspection DuplicatedCode
+        String vin = reader.readString(17);
+        try{
+            // UTF-8 编码的字节序列
+            byte[] utf8Bytes = vin.getBytes(StandardCharsets.UTF_8);
+            // 将 UTF-8 字节序列转换回字符串
+            String utf8Vin = new String(utf8Bytes, StandardCharsets.UTF_8);
+            utf8Vin = StringUtils.replace(utf8Vin, "\u0000", "");
+            eventDTO.setCarIdentificationCode(utf8Vin);
+        }catch (Exception e){
+            eventDTO.setCarIdentificationCode(vin);
+        }
+
+        //判断是否还有未读完数据，兼容不同版本协议
+        if (!reader.isEnd()) {
+            eventDTO.setStartSoc(reader.readByte());
+        }
+        return eventDTO;
+    }
+
+    /**
+     * 解析元数据 国花直流协议
+     *
+     * @param reqDTO reqDTO
+     * @return McEventBaseDTO
+     */
+    private PileChargeFinishEventDTO parseGHAlternatingCurrent(MachineDataUpItem reqDTO) {
+        DataPacketReader reader = new DataPacketReader(reqDTO.getData());
+        PileChargeFinishEventDTO eventDTO = new PileChargeFinishEventDTO();
+        eventDTO.setGunSort(reader.readByte());
+        eventDTO.setOutPower(reader.readInt() * 100);
+        eventDTO.setChargeMoney(reader.readInt() * 100);
+        eventDTO.setServiceMoney(reader.readInt() * 100);
+        //noinspection DuplicatedCode
+        eventDTO.setEndReason(reader.readUnsignedShort());
+        eventDTO.setStartTime(reader.readBCD());
+        eventDTO.setEndTime(reader.readBCD());
+        eventDTO.setCumulativeChargeTime(reader.readInt());
+        //启动类型
+        reader.readByte();
+        // 卡号
+        reader.readString(4);
+        eventDTO.setOrderSerialNumber(reader.readString(32));
+        // 充电策略
+        reader.readByte();
+        // 充电策略参数
+        reader.readString(4);
+
+
+        //noinspection DuplicatedCode
+        String vin = reader.readString(17);
+        try{
+            // UTF-8 编码的字节序列
+            byte[] utf8Bytes = vin.getBytes(StandardCharsets.UTF_8);
+            // 将 UTF-8 字节序列转换回字符串
+            String utf8Vin = new String(utf8Bytes, StandardCharsets.UTF_8);
+            utf8Vin = StringUtils.replace(utf8Vin, "\u0000", "");
+            eventDTO.setCarIdentificationCode(utf8Vin);
+        }catch (Exception e){
+            eventDTO.setCarIdentificationCode(vin);
+        }
 
         //判断是否还有未读完数据，兼容不同版本协议
         if (!reader.isEnd()) {

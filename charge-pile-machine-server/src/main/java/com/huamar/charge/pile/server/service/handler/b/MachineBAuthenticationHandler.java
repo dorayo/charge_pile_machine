@@ -23,6 +23,8 @@ import com.huamar.charge.pile.server.service.handler.MachinePacketHandler;
 import com.huamar.charge.pile.server.service.machine.MachineService;
 import com.huamar.charge.pile.server.service.produce.PileMessageProduce;
 import com.huamar.charge.pile.server.session.SessionManager;
+import com.huamar.charge.pile.server.session.SimpleSessionChannel;
+import io.netty.util.AttributeKey;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
@@ -187,6 +189,20 @@ public class MachineBAuthenticationHandler implements MachinePacketHandler<DataP
                 // 标记此连接鉴权成功
                 sessionChannel.setAttribute("auth", "ok");
 
+                //v2024/01/22 记录登录日志
+                //noinspection DuplicatedCode
+                try {
+                    if(sessionChannel instanceof SimpleSessionChannel){
+                        SimpleSessionChannel simpleSessionChannel = (SimpleSessionChannel) sessionChannel;
+                        simpleSessionChannel.channel().channel().attr(AttributeKey.valueOf(ConstEnum.STATION_ID.getCode())).set(pile.getStationId().toString());
+                        simpleSessionChannel.channel().channel().attr(AttributeKey.valueOf(ConstEnum.ELE_CHARG_TYPE.getCode())).set(Integer.parseInt(pile.getElectricType()));
+                    }
+                    //v2024/01/22 记录登录日志
+                    SessionManager.pileAuthLogSum(sessionChannel);
+                }catch (Exception e){
+                    log.error("pileAuthLogSum error", e);
+                }
+
                 //电价更新
                 update.setStationId(pile.getStationId());
                 update.setPileCode(pile.getPileCode());
@@ -220,6 +236,8 @@ public class MachineBAuthenticationHandler implements MachinePacketHandler<DataP
      *
      * @param reqDTO reqDTO
      */
+    @SuppressWarnings("unused")
+    @Deprecated
     private void encryptionSecretKey(MachineAuthenticationReqDTO reqDTO, McAuthResp authResp) {
         if ((reqDTO.getBoardNum() & 0xff) != 160) {
             return;

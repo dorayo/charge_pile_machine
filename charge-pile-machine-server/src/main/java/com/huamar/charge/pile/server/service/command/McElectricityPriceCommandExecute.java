@@ -1,6 +1,5 @@
 package com.huamar.charge.pile.server.service.command;
 
-import cn.hutool.core.convert.Convert;
 import cn.hutool.core.util.ByteUtil;
 import com.huamar.charge.common.protocol.DataPacket;
 import com.huamar.charge.common.protocol.DataPacketWriter;
@@ -19,6 +18,7 @@ import com.huamar.charge.pile.utils.binaryBuilder.BinaryBuilders;
 import com.huamar.charge.pile.utils.views.BinaryViews;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.ByteBufAllocator;
+import io.netty.channel.Channel;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.util.AttributeKey;
 import lombok.RequiredArgsConstructor;
@@ -26,14 +26,12 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.redisson.api.RBucket;
 import org.redisson.api.RedissonClient;
-import org.slf4j.MDC;
 import org.springframework.stereotype.Component;
 import org.springframework.util.Assert;
 
 import java.nio.charset.StandardCharsets;
 import java.util.Objects;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicInteger;
 
 
 /**
@@ -174,22 +172,74 @@ public class McElectricityPriceCommandExecute implements McCommandExecute<McElec
         McCommandEnum commandEnum = getCode();
         short typeCode = Short.parseShort(commandEnum.getCode());
         DataPacketWriter writer = new DataPacketWriter();
+        // 2024/02/19 修改电价服务费协议，直流旧协议，交流新协议 developer TiAmo
         if (Objects.requireNonNull(type) == McTypeEnum.B) {
-            writer.write(command.getGunSort());
-            writer.write((short) (command.getPrice1() / 100));
-            writer.write((short) (command.getPrice2() / 100));
-            writer.write((short) (command.getPrice3() / 100));
-            writer.write((short) (command.getPrice4() / 100));
-            writer.write(command.getTimeStage());
-            writer.write((short) (command.getServicePrice1() / 100));
-            CacheKeyEnum keyEnum = CacheKeyEnum.MACHINE_SERVICE_PRICE;
-            String key = command.getIdCode();
-            key = keyEnum.joinKey(key);
-            RBucket<McElectricityPriceCommandDTO> bucket = redissonClient.getBucket(key);
-            bucket.set(command, keyEnum.getDuration().toMillis(), TimeUnit.MILLISECONDS);
-            McCommandDTO commandDTO = new McCommandDTO(typeCode, command.getFieldsByteLength(), writer.toByteArray());
-            log.info("Type B ElectricityPriceCommandDTO:{}", JSONParser.jsonString(commandDTO));
-            return commandDTO;
+            Assert.notNull(sessionChannel, "Electric price convert sessionChannel is null");
+            Assert.notNull(sessionChannel.channel(), "Electric price convert sessionChannel channel is null");
+            Channel channel = sessionChannel.channel().channel();
+
+            AttributeKey<Integer> elePriceType = AttributeKey.valueOf(ConstEnum.ELE_CHARG_TYPE.getCode());
+            Integer priceType = channel.attr(elePriceType).get();
+            if(Objects.isNull(priceType)){
+                log.warn("Electric price convert priceType is null");
+                SessionManager.close(sessionChannel);
+                throw new RuntimeException("Electric price convert priceType is null");
+            }
+
+            if(Objects.equals(priceType, 1)){
+                writer.write(command.getGunSort());
+                writer.write((short) (command.getSlxChargePrice()[0] / 100));
+                writer.write((short) (command.getSlxChargePrice()[1] / 100));
+                writer.write((short) (command.getSlxChargePrice()[2] / 100));
+                writer.write((short) (command.getSlxChargePrice()[3] / 100));
+                writer.write(command.getPriceStage().getBytes(StandardCharsets.US_ASCII));
+
+                writer.write((short) (command.getSlxChargePrice()[0] / 100));
+
+
+//                CacheKeyEnum keyEnum = CacheKeyEnum.MACHINE_SERVICE_PRICE;
+//                String key = command.getIdCode();
+//                key = keyEnum.joinKey(key);
+//                RBucket<McElectricityPriceCommandDTO> bucket = redissonClient.getBucket(key);
+//                bucket.set(command, keyEnum.getDuration().toMillis(), TimeUnit.MILLISECONDS);
+
+                // 会话存储电价信息
+                AttributeKey<McElectricityPriceCommandDTO> priceAttr = AttributeKey.valueOf(ConstEnum.COMMON_CHARGE_PRICE.getCode());
+                channel.attr(priceAttr).set(command);
+                McCommandDTO commandDTO = new McCommandDTO(typeCode, (byte) (1 + 10 + 48), writer.toByteArray());
+                log.info("GH Type B priceType:{} ElectricityPriceCommand:{}", priceType, JSONParser.jsonString(commandDTO));
+                return commandDTO;
+            }
+
+            if(Objects.equals(priceType, 2)){
+                writer.write(command.getGunSort());
+                writer.write((short) command.getSlxChargePrice()[0] / 100);
+                writer.write((short) command.getSlxChargePrice()[1] / 100);
+                writer.write((short) command.getSlxChargePrice()[2] / 100);
+                writer.write((short) command.getSlxChargePrice()[3] / 100);
+                writer.write((short) command.getSlxChargePrice()[4] / 100);
+                writer.write((short) command.getSlxChargePrice()[5] / 100);
+
+
+                writer.write((short) command.getSlxServicePrice()[0] / 100);
+                writer.write((short) command.getSlxServicePrice()[1] / 100);
+                writer.write((short) command.getSlxServicePrice()[2] / 100);
+                writer.write((short) command.getSlxServicePrice()[3] / 100);
+                writer.write((short) command.getSlxServicePrice()[4] / 100);
+                writer.write((short) command.getSlxServicePrice()[5] / 100);
+                writer.write(command.getPriceStage().getBytes(StandardCharsets.US_ASCII));
+
+                AttributeKey<McElectricityPriceCommandDTO> priceAttr = AttributeKey.valueOf(ConstEnum.COMMON_CHARGE_PRICE.getCode());
+                channel.attr(priceAttr).set(command);
+
+                McCommandDTO commandDTO = new McCommandDTO(typeCode, command.getFieldsByteLength(), writer.toByteArray());
+                log.info("GH Type B priceType:{} ElectricityPriceCommand:{}", priceType, JSONParser.jsonString(commandDTO));
+                return commandDTO;
+            }
+
+            log.warn("Electric price convert priceType is invalid");
+            SessionManager.close(sessionChannel);
+            throw new RuntimeException("Electric price convert priceType is invalid");
         }
 
         if (Objects.requireNonNull(type) == McTypeEnum.A) {
@@ -216,7 +266,7 @@ public class McElectricityPriceCommandExecute implements McCommandExecute<McElec
         }
 
         McCommandDTO commandDTO = new McCommandDTO(typeCode, command.getFieldsByteLength(), writer.toByteArray());
-        log.info("ElectricityPriceCommandDTO:{} type:{}", JSONParser.jsonString(commandDTO), type);
+        log.info("YKC ElectricityPriceCommandDTO:{} type:{}", JSONParser.jsonString(commandDTO), type);
         return commandDTO;
     }
 

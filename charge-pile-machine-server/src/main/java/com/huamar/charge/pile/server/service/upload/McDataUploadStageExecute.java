@@ -2,13 +2,11 @@ package com.huamar.charge.pile.server.service.upload;
 
 import cn.hutool.core.util.IdUtil;
 import com.huamar.charge.common.common.codec.BCD;
-import com.huamar.charge.pile.config.PileMachineProperties;
-import com.huamar.charge.pile.entity.dto.MachineDataUpItem;
+import com.huamar.charge.common.protocol.DataPacketReader;
 import com.huamar.charge.pile.entity.dto.ChargeStageDataDTO;
+import com.huamar.charge.pile.entity.dto.MachineDataUpItem;
 import com.huamar.charge.pile.entity.dto.mq.MessageData;
 import com.huamar.charge.pile.enums.McDataUploadEnum;
-import com.huamar.charge.common.protocol.DataPacketReader;
-import com.huamar.charge.common.util.JSONParser;
 import com.huamar.charge.pile.enums.MessageCodeEnum;
 import com.huamar.charge.pile.server.service.produce.PileMessageProduce;
 import lombok.RequiredArgsConstructor;
@@ -23,7 +21,7 @@ import java.util.List;
  * 充电桩 充电阶段数据 One
  * 2023/07/24
  *
- * @author TiAmo(13721682347 @ 163.com)
+ * @author TiAmo|13721682347@163.com
  */
 @Service
 @Slf4j
@@ -34,11 +32,6 @@ public class McDataUploadStageExecute implements McDataUploadExecute {
      * 消息投递
      */
     private final PileMessageProduce pileMessageProduce;
-
-    /**
-     * 设备参数配置
-     */
-    private final PileMachineProperties pileMachineProperties;
 
     /**
      * 协议编码
@@ -56,7 +49,6 @@ public class McDataUploadStageExecute implements McDataUploadExecute {
      */
     @Override
     public void execute(BCD time, List<MachineDataUpItem> list) {
-        // TODO 业务实现
         list.forEach(item -> {
             this.execute(time, item);
         });
@@ -69,9 +61,10 @@ public class McDataUploadStageExecute implements McDataUploadExecute {
      * @param item the item
      */
     public void execute(BCD time, MachineDataUpItem item) {
-        // TODO 业务实现
+        if(log.isTraceEnabled()){
+            log.trace("充电桩实时状态信息 time:{} ", time);
+        }
         ChargeStageDataDTO parse = this.parse(item);
-        log.info("充电桩实时状态信息表 data:{}", JSONParser.jsonString(parse));
         this.sendMessage(parse);
     }
 
@@ -81,12 +74,13 @@ public class McDataUploadStageExecute implements McDataUploadExecute {
      * @param time time
      * @param item the item
      */
-    public void executeB(BCD time, MachineDataUpItem item) {
-        // TODO 业务实现
+    public void executeGH(BCD time, MachineDataUpItem item) {
+        if(log.isTraceEnabled()){
+            log.trace("充电桩实时状态信息 time:{} ", time);
+        }
         ChargeStageDataDTO parse = this.parse(item);
-        log.info("充电桩实时状态信息表 data:{}", JSONParser.jsonString(parse));
-        parse.setPileElectricityOutValue((short)(parse.getPileElectricityOutValue()+1600));
-        parse.setBatteryChargeElectricity((short)(parse.getBatteryChargeElectricity()+1600));
+        parse.setPileElectricityOutValue((short) (parse.getPileElectricityOutValue() + 1600));
+        parse.setBatteryChargeElectricity((short) (parse.getBatteryChargeElectricity() + 1600));
         this.sendMessage(parse);
     }
 

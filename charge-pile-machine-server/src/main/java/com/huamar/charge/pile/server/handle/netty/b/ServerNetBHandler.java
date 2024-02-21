@@ -52,20 +52,21 @@ public class ServerNetBHandler extends SimpleChannelInboundHandler<DataPacket> {
         String format_code = String.format("%s%s", protocolCodePrefix, code);
         ProtocolCodeEnum codeEnum = ProtocolCodeEnum.getByCode(format_code);
         if(Objects.isNull(codeEnum)){
-            log.warn("协议消息ID获取执行器失败：code:{}", format_code);
             codeEnum = ProtocolCodeEnum.getByCode(code);
         }
+
+        //noinspection DuplicatedCode
         if(Objects.isNull(codeEnum)){
-            log.warn("协议消息ID获取执行器失败：code:{}", codeEnum);
             channelHandlerContext.fireChannelRead(dataPacket);
             return;
         }
+
         MachinePacketHandler<DataPacket> handler = packetFactory.getHandler(codeEnum);
         if(Objects.isNull(handler)){
-            log.warn("协议消息ID获取执行器失败：code:{}", codeEnum);
             channelHandlerContext.fireChannelRead(dataPacket);
             return;
         }
+
         handler.handler(dataPacket, sessionChannel);
     }
 

@@ -23,6 +23,8 @@ public enum ConstEnum {
 
     YKC_CHARGE_PRICE("YKC_CHARGE_PRICE", "YKC 电价信息"),
 
+    COMMON_CHARGE_PRICE("COMMON_CHARGE_PRICE", "标准电价信息"),
+
     STATION_ID("STATION_ID", "电站ID"),
 
     ELE_CHARG_TYPE("ELE_CHARG_TYPE", "充电电价类型"),

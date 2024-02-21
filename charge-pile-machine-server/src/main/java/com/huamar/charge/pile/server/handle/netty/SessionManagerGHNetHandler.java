@@ -29,13 +29,14 @@ import java.util.Objects;
  * @author TiAmo
  */
 @Slf4j
-public class SessionManagerNetHandler extends SimpleChannelInboundHandler<BasePacket> {
+public class SessionManagerGHNetHandler extends SimpleChannelInboundHandler<BasePacket> {
 
     // 设备认证日志
     private final Logger authLog = LoggerFactory.getLogger(LoggerEnum.PILE_AUTH_LOGGER.getCode());
 
-    private final McTypeEnum type = McTypeEnum.A;
+    private final McTypeEnum type = McTypeEnum.B;
 
+    private final String prefix = "GH";
 
     /**
      * 服务端上线的时候调用
@@ -44,7 +45,7 @@ public class SessionManagerNetHandler extends SimpleChannelInboundHandler<BasePa
      */
     @Override
     public void channelActive(ChannelHandlerContext ctx) {
-        SessionManager.channelActive(ctx, "SLX");
+        SessionManager.channelActive(ctx, this.prefix);
         ctx.fireChannelActive();
     }
 
@@ -57,7 +58,7 @@ public class SessionManagerNetHandler extends SimpleChannelInboundHandler<BasePa
     @SuppressWarnings("DuplicatedCode")
     @Override
     public void channelInactive(ChannelHandlerContext ctx) {
-        SessionManager.channelInactive(ctx, "SLX");
+        SessionManager.channelInactive(ctx, this.prefix);
         ctx.fireChannelInactive();
     }
 
@@ -69,17 +70,18 @@ public class SessionManagerNetHandler extends SimpleChannelInboundHandler<BasePa
      */
     @Override
     public void handlerRemoved(ChannelHandlerContext ctx) {
-        SessionManager.handlerRemoved(ctx, "SLX");
+        SessionManager.handlerRemoved(ctx, this.prefix);
     }
 
     /**
      * 服务端读取数据
      *
-     * @param channelHandlerContext channelHandlerContext
+     * @param ctx channelHandlerContext
      * @param packet                dataPacket
      */
+    @SuppressWarnings("DuplicatedCode")
     @Override
-    protected void channelRead0(ChannelHandlerContext channelHandlerContext, BasePacket packet) {
+    protected void channelRead0(ChannelHandlerContext ctx, BasePacket packet) {
         if(log.isDebugEnabled()){
             log.debug("InboundHandler:{}", this.getClass().getSimpleName());
         }
@@ -91,29 +93,29 @@ public class SessionManagerNetHandler extends SimpleChannelInboundHandler<BasePa
             MDC.put(ConstEnum.ID_CODE.getCode(), new String((dataPacket).getIdCode()));
             SessionChannel session = SessionManager.get(bsId);
             if (Objects.isNull(session)) {
-                SimpleSessionChannel sessionChannelNew = new SimpleSessionChannel(channelHandlerContext);
+                SimpleSessionChannel sessionChannelNew = new SimpleSessionChannel(ctx);
                 sessionChannelNew.setId(bsId);
                 sessionChannelNew.setType(type);
                 SessionManager.put(bsId, sessionChannelNew);
             }
 
             AttributeKey<String> machineId = AttributeKey.valueOf(ConstEnum.MACHINE_ID.getCode());
-            channelHandlerContext.channel().attr(machineId).set(bsId);
+            ctx.channel().attr(machineId).set(bsId);
         }
 
         if (packet instanceof FailMathPacket) {
             AttributeKey<String> machineId = AttributeKey.valueOf(ConstEnum.MACHINE_ID.getCode());
-            String sessionCode = channelHandlerContext.channel().attr(machineId).get();
+            String sessionCode = ctx.channel().attr(machineId).get();
             MDC.put(ConstEnum.ID_CODE.getCode(), "fail_packet");
             FailMathPacket dataPacket = (FailMathPacket) packet;
-            log.info("SLX FailMathPacket idCode:{} data:{}", sessionCode,HexExtUtil.encodeHexStrFormat(dataPacket.getBody(), StringPool.SPACE));
-            log.info("SLX FailMathPacket close session...");
-            SessionManager.closeCtx(channelHandlerContext, "SLX");
+            log.info("{} FailMathPacket idCode:{} data:{}", this.prefix, sessionCode,HexExtUtil.encodeHexStrFormat(dataPacket.getBody(), StringPool.SPACE));
+            log.info("{} FailMathPacket close session...", this.prefix);
+            SessionManager.closeCtx(ctx, this.prefix);
             SessionManager.remove(idCode);
             return;
         }
 
-        channelHandlerContext.fireChannelRead(packet);
+        ctx.fireChannelRead(packet);
     }
 
     /**
@@ -130,8 +132,8 @@ public class SessionManagerNetHandler extends SimpleChannelInboundHandler<BasePa
         String sessionId = ctx.channel().attr(sessionKey).get();
         MDC.put(ConstEnum.X_SESSION_ID.getCode(), sessionId);
 
-        authLog.error("SLX {} 连接出异常了,{}", ctx.channel().remoteAddress(), cause.getMessage(), cause);
-        log.error("SLX {} 连接出异常了,{}", ctx.channel().remoteAddress(), cause.getMessage(), cause);
+        authLog.error("{} {} 连接出异常了,{}", this.prefix, ctx.channel().remoteAddress(), cause.getMessage(), cause);
+        log.error("{} {} 连接出异常了,{}", this.prefix, ctx.channel().remoteAddress(), cause.getMessage(), cause);
         try {
             AttributeKey<String> machineId = AttributeKey.valueOf(ConstEnum.MACHINE_ID.getCode());
             String bsId = ctx.channel().attr(machineId).get();
@@ -140,12 +142,13 @@ public class SessionManagerNetHandler extends SimpleChannelInboundHandler<BasePa
                 SessionManager.remove(bsId);
             }
         } catch (Exception ignored) {
-            authLog.error("{} exceptionCaught error,{}", ctx.channel().remoteAddress(), cause.getMessage(), cause);
-            log.error("{} exceptionCaught error,{}", ctx.channel().remoteAddress(), cause.getMessage(), cause);
+            authLog.error("{} {} exceptionCaught error,{}", this.prefix, ctx.channel().remoteAddress(), cause.getMessage(), cause);
+            log.error("{} {} exceptionCaught error,{}", this.prefix, ctx.channel().remoteAddress(), cause.getMessage(), cause);
         } finally {
-            SessionManager.closeCtx(ctx, "SLX");
+            SessionManager.closeCtx(ctx, this.prefix);
         }
     }
+
 
     /**
      * 心跳检测事件处理
@@ -158,6 +161,7 @@ public class SessionManagerNetHandler extends SimpleChannelInboundHandler<BasePa
     public void userEventTriggered(ChannelHandlerContext ctx, Object evt) throws Exception {
         authLog.info("userEventTriggered evt class:{}", evt.getClass().getSimpleName());
         log.info("userEventTriggered evt class:{}", evt.getClass().getSimpleName());
+
         // 入站的消息就是 IdleStateEvent 具体的事件
         if (evt instanceof IdleStateEvent) {
             IdleStateEvent event = (IdleStateEvent) evt;
@@ -169,19 +173,19 @@ public class SessionManagerNetHandler extends SimpleChannelInboundHandler<BasePa
             switch (event.state()) {
 
                 case READER_IDLE:
-                    authLog.warn("SLX IdCode:{} READER_IDLE 读取数据空闲 心跳链接超时 关闭连接", bsId);
-                    log.warn("SLX IdCode:{} READER_IDLE 读取数据空闲 心跳链接超时 关闭连接", bsId);
-                    SessionManager.closeCtx(ctx, "SLX");
+                    authLog.warn("{} IdCode:{} READER_IDLE 读取数据空闲 心跳链接超时 关闭连接", this.prefix, bsId);
+                    log.warn("{} IdCode:{} READER_IDLE 读取数据空闲 心跳链接超时 关闭连接", this.prefix, bsId);
+                    SessionManager.closeCtx(ctx, this.prefix);
                     break;
 
                 case WRITER_IDLE:
-                    authLog.warn("SLX IdCode:{} WRITER_IDLE 读取数据空闲", bsId);
-                    log.warn("SLX IdCode:{} WRITER_IDLE 读取数据空闲", bsId);
+                    authLog.warn("{} IdCode:{} WRITER_IDLE 读取数据空闲", this.prefix, bsId);
+                    log.warn("{} IdCode:{} WRITER_IDLE 读取数据空闲", this.prefix, bsId);
                     break;
 
                 case ALL_IDLE:
-                    authLog.warn("SLX IdCode:{} ALL_IDLE 时间超时", bsId);
-                    log.warn("SLX IdCode:{} ALL_IDLE 时间超时", bsId);
+                    authLog.warn("{} IdCode:{} ALL_IDLE 时间超时", this.prefix, bsId);
+                    log.warn("{} IdCode:{} ALL_IDLE 时间超时", this.prefix, bsId);
                     break;
             }
         } else {
