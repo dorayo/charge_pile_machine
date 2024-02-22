@@ -194,7 +194,7 @@ public class McElectricityPriceCommandExecute implements McCommandExecute<McElec
                 writer.write((short) (command.getSlxChargePrice()[3] / 100));
                 writer.write(command.getPriceStage().getBytes(StandardCharsets.US_ASCII));
 
-                writer.write((short) (command.getSlxChargePrice()[0] / 100));
+                writer.write((short) (command.getSlxServicePrice()[0] / 100));
 
 
 //                CacheKeyEnum keyEnum = CacheKeyEnum.MACHINE_SERVICE_PRICE;

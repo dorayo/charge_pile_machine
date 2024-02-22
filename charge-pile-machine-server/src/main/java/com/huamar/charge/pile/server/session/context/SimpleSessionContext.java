@@ -10,11 +10,7 @@ import io.netty.channel.ChannelHandlerContext;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.exception.ExceptionUtils;
-import org.slf4j.MDC;
 import org.springframework.util.Assert;
-
-import java.util.Map;
-import java.util.Objects;
 
 /**
  * 默认的上下文管理 基于 netty
@@ -41,7 +37,7 @@ public class SimpleSessionContext implements MachineSessionContext {
             ChannelHandlerContext ctx = sessionChannel.channel();
             String sessionId = SessionManager.getSessionId(ctx);
             ctx.writeAndFlush(packet).addListener(future -> {
-                log.info("SLX writePacket session:{} idCode:{} success:{} case:{}", sessionId, new String(packet.getIdCode()), future.isSuccess(), ExceptionUtils.getMessage(future.cause()));
+                log.info("writePacket session:{} idCode:{} success:{} case:{}", sessionId, new String(packet.getIdCode()), future.isSuccess(), ExceptionUtils.getMessage(future.cause()));
             });
         } catch (Exception e) {
             log.error("writePacket error", e);
@@ -68,7 +64,7 @@ public class SimpleSessionContext implements MachineSessionContext {
             }
             String sessionId = SessionManager.getSessionId(ctx);
             ctx.writeAndFlush(packet).addListener(future -> {
-                log.info("SLX writePacket:{} idCode:{} success:{} case:{}", sessionId, new String(packet.getIdCode()), future.isSuccess(), ExceptionUtils.getMessage(future.cause()));
+                log.info("writePacket:{} idCode:{} success:{} case:{}", sessionId, new String(packet.getIdCode()), future.isSuccess(), ExceptionUtils.getMessage(future.cause()));
             });
         }
         catch (IllegalArgumentException e){

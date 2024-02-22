@@ -108,7 +108,7 @@ public class PileStartChargeExecute implements PileMessageExecute {
     @Override
     public void execute(MessageData<String> body) {
         PileChargeControlDTO chargeControl = JSONParser.parseObject(body.getData(), PileChargeControlDTO.class);
-        log.info("开启充电参数下发：" + chargeControl);
+        log.info("开启充电参数下发:{}", JSONParser.jsonString(chargeControl));
         try {
             McChargeCommandDTO chargeCommand = new McChargeCommandDTO();
             chargeCommand.setChargeControl((byte) 1);
@@ -118,7 +118,7 @@ public class PileStartChargeExecute implements PileMessageExecute {
             chargeCommand.setOrderSerialNumber(chargeControl.getOrderSerialNumber().getBytes());
             chargeCommand.setBalance(chargeControl.getBalance().intValue());
             chargeCommand.setIdCode(chargeControl.getIdCode());
-            log.info("开启充电参数下发:{}, {}", new String(chargeCommand.getOrderSerialNumber()), chargeCommand);
+            log.info("开启充电参数下发 number:{}, command{}", new String(chargeCommand.getOrderSerialNumber()), JSONParser.jsonString(chargeCommand));
             SimpleSessionChannel session = (SimpleSessionChannel) SessionManager.get(chargeControl.getIdCode());
             Assert.notNull(session, "开启充电参数下发 error 设备不在线");
 

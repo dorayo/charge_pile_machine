@@ -211,7 +211,7 @@ public class McDataUploadOnlineExecute implements McDataUploadExecute {
             // v2014/02/20 当前版本国花协议服务费固定费率, so 电价=总价-服务费*度数，暂时简化处理
             if(Objects.equals(priceType, 1)){
                 BigDecimal chargePower = BigDecimal.valueOf(onlineInfoDto.getCurChargeQuantity());
-                chargePower = chargePower.divide(BigDecimal.valueOf(1000), RoundingMode.HALF_UP);
+                chargePower = chargePower.divide(BigDecimal.valueOf(10000), 4, RoundingMode.HALF_UP);
 
                 BigDecimal money = BigDecimal.valueOf(onlineInfoDto.getCurMoney());
                 BigDecimal serviceMoney = chargePower.multiply(BigDecimal.valueOf(priceCommandDTO.getSlxServicePrice()[0]));

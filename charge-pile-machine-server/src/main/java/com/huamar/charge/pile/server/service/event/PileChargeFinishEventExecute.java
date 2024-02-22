@@ -481,7 +481,7 @@ public class PileChargeFinishEventExecute implements PileEventExecute {
                 eventDTO = this.parseGHDirectCurrent(reqDTO);
 
                 BigDecimal chargePower = BigDecimal.valueOf(eventDTO.getOutPower());
-                chargePower = chargePower.divide(BigDecimal.valueOf(1000), RoundingMode.HALF_UP);
+                chargePower = chargePower.divide(BigDecimal.valueOf(10000), 4, RoundingMode.HALF_UP);
 
                 BigDecimal money = BigDecimal.valueOf(eventDTO.getChargeMoney());
                 BigDecimal serviceMoney = chargePower.multiply(BigDecimal.valueOf(priceCommandDTO.getSlxServicePrice()[0]));
@@ -516,6 +516,10 @@ public class PileChargeFinishEventExecute implements PileEventExecute {
             messageData.setBusinessCode(MessageCodeEnum.EVENT_CHARGE_FINISH.getCode());
             messageData.setBusinessId(reqDTO.getIdCode());
             messageProduce.send(messageData);
+
+            if (log.isInfoEnabled()) {
+                log.info("充电完成:{} 事件汇报：{}, data:{}", eventPushDTO.getOrderSerialNumber(), getCode().getDesc(), JSONParser.jsonString(eventDTO));
+            }
         }
     }
 
@@ -553,6 +557,16 @@ public class PileChargeFinishEventExecute implements PileEventExecute {
             eventDTO.setCarIdentificationCode(utf8Vin);
         }catch (Exception e){
             eventDTO.setCarIdentificationCode(vin);
+        }
+
+        // 结束原因
+        try{
+            JSONObject jsonObject = new JSONObject();
+            jsonObject.put("code", eventDTO.getEndReason());
+            jsonObject.put("text","国花交流 code:" + eventDTO.getEndReason());
+            jsonObject.put("tag","GH");
+            eventDTO.setEndReasonJson(jsonObject.toJSONString());
+        }catch (Exception ignored){
         }
 
         //判断是否还有未读完数据，兼容不同版本协议
@@ -602,6 +616,16 @@ public class PileChargeFinishEventExecute implements PileEventExecute {
             eventDTO.setCarIdentificationCode(utf8Vin);
         }catch (Exception e){
             eventDTO.setCarIdentificationCode(vin);
+        }
+
+        // 结束原因
+        try{
+            JSONObject jsonObject = new JSONObject();
+            jsonObject.put("code", eventDTO.getEndReason());
+            jsonObject.put("text","国花交流 code:" + eventDTO.getEndReason());
+            jsonObject.put("tag","GH");
+            eventDTO.setEndReasonJson(jsonObject.toJSONString());
+        }catch (Exception ignored){
         }
 
         //判断是否还有未读完数据，兼容不同版本协议
