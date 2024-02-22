@@ -82,6 +82,7 @@ public class MachineCHeartbeatHandler {
                 LocalDate loginTimeDay = loginTime.toLocalDate();
                 boolean isSameDay = nowDay.isEqual(loginTimeDay);
                 if(!isSameDay){
+                    SessionManager.setLoginTimeNow(ctx);
                     this.syncTime(ctx);
                 }
             }catch (Exception e){

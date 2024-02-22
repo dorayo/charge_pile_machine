@@ -659,6 +659,9 @@ public class MachineCHandlers {
             eventPushDTO.setEventStartTime(startTime.toString());
             eventPushDTO.setEventEndTime(endTime.toString());
 
+            jsonLog.put("startTimeT", startTime);
+            jsonLog.put("endTimeT", endTime);
+
             eventPushDTO.setEventState(2);
             eventPushDTO.setOutPower((int) (powerCount));
             eventPushDTO.setEndReason(endReason);
