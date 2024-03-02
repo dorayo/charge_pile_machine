@@ -45,8 +45,8 @@ public class ServerNetHandlerForYKC extends SimpleChannelInboundHandler<Protocol
      */
     @Override
     protected void channelRead0(ChannelHandlerContext ctx, ProtocolCPacket cPacket) {
-        if(log.isDebugEnabled()){
-            log.debug("InboundHandler:{}", this.getClass().getSimpleName());
+        if(log.isTraceEnabled()){
+            log.trace("InboundHandler:{}", this.getClass().getSimpleName());
         }
 
         AttributeKey<String> machineId = AttributeKey.valueOf(ConstEnum.MACHINE_ID.getCode());

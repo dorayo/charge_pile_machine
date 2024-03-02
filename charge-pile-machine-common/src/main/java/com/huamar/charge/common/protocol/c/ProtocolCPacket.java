@@ -1,21 +1,14 @@
 package com.huamar.charge.common.protocol.c;
 
-import cn.hutool.core.io.checksum.CRC16;
-import cn.hutool.core.util.ByteUtil;
 import com.huamar.charge.common.common.BCDUtils;
 import com.huamar.charge.common.util.ByteExtUtil;
 import com.huamar.charge.common.util.netty.NUtils;
 import com.huamar.charge.pile.utils.CRC16Util;
-import com.huamar.charge.pile.utils.ProtocolChecks;
-import com.huamar.charge.pile.utils.views.BinaryViews;
 import io.netty.buffer.ByteBuf;
-import io.netty.buffer.ByteBufAllocator;
 import io.netty.buffer.ByteBufUtil;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.codec.digest.DigestUtils;
 
-import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 
 @Data
@@ -118,4 +111,12 @@ public class ProtocolCPacket {
     static public ProtocolCPacket createFromNettyBuf(ByteBuf byteBuf) {
         return new ProtocolCPacket(byteBuf);
     }
+
+//    public static void main(String[] args) {
+//        String code = "68 A0 00 00 00 3B 20 24 03 01 16 30 17 63 48 19 14 91 37 83 80 80 32 01 06 00 10 13 10 01 78 69 1E 10 01 03 18 80 3E 1F 10 01 03 18 D0 7E 01 00 00 00 00 00 00 00 00 00 00 00 00 00 A8 5B 01 00 00 00 00 00 00 00 00 00 00 00 00 00 F8 24 01 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 A4 D3 2C 10 A4 D3 2C 10 00 00 00 00 00 00 00 00 00 00 00 00 4C 47 42 36 31 59 45 41 35 4D 53 30 30 35 35 36 31 01 80 3E 1F 10 01 03 18 41 00 00 00 00 00 00 00 00 6D E3";
+//        byte[] bytes = HexExtUtil.decodeHex(code);
+//        ByteBuf byteBuf = ByteBufAllocator.DEFAULT.heapBuffer(256);
+//        byteBuf.writeBytes(bytes);
+//        ProtocolCPacket fromNettyBuf = ProtocolCPacket.createFromNettyBuf(byteBuf);
+//    }
 }

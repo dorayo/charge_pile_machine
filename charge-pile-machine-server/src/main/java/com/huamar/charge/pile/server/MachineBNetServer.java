@@ -161,13 +161,13 @@ public class MachineBNetServer implements NetServer {
                                     }
 
                                     if (log.isDebugEnabled()) {
-                                        log.info("{} channelRead into >>>>>>>>>>>>>>>>>> idCode:{} session:{} address:{}", prefix, idCode, Optional.ofNullable(session).isPresent(), remotedAddress);
+                                        log.info("{} channelRead into >>>>>>> idCode:{} session:{} address:{}", prefix, idCode, Optional.ofNullable(session).isPresent(), remotedAddress);
                                     }
 
                                     ctx.fireChannelRead(msg);
 
                                     if (log.isDebugEnabled()) {
-                                        log.info("{} channelRead end <<<<<<<<<<<<<<<<<<< idCode:{} session address:{} end", prefix, idCode, remotedAddress);
+                                        log.info("{} channelRead end <<<<<<< ", prefix);
                                     }
                                 }finally {
                                     MDC.clear();
@@ -179,7 +179,7 @@ public class MachineBNetServer implements NetServer {
                             public void channelReadComplete(ChannelHandlerContext ctx) {
                                 try {
                                     SessionManager.setMDCParam(ctx);
-                                    log.info("{} channelReadComplete end <<<<<<<<<<<<<<<<<<", prefix);
+                                    log.info("{} readComplete end -------", prefix);
                                     super.channelReadComplete(ctx);
                                 }catch (Exception e){
                                     log.error("{} channelReadComplete error", prefix);

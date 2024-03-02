@@ -109,7 +109,7 @@ public class McDataUploadTest {
         BasePacket basePacket = builder.build();
         ByteBuffer byteBuffer = ProtocolCodecFactory.encode(basePacket);
         Assert.notNull(byteBuffer, "byteBuffer is null");
-        String encodeHexStr = HexExtUtil.encodeHexStrFormat(byteBuffer.array(), StringPool.SPACE);
+        String encodeHexStr = HexExtUtil.encodeHexStr(byteBuffer.array());
         log.info("data:{}", encodeHexStr);
         byte a = (byte) -22200;
         log.info("data:{}", HexExtUtil.encodeHexStr(a));

@@ -82,8 +82,8 @@ public class SessionManagerGHNetHandler extends SimpleChannelInboundHandler<Base
     @SuppressWarnings("DuplicatedCode")
     @Override
     protected void channelRead0(ChannelHandlerContext ctx, BasePacket packet) {
-        if(log.isDebugEnabled()){
-            log.debug("InboundHandler:{}", this.getClass().getSimpleName());
+        if(log.isTraceEnabled()){
+            log.trace("InboundHandler:{}", this.getClass().getSimpleName());
         }
         String idCode = "";
         if (packet instanceof DataPacket) {

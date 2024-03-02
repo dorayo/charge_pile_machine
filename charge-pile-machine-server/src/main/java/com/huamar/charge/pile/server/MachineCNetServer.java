@@ -1,35 +1,27 @@
 package com.huamar.charge.pile.server;
 
 import cn.hutool.core.util.IdUtil;
-import com.huamar.charge.common.common.BCDUtils;
-import com.huamar.charge.common.common.StringPool;
 import com.huamar.charge.common.protocol.c.ProtocolCPacket;
-import com.huamar.charge.common.util.ByteExtUtil;
 import com.huamar.charge.common.util.HexExtUtil;
 import com.huamar.charge.net.core.SessionChannel;
 import com.huamar.charge.pile.config.ServerApplicationProperties;
-import com.huamar.charge.pile.enums.ConstEnum;
 import com.huamar.charge.pile.enums.McTypeEnum;
 import com.huamar.charge.pile.server.handle.netty.c.ServerNetHandlerForYKC;
 import com.huamar.charge.pile.server.handle.netty.c.SessionManagerForYKCNetHandler;
 import com.huamar.charge.pile.server.session.SessionManager;
 import com.huamar.charge.pile.server.session.context.SimpleSessionContext;
-import com.huamar.charge.pile.utils.views.BinaryViews;
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.buffer.ByteBuf;
-import io.netty.buffer.ByteBufUtil;
 import io.netty.channel.*;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
 import io.netty.handler.codec.ByteToMessageDecoder;
 import io.netty.handler.timeout.IdleStateHandler;
-import io.netty.util.AttributeKey;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.MDC;
-import org.slf4j.helpers.MessageFormatter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.event.ApplicationReadyEvent;
@@ -44,7 +36,6 @@ import java.net.SocketAddress;
 import java.time.Duration;
 import java.util.List;
 import java.util.Optional;
-import java.util.StringJoiner;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 
@@ -169,13 +160,13 @@ public class MachineCNetServer {
                                     }
 
                                     if (log.isDebugEnabled()) {
-                                        log.info("YKC channelRead into >>>>>>>>>>>>>>>>>> idCode:{} session:{} address:{}", idCode, Optional.ofNullable(session).isPresent(), remotedAddress);
+                                        log.info("YKC channelRead into >>>>>>> idCode:{} session:{} address:{}", idCode, Optional.ofNullable(session).isPresent(), remotedAddress);
                                     }
 
                                     ctx.fireChannelRead(msg);
 
                                     if (log.isDebugEnabled()) {
-                                        log.info("YKC channelRead end <<<<<<<<<<<<<<<<<<< session idCode:{} address:{} end", idCode, remotedAddress);
+                                        log.info("YKC channelRead end <<<<<<<");
                                     }
                                 }finally {
                                     MDC.clear();
@@ -186,7 +177,7 @@ public class MachineCNetServer {
                             public void channelReadComplete(ChannelHandlerContext ctx) {
                                 try {
                                     SessionManager.setMDCParam(ctx);
-                                    log.info("YKC channelReadComplete end <<<<<<<<<<<<<<<<<<");
+                                    log.info("YKC readComplete end -------");
                                     super.channelReadComplete(ctx);
                                 }catch (Exception e){
                                     log.error("YKC channelReadComplete error");
@@ -269,7 +260,7 @@ public class MachineCNetServer {
 
             // 分割数据包
             if(log.isDebugEnabled()){
-                log.debug("YKC Decode >>>>>>>>>> SplitDecode byteBuf:{}", byteBuf);
+                log.debug("YKC Decode >>>>>>> SplitDecode byteBuf:{}", byteBuf);
             }
         }
     }
@@ -292,7 +283,7 @@ public class MachineCNetServer {
             String idCode = SessionManager.getIdCode(ctx);
 
             if(log.isDebugEnabled()){
-                log.debug("YKC Decode hex packet:{}", HexExtUtil.encodeHexStrFormat(bytes, StringPool.SPACE));
+                log.debug("YKC Decode hex packet:{}", HexExtUtil.encodeHexStr(bytes));
             }
 
             // 协议包解析

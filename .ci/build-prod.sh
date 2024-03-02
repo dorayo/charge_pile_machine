@@ -8,7 +8,7 @@ service_name=charge_pile_machine
 # 环境
 profile=prod
 # 容器镜像版本
-container_tag=v23012501
+container_tag=v24022200
 
 ## build
 # ──────────────────────────────────────────────────────────────────────────────────────────────────────────
@@ -41,6 +41,8 @@ cd ${tmp_dir}
 docker buildx build -t ${service_name}:latest .
 docker tag ${service_name}:latest swr.cn-north-4.myhuaweicloud.com/huamar/${service_name}:${container_tag}
 docker push swr.cn-north-4.myhuaweicloud.com/huamar/${service_name}:${container_tag}
+docker rmi swr.cn-north-4.myhuaweicloud.com/huamar/${service_name}:${container_tag}
+docker rmi ${service_name}:latest
 exit
 EOF
 echo "end"

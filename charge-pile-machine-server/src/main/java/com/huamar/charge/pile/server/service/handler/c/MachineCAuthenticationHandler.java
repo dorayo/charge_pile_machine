@@ -222,6 +222,30 @@ public class MachineCAuthenticationHandler {
             return;
         }
 
+        if(StringUtils.startsWith(version, "畅的")){
+            String qrCode =  "http://weixin.qq.com/r/dBGEnM3E3JCjrYn-90Rm?pileId=4710";
+            byte type = (byte) 0xF0;
+            Short serialNumber = SessionManager.getYKCSerialNumber(ctx);
+            byte[] idBody = ctx.channel().attr(NAttrKeys.ID_BODY).get();
+            byte[] commandV = ByteExtUtil.shortToBytes(serialNumber, ByteOrder.LITTLE_ENDIAN);
+
+            byte[] urlB = qrCode.getBytes(StandardCharsets.US_ASCII);
+            ByteBuf bfB = ByteBufAllocator.DEFAULT.heapBuffer();
+            bfB.writeBytes(idBody);
+            bfB.writeByte(1);
+            bfB.writeByte(urlB.length);
+            bfB.writeBytes(urlB);
+            ByteBuf responseB = BinaryBuilders.protocolCLeResponseBuilder(NUtils.nBFToBf(bfB), commandV, type);
+            log.info("YKC 畅的 0xF0 sendQrCode hex:{} ", BinaryViews.bfToHexStr(responseB));
+            log.info("YKC 畅的 0xF0  sendQrCode:{} ", qrCode);
+            ctx.writeAndFlush(responseB).addListener((f) -> {
+                if (!f.isSuccess()) {
+                    log.error("YKC 畅的 0xF0 sendQrCode write error:{}", ExceptionUtils.getMessage(f.cause()), f.cause());
+                }
+            });
+            return;
+        }
+
         if(StringUtils.contains(version, "欣瑞达")){
             byte type = (byte) 0x5A;
             byte[] idBody = ctx.channel().attr(NAttrKeys.ID_BODY).get();

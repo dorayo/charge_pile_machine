@@ -18,6 +18,11 @@
 	<property name="LOG_PATTERN"
 			  value="%clr(%d{yyyy-MM-dd HH:mm:ss.SSS}){faint} %clr(${LOG_LEVEL_PATTERN:-%5p}) %clr(${PID:- }){magenta} %clr(---){faint} %clr(%-40.40logger{39}){cyan} %clr(:){faint} %clr([%-19.19t]){faint} [%-19.19X{X_SESSION_ID}] %m%n${LOG_EXCEPTION_CONVERSION_WORD:-%wEx}"/>
 	
+	<!-- 彩色日志格式 -->
+	<property name="LOG_PATTERN_A"
+			  value="%clr(%d{yyyy-MM-dd HH:mm:ss.SSS}){faint}|%clr(${LOG_LEVEL_PATTERN:-%-5p})|%clr(${PID:- }){magenta}|%clr(%-40.40logger{39}){cyan}|%clr(%-19.19t){faint}|session:%-19.19X{X_SESSION_ID}|%m%n${LOG_EXCEPTION_CONVERSION_WORD:-%wEx}"/>
+	
+	
 	<!--	<property name="CONSOLE_LOG_PATTERN"-->
 	<!--			  value="-%clr(%d{${LOG_DATEFORMAT_PATTERN:-yyyy-MM-dd HH:mm:ss.SSS}}){faint} %clr(${LOG_LEVEL_PATTERN:-%5p}) %clr(${PID:- }){magenta} %clr(-&#45;&#45;){faint} %clr([%15.15t]){faint} %clr(%X{thread_id: -}){cyan} %clr(%-40.40logger{39}){cyan} %clr(:){faint} %m%n${LOG_EXCEPTION_CONVERSION_WORD:-%wEx}"/>-->
 	<!--	-->
@@ -55,7 +60,7 @@
 	<!--1. 输出到控制台-->
 	<appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
 		<encoder>
-			<Pattern>${LOG_PATTERN}</Pattern>
+			<Pattern>${LOG_PATTERN_A}</Pattern>
 			<!-- 设置字符集 -->
 			<charset>${CONSOLE_LOG_CHARSET}</charset>
 		</encoder>
@@ -103,65 +108,6 @@
 					<maxHistory>7</maxHistory>
 				</rollingPolicy>
 			
-			</appender>
-		</sift>
-	</appender>
-	
-	
-	<!-- 自定义字段分割日志 -->
-	<appender name="PILE_HEART_SIFT_FILE" class="ch.qos.logback.classic.sift.SiftingAppender">
-		
-		<discriminator>
-			<key>idCode</key>
-			<defaultValue>0</defaultValue>
-		</discriminator>
-		
-		<sift>
-			<appender name="PILE_HEART_LOG_${idCode}" class="ch.qos.logback.core.rolling.RollingFileAppender">
-				
-				<encoder>
-					<pattern>${FILE_LOG_PATTERN}</pattern>
-					<charset>${FILE_LOG_CHARSET}</charset>
-				</encoder>
-				
-				<file>${LOG_PATH}/pile_heart_${idCode}.log</file>
-				<rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
-					<fileNamePattern>${LOG_PATH}/%d/pile_heart_${idCode}_%i.log</fileNamePattern>
-					<cleanHistoryOnStart>false</cleanHistoryOnStart>
-					<maxFileSize>16MB</maxFileSize>
-					<totalSizeCap>32MB</totalSizeCap>
-					<maxHistory>1</maxHistory>
-				</rollingPolicy>
-			
-			</appender>
-		</sift>
-	</appender>
-	
-	
-	<!-- 自定义字段分割日志 -->
-	<appender name="PILE_PACKET_SIFT_FILE" class="ch.qos.logback.classic.sift.SiftingAppender">
-		
-		<discriminator>
-			<key>idCode</key>
-			<defaultValue>0</defaultValue>
-		</discriminator>
-		
-		<sift>
-			<appender name="pile_packet_log_${idCode}" class="ch.qos.logback.core.rolling.RollingFileAppender">
-				
-				<encoder>
-					<pattern>${FILE_LOG_PATTERN}</pattern>
-					<charset>${FILE_LOG_CHARSET}</charset>
-				</encoder>
-				
-				<file>${LOG_PATH}/pile_packet_${idCode}.log</file>
-				<rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
-					<fileNamePattern>${LOG_PATH}/%d/pile_packet_${idCode}_%i.log</fileNamePattern>
-					<cleanHistoryOnStart>false</cleanHistoryOnStart>
-					<maxFileSize>16MB</maxFileSize>
-					<totalSizeCap>32MB</totalSizeCap>
-					<maxHistory>3</maxHistory>
-				</rollingPolicy>
 			</appender>
 		</sift>
 	</appender>

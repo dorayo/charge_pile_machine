@@ -49,9 +49,7 @@ public class McDataUploadStageExecute implements McDataUploadExecute {
      */
     @Override
     public void execute(BCD time, List<MachineDataUpItem> list) {
-        list.forEach(item -> {
-            this.execute(time, item);
-        });
+        list.forEach(item -> this.execute(time, item));
     }
 
     /**
@@ -81,6 +79,12 @@ public class McDataUploadStageExecute implements McDataUploadExecute {
         ChargeStageDataDTO parse = this.parse(item);
         parse.setPileElectricityOutValue((short) (parse.getPileElectricityOutValue() + 1600));
         parse.setBatteryChargeElectricity((short) (parse.getBatteryChargeElectricity() + 1600));
+        int remainChargeTime = parse.getRemainChargeTime();
+        if(remainChargeTime > 0){
+            remainChargeTime = remainChargeTime / 60;
+        }
+        parse.setRemainChargeTime(remainChargeTime);
+
         this.sendMessage(parse);
     }
 

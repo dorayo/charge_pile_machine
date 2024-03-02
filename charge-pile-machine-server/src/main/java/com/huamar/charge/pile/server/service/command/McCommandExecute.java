@@ -44,14 +44,14 @@ public interface McCommandExecute<T extends McBaseCommandDTO> {
      * @param command command
      * @return DataPacket
      */
-    default DataPacket packet(T command){
+    default DataPacket packet(T command) {
 
 
         Short messageNumber = SessionManager.getMessageNumber(command.getIdCode());
         command.headMessageNum(messageNumber);
 
         //noinspection DuplicatedCode
-        DataPacket packet= new DataPacket();
+        DataPacket packet = new DataPacket();
         packet.setTag(DataPacket.TAG);
         packet.setMsgId(HexExtUtil.decodeHex(ProtocolCodeEnum.COMMON_SEND.getCode())[0]);
         packet.setIdCode(command.getIdCode().getBytes());

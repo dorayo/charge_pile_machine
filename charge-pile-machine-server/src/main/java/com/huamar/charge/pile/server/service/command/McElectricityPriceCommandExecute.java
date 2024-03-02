@@ -11,7 +11,10 @@ import com.huamar.charge.common.util.netty.NUtils;
 import com.huamar.charge.pile.entity.dto.command.McCommandDTO;
 import com.huamar.charge.pile.entity.dto.command.McElectricityPriceCommandDTO;
 import com.huamar.charge.pile.entity.dto.command.YKCChargePrice;
-import com.huamar.charge.pile.enums.*;
+import com.huamar.charge.pile.enums.ConstEnum;
+import com.huamar.charge.pile.enums.McCommandEnum;
+import com.huamar.charge.pile.enums.McTypeEnum;
+import com.huamar.charge.pile.enums.NAttrKeys;
 import com.huamar.charge.pile.server.session.SessionManager;
 import com.huamar.charge.pile.server.session.SimpleSessionChannel;
 import com.huamar.charge.pile.utils.binaryBuilder.BinaryBuilders;
@@ -24,14 +27,11 @@ import io.netty.util.AttributeKey;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.exception.ExceptionUtils;
-import org.redisson.api.RBucket;
-import org.redisson.api.RedissonClient;
 import org.springframework.stereotype.Component;
 import org.springframework.util.Assert;
 
 import java.nio.charset.StandardCharsets;
 import java.util.Objects;
-import java.util.concurrent.TimeUnit;
 
 
 /**
@@ -44,8 +44,6 @@ import java.util.concurrent.TimeUnit;
 @Component
 @RequiredArgsConstructor
 public class McElectricityPriceCommandExecute implements McCommandExecute<McElectricityPriceCommandDTO> {
-
-    private final RedissonClient redissonClient;
 
     /**
      * 协议编码
@@ -82,7 +80,7 @@ public class McElectricityPriceCommandExecute implements McCommandExecute<McElec
 
             YKCChargePrice ykcChargePrice = getYkcChargePrice(command);
 
-            log.info("YKC 充电计费信息  hex timeBucket{} hex newTimeBucket{}", HexExtUtil.encodeHexStr(timeStages), HexExtUtil.encodeHexStr(command.getPriceBucketJFPG()));
+            log.info("YKC 充电计费信息  hex time:{} hex newTime:{}", HexExtUtil.encodeHexStr(timeStages), HexExtUtil.encodeHexStr(command.getPriceBucketJFPG()));
 
             // 会话存储电价信息
             AttributeKey<YKCChargePrice> ykcPriceAttr = AttributeKey.valueOf(ConstEnum.YKC_CHARGE_PRICE.getCode());
@@ -129,6 +127,13 @@ public class McElectricityPriceCommandExecute implements McCommandExecute<McElec
 
         //默认协议
         DataPacket packet = this.packet(command);
+        if(Objects.equals(type, McTypeEnum.B)){
+            Short messageNum = command.headMessageNum();
+            messageNum = Objects.isNull(messageNum) ? SessionManager.getMessageNumber(command.getIdCode()) : messageNum;
+            command.headMessageNum(messageNum);
+            packet.setMsgNumber(messageNum);
+        }
+
         boolean sendCommand = SessionManager.writePacket(packet);
         log.info("Electricity Price idCode:{} sendCommand:{} msgNumber:{} ", command.getIdCode(), sendCommand, packet.getMsgNumber());
     }
@@ -212,21 +217,21 @@ public class McElectricityPriceCommandExecute implements McCommandExecute<McElec
             }
 
             if(Objects.equals(priceType, 2)){
-                writer.write(command.getGunSort());
-                writer.write((short) command.getSlxChargePrice()[0] / 100);
-                writer.write((short) command.getSlxChargePrice()[1] / 100);
-                writer.write((short) command.getSlxChargePrice()[2] / 100);
-                writer.write((short) command.getSlxChargePrice()[3] / 100);
-                writer.write((short) command.getSlxChargePrice()[4] / 100);
-                writer.write((short) command.getSlxChargePrice()[5] / 100);
+                writer.write((byte) 0);
+                writer.write((short) (command.getSlxChargePrice()[0] / 100));
+                writer.write((short) (command.getSlxChargePrice()[1] / 100));
+                writer.write((short) (command.getSlxChargePrice()[2] / 100));
+                writer.write((short) (command.getSlxChargePrice()[3] / 100));
+                writer.write((short) (command.getSlxChargePrice()[4] / 100));
+                writer.write((short) (command.getSlxChargePrice()[5] / 100));
 
 
-                writer.write((short) command.getSlxServicePrice()[0] / 100);
-                writer.write((short) command.getSlxServicePrice()[1] / 100);
-                writer.write((short) command.getSlxServicePrice()[2] / 100);
-                writer.write((short) command.getSlxServicePrice()[3] / 100);
-                writer.write((short) command.getSlxServicePrice()[4] / 100);
-                writer.write((short) command.getSlxServicePrice()[5] / 100);
+                writer.write((short) (command.getSlxServicePrice()[0] / 100));
+                writer.write((short) (command.getSlxServicePrice()[1] / 100));
+                writer.write((short) (command.getSlxServicePrice()[2] / 100));
+                writer.write((short) (command.getSlxServicePrice()[3] / 100));
+                writer.write((short) (command.getSlxServicePrice()[4] / 100));
+                writer.write((short) (command.getSlxServicePrice()[5] / 100));
                 writer.write(command.getPriceStage().getBytes(StandardCharsets.US_ASCII));
 
                 AttributeKey<McElectricityPriceCommandDTO> priceAttr = AttributeKey.valueOf(ConstEnum.COMMON_CHARGE_PRICE.getCode());

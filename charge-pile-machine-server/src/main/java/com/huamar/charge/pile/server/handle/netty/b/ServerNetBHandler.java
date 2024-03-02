@@ -42,8 +42,8 @@ public class ServerNetBHandler extends SimpleChannelInboundHandler<DataPacket> {
      */
     @Override
     protected void channelRead0(ChannelHandlerContext channelHandlerContext, DataPacket dataPacket) {
-        if(log.isDebugEnabled()){
-            log.debug("InboundHandler:{}", this.getClass().getSimpleName());
+        if(log.isTraceEnabled()){
+            log.trace("InboundHandler:{}", this.getClass().getSimpleName());
         }
 
         String bsId = new String((dataPacket).getIdCode());

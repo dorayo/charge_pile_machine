@@ -1,18 +1,17 @@
 package com.huamar.charge.common.util;
 
-import cn.hutool.core.date.DateUtil;
-import cn.hutool.core.util.HexUtil;
+import lombok.extern.slf4j.Slf4j;
 
 import java.util.Calendar;
 import java.util.Date;
 
 /**
- * @ClassName Cp56Time2a
- * @Description Cp56Time2a 解析与生成
- * @Author liangbo
- * @Date 2023/2/22 21:36
- * @Version 1.0
- **/
+ * Cp56Time2a
+ * Date: 2023/07/24
+ *
+ * @author yjl，TiAmo(13721682347 @ 163.com)
+ */
+@Slf4j
 public class Cp56Time2aUtil {
 
     /**
@@ -45,17 +44,6 @@ public class Cp56Time2aUtil {
         aTime.set(Calendar.YEAR, years + 2000);
         return aTime.getTime();
     }
-
-//    /**
-//     * 转为时间格式
-//     *
-//     * @param bytes 字符数组
-//     * @return 时间
-//     */
-//    public static Date toDate(byte[] bytes) {
-//        String dateString = toDateString(bytes);
-//        return DateUtil.parse(dateString, "yyyy-MM-dd HH:mm:ss");
-//    }
 
     /**
      * 时间转16进制字符串
@@ -99,21 +87,6 @@ public class Cp56Time2aUtil {
             byteArray[i] = (byte) hexValue;
         }
         return byteArray;
-    }
-
-    public static void main(String[] args) {
-        String hexString = date2HexStr(DateUtil.parse("2020-03-16 17:14:47", "yyyy-MM-dd HH:mm:ss"));
-        byte[] bf = dateToByte(DateUtil.parse("2020-03-16 17:14:47", "yyyy-MM-dd HH:mm:ss"));
-        System.out.println("新Cp56Time2a: " + hexString);
-//        String decodeStr = "A7232E0FB80217";
-//        String originStr = "2020-03-16 17:14:47";
-//        byte[] byteTimes = HexUtil.decodeHex(decodeStr);
-//        System.out.println("Cp56Time2a原值: " + originStr);
-//        System.out.println("解析" + decodeStr + ": " + toDateString(byteTimes));
-//        Date time = toDate(byteTimes);
-//        String hexString = date2HexStr(new Date());
-//        System.out.println("新Cp56Time2a: " + hexString);
-//        System.out.println("新Cp56Time2a原值: " + toDateString(HexUtil.decodeHex(hexString)));
     }
 
 }

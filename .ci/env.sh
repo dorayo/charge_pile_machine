@@ -12,7 +12,7 @@ set -e
 host_name=root@120.46.55.96
 identity_file=~/.ssh/kube-prod-key.pem
 ssh_port=22
-# <<<<<<<<<<<<< build 服务器 <<<<<<<<<<<<<<<<<
+# <<<<<<<<<<<< build 服务器 <<<<<<<<<<<<<<<
 echo "─────────────────────────────────────────────────────"
 echo host_name:${host_name}
 echo identity_file:${identity_file}

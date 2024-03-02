@@ -25,7 +25,6 @@ import com.huamar.charge.pile.server.service.charge.ChargeInfoService;
 import com.huamar.charge.pile.server.service.command.MessageCommandRespService;
 import com.huamar.charge.pile.server.service.machine.MachineService;
 import com.huamar.charge.pile.server.service.produce.PileMessageProduce;
-import com.huamar.charge.pile.server.session.SessionManager;
 import com.huamar.charge.pile.utils.binaryBuilder.BinaryBuilders;
 import com.huamar.charge.pile.utils.views.BinaryViews;
 import io.netty.buffer.ByteBuf;

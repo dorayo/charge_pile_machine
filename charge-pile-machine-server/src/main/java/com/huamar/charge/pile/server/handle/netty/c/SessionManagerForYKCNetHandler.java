@@ -39,6 +39,11 @@ public class SessionManagerForYKCNetHandler extends SimpleChannelInboundHandler<
         this.type = type;
     }
 
+    @SuppressWarnings("unused")
+    public SessionManagerForYKCNetHandler() {
+    }
+
+
     /**
      * 服务端上线的时候调用
      *
@@ -46,7 +51,7 @@ public class SessionManagerForYKCNetHandler extends SimpleChannelInboundHandler<
      */
     @SuppressWarnings("DuplicatedCode")
     @Override
-    public void channelActive(ChannelHandlerContext ctx) throws Exception {
+    public void channelActive(ChannelHandlerContext ctx) {
         //v240106 修改日志优化
         SessionManager.channelActive(ctx, "YKC");
         ctx.fireChannelActive();
@@ -59,7 +64,7 @@ public class SessionManagerForYKCNetHandler extends SimpleChannelInboundHandler<
      */
     @SuppressWarnings("DuplicatedCode")
     @Override
-    public void channelInactive(ChannelHandlerContext ctx) throws Exception {
+    public void channelInactive(ChannelHandlerContext ctx) {
         SessionManager.channelInactive(ctx, "YKC");
         ctx.fireChannelInactive();
     }
@@ -84,8 +89,8 @@ public class SessionManagerForYKCNetHandler extends SimpleChannelInboundHandler<
      */
     @Override
     protected void channelRead0(ChannelHandlerContext channelHandlerContext, ProtocolCPacket packet) {
-        if(log.isDebugEnabled()){
-            log.debug("InboundHandler:{}", this.getClass().getSimpleName());
+        if(log.isTraceEnabled()){
+            log.trace("InboundHandler:{}", this.getClass().getSimpleName());
         }
         AttributeKey<String> machineId = AttributeKey.valueOf(ConstEnum.MACHINE_ID.getCode());
 

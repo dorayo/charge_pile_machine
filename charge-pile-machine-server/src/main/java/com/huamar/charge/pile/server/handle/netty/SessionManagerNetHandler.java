@@ -80,8 +80,9 @@ public class SessionManagerNetHandler extends SimpleChannelInboundHandler<BasePa
      */
     @Override
     protected void channelRead0(ChannelHandlerContext channelHandlerContext, BasePacket packet) {
-        if(log.isDebugEnabled()){
-            log.debug("InboundHandler:{}", this.getClass().getSimpleName());
+        //noinspection DuplicatedCode
+        if(log.isTraceEnabled()){
+            log.trace("InboundHandler:{}", this.getClass().getSimpleName());
         }
         String idCode = "";
         if (packet instanceof DataPacket) {

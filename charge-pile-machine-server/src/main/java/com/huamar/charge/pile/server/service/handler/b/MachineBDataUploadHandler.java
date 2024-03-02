@@ -9,8 +9,6 @@ import com.huamar.charge.pile.entity.dto.resp.McCommonResp;
 import com.huamar.charge.pile.enums.ProtocolCodeEnum;
 import com.huamar.charge.pile.server.service.answer.b.McBCommonAnswerExecute;
 import com.huamar.charge.pile.server.service.event.PileChargeFinishEventExecute;
-import com.huamar.charge.pile.server.service.factory.McAnswerFactory;
-import com.huamar.charge.pile.server.service.factory.McDataUploadFactory;
 import com.huamar.charge.pile.server.service.handler.MachinePacketHandler;
 import com.huamar.charge.pile.server.service.upload.McDataUploadOnlineExecute;
 import com.huamar.charge.pile.server.service.upload.McDataUploadStageExecute;
@@ -31,13 +29,6 @@ import java.util.List;
 @RequiredArgsConstructor
 public class MachineBDataUploadHandler implements MachinePacketHandler<DataPacket> {
 
-
-    private final McDataUploadFactory dataUploadFactory;
-
-    /**
-     * 设备终端上下文
-     */
-    private final McAnswerFactory answerFactory;
     /**
      * 回复通用应答
      */
@@ -99,7 +90,6 @@ public class MachineBDataUploadHandler implements MachinePacketHandler<DataPacke
                     log.error("MachineDataUpItem unKnown unitId " + item.getUnitId());
             }
         }
-
     }
 
 

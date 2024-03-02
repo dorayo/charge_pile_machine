@@ -85,7 +85,7 @@ public class PacketProtocolCodec implements ProtocolCodec {
     public BasePacket decode(ByteBuffer buffer) {
         try {
             if(log.isDebugEnabled()){
-                log.debug("Decode start >>>>>>>>>> buffer:{}", buffer);
+                log.debug("Decode start >>>>>>> buffer:{}", buffer);
             }
 
             buffer.order(ByteOrder.LITTLE_ENDIAN);
@@ -157,7 +157,7 @@ public class PacketProtocolCodec implements ProtocolCodec {
             throw new TioDecodeException(e.getMessage());
         } finally {
             if(log.isDebugEnabled()){
-                log.debug("Decode end >>>>>>>>>> buffer:{}", buffer);
+                log.debug("Decode end >>>>>>> buffer:{}", buffer);
             }
         }
     }
@@ -189,7 +189,7 @@ public class PacketProtocolCodec implements ProtocolCodec {
     @Override
     public BasePacket decode(ByteBuf byteBuf) {
         if(log.isDebugEnabled()){
-            log.debug("Decode start >>>>>>>>>> buffer:{}", byteBuf);
+            log.debug("Decode start >>>>>>> buffer:{}", byteBuf);
         }
         try {
             byteBuf.markReaderIndex();
@@ -260,7 +260,7 @@ public class PacketProtocolCodec implements ProtocolCodec {
             if(log.isDebugEnabled()){
                 StringJoiner joiner = new StringJoiner(StringPool.COMMA, StringPool.EMPTY, StringPool.EMPTY);
                 joiner.add(MessageFormatter.format("Decode 终端号:{} msgId:{}", new String(packet.getIdCode()), messageId).getMessage());
-                joiner.add(MessageFormatter.format("hexData:{}", HexExtUtil.encodeHexStrFormat(bytes, StringPool.SPACE)).getMessage());
+                joiner.add(MessageFormatter.format("hexData:{}", HexExtUtil.encodeHexStr(bytes)).getMessage());
                 log.debug(joiner.toString());
             }
 
@@ -270,7 +270,7 @@ public class PacketProtocolCodec implements ProtocolCodec {
             throw new RuntimeException(e.getMessage());
         } finally {
             if(log.isDebugEnabled()){
-                log.debug("Decode end >>>>>>>>>> buffer:{}", byteBuf);
+                log.debug("Decode end >>>>>>> buffer:{}", byteBuf);
             }
         }
     }
@@ -318,8 +318,8 @@ public class PacketProtocolCodec implements ProtocolCodec {
         buffer.get(encodeBytes);
 
         if (log.isTraceEnabled()) {
-            log.trace("transferEncode before:{}", HexExtUtil.encodeHexStrFormat(hexBytes, StringPool.SPACE));
-            log.trace("transferEncode after:{}", HexExtUtil.encodeHexStrFormat(encodeBytes, StringPool.SPACE));
+            log.trace("transferEncode before:{}", HexExtUtil.encodeHexStr(hexBytes));
+            log.trace("transferEncode after:{}", HexExtUtil.encodeHexStr(encodeBytes));
         }
         return encodeBytes;
     }

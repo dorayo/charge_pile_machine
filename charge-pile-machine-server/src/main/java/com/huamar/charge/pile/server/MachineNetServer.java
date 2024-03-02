@@ -160,13 +160,13 @@ public class MachineNetServer implements NetServer {
                                     }
 
                                     if (log.isDebugEnabled()) {
-                                        log.info("SLX channelRead into >>>>>>>>>>>>>>>>>> idCode:{} session:{} address:{}", idCode, Optional.ofNullable(session).isPresent(), remotedAddress);
+                                        log.info("SLX channelRead into >>>>>>> idCode:{} session:{} address:{}", idCode, Optional.ofNullable(session).isPresent(), remotedAddress);
                                     }
 
                                     ctx.fireChannelRead(msg);
 
                                     if (log.isDebugEnabled()) {
-                                        log.info("SLX channelRead end <<<<<<<<<<<<<<<<<<< idCode:{} session address:{} end", idCode, remotedAddress);
+                                        log.info("SLX channelRead end <<<<<<<");
                                     }
                                 }finally {
                                     MDC.clear();
@@ -178,10 +178,10 @@ public class MachineNetServer implements NetServer {
                             public void channelReadComplete(ChannelHandlerContext ctx) {
                                 try {
                                     SessionManager.setMDCParam(ctx);
-                                    log.info("SLX channelReadComplete end <<<<<<<<<<<<<<<<<<");
+                                    log.info("SLX readComplete end -------");
                                     super.channelReadComplete(ctx);
                                 }catch (Exception e){
-                                    log.error("SLX channelReadComplete error");
+                                    log.error("SLX readComplete error");
                                 }finally {
                                     MDC.clear();
                                 }
