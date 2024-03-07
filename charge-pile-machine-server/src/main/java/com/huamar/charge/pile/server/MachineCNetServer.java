@@ -291,13 +291,13 @@ public class MachineCNetServer {
 
             if(log.isDebugEnabled()){
                 String messageId = HexExtUtil.encodeHexStr(p.getBodyType());
-                log.debug("YKC 终端号:{}, msgId:{}, sign:{}, bodyLen:{}, orderVBf:{}, encryptState:{}, bodyType:{}, ",
+                log.debug("YKC Decode idCode:{}, msgId:{}, sign:{}, bodyLen:{}, orderVBf:{}, encryptState:{}, bodyType:{}",
                         idCode, messageId, p.getSign(), p.getBodyLen(), HexExtUtil.encodeHexStr(p.getOrderVBf()), p.isEncryptState(), HexExtUtil.encodeHexStr(p.getBodyType()));
             }
 
-            if(log.isDebugEnabled()){
-                log.debug("YKC Decode CRC16 check ByteOrder:{}, source:{} check:{}", p.getByteOrder(), p.getSourceCrC(), p.getCheckCrC());
-                log.debug("YKC Decode <<<<<<<<<< end hex");
+            if(log.isTraceEnabled()){
+                log.trace("YKC Decode CRC16 check ByteOrder:{}, source:{} check:{}", p.getByteOrder(), p.getSourceCrC(), p.getCheckCrC());
+                log.trace("YKC Decode <<<<<<<<<< end hex");
             }
 
             boolean checkCrc = p.getSourceCrC() == p.getCheckCrC();

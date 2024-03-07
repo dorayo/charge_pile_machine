@@ -8,7 +8,7 @@ service_name=charge_pile_machine
 # 环境
 profile=prod
 # 容器镜像版本
-container_tag=v24022200
+container_tag=v24030200
 
 ## build
 # ──────────────────────────────────────────────────────────────────────────────────────────────────────────

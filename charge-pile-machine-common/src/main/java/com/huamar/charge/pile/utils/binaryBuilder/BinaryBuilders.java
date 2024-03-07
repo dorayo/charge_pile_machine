@@ -44,8 +44,8 @@ public class BinaryBuilders {
 
         boolean crc16 = checkVar1 == checkVar2;
 
-        if(log.isDebugEnabled()){
-            log.info("YKC CRC16 Response packet check:{} hex One:{} hex Two:{}", crc16, HexExtUtil.encodeHexStr(bytes1), HexExtUtil.encodeHexStr(bytes2));
+        if(log.isTraceEnabled()){
+            log.trace("YKC CRC16 Response packet check:{} hex One:{} hex Two:{}", crc16, HexExtUtil.encodeHexStr(bytes1), HexExtUtil.encodeHexStr(bytes2));
         }
 
         bfB.writeShortLE(checkVar1);

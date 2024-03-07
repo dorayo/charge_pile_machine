@@ -50,21 +50,38 @@ public class MachineCHeartbeatHandler {
     private final PileMessageProduce pileMessageProduce;
 
 
+    /**
+     * 心跳执行
+     *
+     * @param packet packet
+     * @param sessionChannel sessionChannel
+     * @param ctx ctx
+     */
     public void handler(ProtocolCPacket packet, SessionChannel sessionChannel, ChannelHandlerContext ctx) {
         AttributeKey<String> machineId = AttributeKey.valueOf(ConstEnum.MACHINE_ID.getCode());
         String idCode = ctx.channel().attr(machineId).get();
         try {
             String ip = sessionChannel.getIp();
             byte[] body = packet.getBody();
-            log.info("YKC 设备心跳包，ip={}, idCode:{}, gun:{}, status:{}, msgNum:{}", ip, idCode, body[7], body[8], packet.getOrderV());
+            int messageNum = packet.getOrderV();
+            boolean infoLog = messageNum % 10 == 0;
+            if (log.isInfoEnabled() && infoLog) {
+                log.info("YKC heartbeat idCode:{}, gun:{}, status:{}, msgNum:{}", idCode, body[7], body[8], messageNum);
+            }
+
+            if(log.isTraceEnabled()){
+                log.trace("YKC heartbeat，ip={}, idCode:{}, gun:{}, status:{}, msgNum:{}", ip, idCode, body[7], body[8], messageNum);
+            }
 
             packet.getBody()[8] = 0;
             ByteBuf response = BinaryBuilders.protocolCLeResponseBuilder(packet.getBody(), packet.getOrderVBf(), (byte) 0x04);
             ctx.channel().writeAndFlush(response).addListener((f) -> {
                 if (f.isSuccess()) {
-                    log.info("YKC 设备心跳包回执 write heartbeat success");
+                    if (log.isInfoEnabled() && infoLog) {
+                        log.info("YKC heartbeat success");
+                    }
                 } else {
-                    log.error("YKC 设备心跳包回执 write heartbeat error：{}", ExceptionUtils.getMessage(f.cause()));
+                    log.error("YKC heartbeat write error:{}", ExceptionUtils.getMessage(f.cause()));
                 }
             });
 

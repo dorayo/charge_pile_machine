@@ -387,14 +387,11 @@ public class MachineCHandlers {
             pileMessageProduce.send(messageData);
             pileMessageProduce.send(messageData1);
 
-
-
         } catch (Exception e) {
             log.error("sendMessage send error e:{}", e.getMessage(), e);
         } finally {
             if (log.isDebugEnabled()) {
-                log.debug("YKC 实时监测数据上传 handler 0x13 infoData   :{}", infoData);
-                log.debug("YKC 实时监测数据上传 handler 0x13 infoDataNew:{}", infoDataNew);
+                log.debug("YKC handler 0x13(实时充电数据) infoDataNew:{} infoData:{}", infoDataNew, infoData);
             }
         }
     }
@@ -585,6 +582,7 @@ public class MachineCHandlers {
             // 新版本金额读取方法
             bodyBuf.readerIndex(102 + 10);
             long powerCountLE = bodyBuf.readUnsignedIntLE();
+
             bodyBuf.readerIndex(102 + 18);
             long totalLE = bodyBuf.readUnsignedIntLE();
             String vin = "";
@@ -606,7 +604,7 @@ public class MachineCHandlers {
 
 
             //v2024/01/08 结束充电无效
-            ByteBuf responseNew = null;
+            ByteBuf responseNew;
             ByteBuf byteBuf = ByteBufAllocator.DEFAULT.heapBuffer(256);
             try {
                 byteBuf.writeBytes(oldBody, 0, 16);
@@ -616,7 +614,7 @@ public class MachineCHandlers {
                 jsonLog.put("ok", 0x00);
 
                 byte[] newBody = ByteBufUtil.getBytes(byteBuf);
-                log.info("YKC YKC 充电订单上报 回执 response newBody {} type=0x40 readIndex:{}", BinaryViews.bfToHexStr(newBody), byteBuf.readerIndex());
+                log.info("YKC handler 0x3b 充电订单结算(0x3b) response newBody {} type=0x40 readIndex:{}", BinaryViews.bfToHexStr(newBody), byteBuf.readerIndex());
                 responseNew = BinaryBuilders.protocolCLeResponseBuilder(newBody, packet.getOrderVBf(), (byte) 0x40);
             }finally {
                 byteBuf.release();
@@ -632,9 +630,9 @@ public class MachineCHandlers {
 
             ctx.channel().writeAndFlush(responseNew).addListener((f) -> {
                 if (f.isSuccess()) {
-                    log.info("YKC 充电订单上报 write success msgId:{}", "0x40");
+                    log.info("YKC YKC handler 0x3b 充电订单结算(0x3b) write success msgId:{}", "0x40");
                 } else {
-                    log.error("YKC 充电订单上报 write error msgId:{} error:{}", "0x40", ExceptionUtils.getMessage(f.cause()), f.cause());
+                    log.error("YKC YKC handler 0x3b 充电订单结算(0x3b) write error msgId:{} error:{}", "0x40", ExceptionUtils.getMessage(f.cause()), f.cause());
                 }
             });
 
