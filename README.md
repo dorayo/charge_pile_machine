@@ -1,5 +1,22 @@
 # 充电桩通讯端 [charge-pile-machine-server](charge-pile-machine-server)
 
+## 生产日志查看
+ssh 登录中间服务器：120.46.55.96 密钥：kube-prod-key.pem文件，仅仅私人保存请勿泄露！！！  </br>
+执行 command:k9s (可自行学习这个工具)  </br>
+充电桩命名空间：charge-dev 测试环境  </br>
+充电桩命名空间：charge-pord 生产环境  </br>
+上下箭头选择命名空间，回车选择进入ns  </br>
+![img.png](base-doc/img.png)
+
+![img.png](base-doc/prod-pod.png)
+键盘s进入容器，日志存放目录格式统一，~/logs/服务名  <br>
+当前调试日志每个设备单独存储 格式 pile_桩号.log
+服务主日志是 application.log <br>
+<hr>
+
+
+
+
 ## 客户端测试模块 [charge-pile-client-network]
 自己模拟充电桩设备的伪装客户端，无用
 
