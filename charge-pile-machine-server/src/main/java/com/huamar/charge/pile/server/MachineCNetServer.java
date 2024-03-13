@@ -165,8 +165,8 @@ public class MachineCNetServer {
 
                                     ctx.fireChannelRead(msg);
 
-                                    if (log.isDebugEnabled()) {
-                                        log.info("YKC channelRead end <<<<<<<");
+                                    if (log.isTraceEnabled()) {
+                                        log.trace("YKC channelRead end <<<<<<<");
                                     }
                                 }finally {
                                     MDC.clear();
@@ -177,7 +177,9 @@ public class MachineCNetServer {
                             public void channelReadComplete(ChannelHandlerContext ctx) {
                                 try {
                                     SessionManager.setMDCParam(ctx);
-                                    log.info("YKC readComplete end -------");
+                                    if(log.isTraceEnabled()){
+                                        log.trace("YKC readComplete end -------");
+                                    }
                                     super.channelReadComplete(ctx);
                                 }catch (Exception e){
                                     log.error("YKC channelReadComplete error");
@@ -185,7 +187,6 @@ public class MachineCNetServer {
                                     MDC.clear();
                                 }
                             }
-
                         });
                         pipeline.addLast("splitD", new MessageSplitDecodeHandler());
                         pipeline.addLast("handleD", new MessageHandleDecodeHandler());
@@ -245,7 +246,7 @@ public class MachineCNetServer {
             // 不足继续读取
             if (readableBytes < packetLength) {
                 if(log.isDebugEnabled()){
-                    log.info("YKC 获取半包 return:{}", byteBuf);
+                    log.info("YKC Decode 半包 byteBuf:{}", byteBuf);
                 }
 
                 //重置读取
@@ -257,11 +258,6 @@ public class MachineCNetServer {
             byteBuf.resetReaderIndex();
             ByteBuf nextBuf = byteBuf.readBytes(packetLength);
             list.add(nextBuf);
-
-            // 分割数据包
-            if(log.isDebugEnabled()){
-                log.debug("YKC Decode >>>>>>> SplitDecode byteBuf:{}", byteBuf);
-            }
         }
     }
 
@@ -283,7 +279,7 @@ public class MachineCNetServer {
             String idCode = SessionManager.getIdCode(ctx);
 
             if(log.isDebugEnabled()){
-                log.debug("YKC Decode hex packet:{}", HexExtUtil.encodeHexStr(bytes));
+                log.debug("YKC Decode byteBuf:{} packet:{}", byteBuf, HexExtUtil.encodeHexStr(bytes));
             }
 
             // 协议包解析

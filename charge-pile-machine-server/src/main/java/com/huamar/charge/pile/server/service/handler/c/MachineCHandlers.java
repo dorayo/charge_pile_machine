@@ -17,10 +17,7 @@ import com.huamar.charge.pile.entity.dto.command.MessageCommonRespDTO;
 import com.huamar.charge.pile.entity.dto.command.YKCChargePrice;
 import com.huamar.charge.pile.entity.dto.mq.MessageData;
 import com.huamar.charge.pile.entity.dto.platform.event.PileChargeFinishEventPushDTO;
-import com.huamar.charge.pile.enums.ConstEnum;
-import com.huamar.charge.pile.enums.MessageCodeEnum;
-import com.huamar.charge.pile.enums.MessageCommonResultEnum;
-import com.huamar.charge.pile.enums.NAttrKeys;
+import com.huamar.charge.pile.enums.*;
 import com.huamar.charge.pile.server.service.charge.ChargeInfoService;
 import com.huamar.charge.pile.server.service.command.MessageCommandRespService;
 import com.huamar.charge.pile.server.service.machine.MachineService;
@@ -262,6 +259,7 @@ public class MachineCHandlers {
     public void handler0x13(ProtocolCPacket packet, ChannelHandlerContext ctx) {
         JSONObject infoData = new JSONObject();
         JSONObject infoDataNew = new JSONObject();
+        boolean sendMessage = true;
         try {
             AttributeKey<String> machineId = AttributeKey.valueOf(ConstEnum.MACHINE_ID.getCode());
             McChargerOnlineInfoDTO onlineInfoDto = new McChargerOnlineInfoDTO();
@@ -367,6 +365,23 @@ public class MachineCHandlers {
                 onlineInfoDto.setGunState((byte) 1);
             }
 
+            // 20240313 修改，充电结束后有充电订单号，但是状态空闲，度数金额复位丢弃本次数据，如果发送会造成充电中订单变位网络波动结束订单，仅丢弃本次
+            if(!StringUtils.equals(orderNumberStr, "00000000000000000000000000000000")){
+                if(Objects.equals(onlineInfoDto.getGunState(), PileStateEnum.OFFLINE.getCode())){
+                    sendMessage = false;
+                    return;
+                }
+
+                if(Objects.equals(onlineInfoDto.getGunState(), PileStateEnum.FREE.getCode())){
+                    sendMessage = false;
+                    return;
+                }
+
+                if(Objects.equals(onlineInfoDto.getGunState(), PileStateEnum.UN_KNOW.getCode())){
+                    sendMessage = false;
+                    return;
+                }
+            }
 
             // 服务费服务端计算
             this.chargIngServicePrice(ctx, infoDataNew, onlineInfoDto);
@@ -386,12 +401,11 @@ public class MachineCHandlers {
             messageData1.setRequestId(IdUtil.simpleUUID());
             pileMessageProduce.send(messageData);
             pileMessageProduce.send(messageData1);
-
         } catch (Exception e) {
             log.error("sendMessage send error e:{}", e.getMessage(), e);
         } finally {
             if (log.isDebugEnabled()) {
-                log.debug("YKC handler 0x13(实时充电数据) infoDataNew:{} infoData:{}", infoDataNew, infoData);
+                log.debug("YKC handler 0x13(实时充电数据) sendMessage:{}, infoDataNew:{}{}infoData:{}", sendMessage, infoDataNew, System.lineSeparator() ,infoData);
             }
         }
     }
